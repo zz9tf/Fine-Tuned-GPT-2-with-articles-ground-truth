@@ -13,8 +13,8 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 pio.renderers.default = 'notebook_connected'
 HfFolder.save_token('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')
 
-gpu_device = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(gpu_device[0], True)
+# gpu_device = tf.config.list_physical_devices('GPU')
+# tf.config.experimental.set_memory_growth(gpu_device[0], True)
 
 tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
 tokenizer.pad_token = tokenizer.eos_token

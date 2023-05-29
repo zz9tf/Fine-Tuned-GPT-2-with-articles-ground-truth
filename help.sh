@@ -8,6 +8,9 @@ if [[ $# -gt 0 ]]; then
         scancel $2
     elif [[ $1 == 'info' ]]; then
         sinfo
+    elif [[ $1 == 'install ' ]]; then
+        source $( read_env PY_ENV ) gpt2
+        pip install $2
     else
         echo "Usage: source ./code/read_env.sh [command]"
         echo
