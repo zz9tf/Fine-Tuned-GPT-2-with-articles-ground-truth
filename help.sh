@@ -21,7 +21,7 @@ if [[ $# -gt 0 ]]; then
         cd custome-tensorflow && \
         docker build -t tensorflow-custom . && \
         docker run --name build-tensorflow -it tensorflow-custom
-        
+
     else
         echo "Usage: source ./code/read_env.sh [command]"
         echo
@@ -37,6 +37,7 @@ if [[ $# -gt 0 ]]; then
         echo "Additional options and functionality can be added as needed."
     fi
 else
+    rm -f *out
     # Activate the virtual environment if needed
     source $(read_env PY_ENV) gpt2
     python --version
