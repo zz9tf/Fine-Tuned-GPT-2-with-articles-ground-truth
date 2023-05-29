@@ -9,5 +9,18 @@ elif [[ $1 == 'kill' ]]; then
 elif [[ $1 == 'info' ]]; then
     sinfo
 else
+    # Read env file
+    source ./code/read_env.sh
+
+    # Activate the virtual environment if needed
+    source $( read_env PY_ENV ) gpt2
+
+    # Path to your Python executable and script
+    PYTHON_EXECUTABLE=python
+    PYTHON_SCRIPT=--version
+
+    # Run the Python code
+    $PYTHON_EXECUTABLE $PYTHON_SCRIPT
+    
     sbatch ./code/exe.sh
 fi
