@@ -24,9 +24,8 @@ if [[ $# -gt 0 ]]; then
 else
     # Activate the virtual environment if needed
     source $( read_env PY_ENV ) gpt2
+    python --version
 
     # Path to your Python executable and script
-    python --version
-    
-    # sbatch ./code/exe.sh
+    sbatch ./code/exe.sh
 fi
