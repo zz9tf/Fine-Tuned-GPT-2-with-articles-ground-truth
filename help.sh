@@ -37,11 +37,6 @@ if [[ $# -gt 0 ]]; then
         echo "Additional options and functionality can be added as needed."
     fi
 else
-    rm -f *out
-    # Activate the virtual environment if needed
-    source $(read_env PY_ENV) gpt2
-    python --version
-
     # Path to your Python executable and script
     sbatch ./code/exe.sh
 fi
