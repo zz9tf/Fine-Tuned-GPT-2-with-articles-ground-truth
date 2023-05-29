@@ -4,7 +4,7 @@ read_env() {
     return 1
   fi
 
-  local ENV_FILE='.env'
+  local ENV_FILE='../.env'
   if [ ! -z "$2" ]; then
     ENV_FILE="$2"
   fi
