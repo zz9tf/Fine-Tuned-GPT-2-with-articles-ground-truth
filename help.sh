@@ -3,7 +3,7 @@ if [[ $# -gt 0 ]]; then
     if [[ $1 == 'jobs' ]]; then
         squeue -u $( read_env USER )
     elif [[ $1 == 'push' ]]; then
-        scp .env $(read_var REMOTE_CONNECTION):$(read_var PATH)
+        scp .env $(read_env REMOTE_CONNECTION):$(read_env PATH)
     elif [[ $1 == 'kill' ]]; then
         scancel $2
     elif [[ $1 == 'info' ]]; then
