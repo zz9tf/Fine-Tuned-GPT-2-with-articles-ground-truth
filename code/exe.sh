@@ -11,4 +11,4 @@
 module load cuda/9.0
 module load share_modules/HOOMD/2.3.5_sp
 
-srun -l /bin/sleep 10
+srun python ./code/gpt-2-fine-tune.py

@@ -1,26 +1,33 @@
 source ./code/read_env.sh
-
-if [[ $1 == 'jobs' ]]; then
-    squeue -u $( read_var USER )
-elif [[ $1 == 'push' ]]; then
-    scp .env $(read_var REMOTE_CONNECTION):$(read_var PATH)
-elif [[ $1 == 'kill' ]]; then
-    scancel $2
-elif [[ $1 == 'info' ]]; then
-    sinfo
+if [[ $# -gt 0 ]]; then
+    if [[ $1 == 'jobs' ]]; then
+        squeue -u $( read_env USER )
+    elif [[ $1 == 'push' ]]; then
+        scp .env $(read_var REMOTE_CONNECTION):$(read_var PATH)
+    elif [[ $1 == 'kill' ]]; then
+        scancel $2
+    elif [[ $1 == 'info' ]]; then
+        sinfo
+    else
+        echo "Usage: source ./code/read_env.sh [command]"
+        echo
+        echo "Commands:"
+        echo "  jobs          List jobs for the current user"
+        echo "  push          Push .env file to a remote server"
+        echo "  kill          Cancel a specific job"
+        echo "  info          Display jobs information"
+        echo
+        echo "If no command is specified, a job will be submitted."
+        echo
+        echo "Additional options and functionality can be added as needed."
+    fi
 else
-    # Read env file
-    source ./code/read_env.sh
-
     # Activate the virtual environment if needed
     source $( read_env PY_ENV ) gpt2
 
     # Path to your Python executable and script
     PYTHON_EXECUTABLE=python
     PYTHON_SCRIPT=--version
-
-    # Run the Python code
-    $PYTHON_EXECUTABLE $PYTHON_SCRIPT
     
     sbatch ./code/exe.sh
 fi

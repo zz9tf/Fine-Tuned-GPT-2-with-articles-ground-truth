@@ -1,4 +1,4 @@
-read_var() {
+read_env() {
   if [ -z "$1" ]; then
     echo "Please enter the environment variable to read!"
     return 1
@@ -13,3 +13,5 @@ read_var() {
   IFS="=" read -ra VAR <<< "$VAR"
   echo ${VAR[1]}
 }
+
+# echo 'load read_env'
