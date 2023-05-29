@@ -2,7 +2,7 @@
 #SBATCH --job-name=gpt
 #SBATCH --output=None
 #SBATCH --mail-type=BEGIN, FAIL, END
-#SBATCH --mail-user=zz9tf@umsystem.edu
+#SBATCH --mail-user=Zheng_5732021823@outlook.com
 #SBATCH --partition=guest-gpu
 #SBATCH --qos=low-gpu
 #SBATCH --gres=gpu:TitanX:1   # Request 1 TitanX GPU
