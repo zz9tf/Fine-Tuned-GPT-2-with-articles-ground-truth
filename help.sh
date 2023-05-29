@@ -26,8 +26,7 @@ else
     source $( read_env PY_ENV ) gpt2
 
     # Path to your Python executable and script
-    PYTHON_EXECUTABLE=python
-    PYTHON_SCRIPT=--version
+    python --version
     
-    sbatch ./code/exe.sh
+    # sbatch ./code/exe.sh
 fi
