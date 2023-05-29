@@ -12,8 +12,9 @@ module load cuda/9.0
 module load share_modules/HOOMD/2.3.5_sp
  
 # Path to your Python executable and script
-PYTHON_EXECUTABLE=/path/to/python
-PYTHON_SCRIPT=./code/gpt-2-fine-tune.py
+conda activate gpt2
+PYTHON_EXECUTABLE=python
+PYTHON_SCRIPT=--version
 
 # Activate the virtual environment if needed
 # source /path/to/virtualenv/bin/activate
