@@ -1,0 +1,23 @@
+Bootstrap: docker
+From: centos:7.5.1804
+
+%post
+    # set up user and working directory
+    cd /
+
+    # libraries and commands for FSL
+    yum -y install wget file bzip2 which git
+
+    # install py3
+    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O Miniconda3-latest-Linux-x86_64.sh
+    /bin/bash Miniconda3-latest-Linux-x86_64.sh -b -p miniconda3/
+    source miniconda3/bin/activate
+    conda install transformers
+
+%environment
+    source /miniconda3/bin/activate
+    alias ls='ls --color'
+
+# %runscript
+#    source /miniconda3/bin/activate
+#    exec "$@"
