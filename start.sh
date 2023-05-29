@@ -10,9 +10,9 @@ SBATCH --gres=gpu:TitanX:1   # Request 1 TitanX GPU
 # Load modules required for your job
 module load cuda/9.0
 module load share_modules/HOOMD/2.3.5_sp
- 
+# /home/zhengzheng/.conda/envs/gpt2
 # Path to your Python executable and script
-conda activate gpt2
+source /share/software/languages/ANACONDA/5.3_py3/bin/activate gpt2
 PYTHON_EXECUTABLE=python
 PYTHON_SCRIPT=--version
 
