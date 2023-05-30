@@ -4,7 +4,7 @@ from datasets import load_dataset
 import plotly.io as pio
 import math
 import os
-from huggingface_hub import hf_hub_url, HfFolder
+from huggingface_hub.hf_api import HfFolder
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 pio.renderers.default = 'notebook_connected'
@@ -19,7 +19,7 @@ model = TFAutoModelForCausalLM.from_pretrained("distilgpt2", pad_token_id=tokeni
 
 data = load_dataset("CShorten/ML-ArXiv-Papers", split='train')
 
-data = data.train_test_split(shuffle=True, seed=200, test_size=0.2)
+data = data.train_test_split(shuffle = True, seed = 200, test_size=0.2)
 
 train = data["train"]
 val = data["test"]
@@ -30,8 +30,8 @@ def tokenization(data):
     return tokens
 
 # Apply the tokenizer in batch mode and drop all the columns except the tokenization result
-train_token = train.map(tokenization, batched=True, remove_columns=["title", "abstract", "Unnamed: 0", "Unnamed: 0.1"], num_proc=10)
-val_token = val.map(tokenization, batched=True, remove_columns=["title", "abstract", "Unnamed: 0", "Unnamed: 0.1"], num_proc=10)
+train_token = train.map(tokenization, batched = True, remove_columns=["title", "abstract", "Unnamed: 0", "Unnamed: 0.1"], num_proc=10)
+val_token = val.map(tokenization, batched = True, remove_columns=["title", "abstract", "Unnamed: 0", "Unnamed: 0.1"], num_proc=10)
 
 
 # Create labels as a copy of input_ids
@@ -43,8 +43,17 @@ def create_labels(text):
 lm_train = train_token.map(create_labels, batched=True, num_proc=10)
 lm_val = val_token.map(create_labels, batched=True, num_proc=10)
 
-train_set = model.prepare_train_dataset(lm_train, batch_size=16)
-validation_set = model.prepare_validation_dataset(lm_val, batch_size=16)
+train_set = model.prepare_tf_dataset(
+    lm_train,
+    shuffle=True,
+    batch_size=16
+)
+
+validation_set = model.prepare_tf_dataset(
+    lm_val,
+    shuffle=False,
+    batch_size=16
+)
 
 # Setting up the learning rate scheduler
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
@@ -52,7 +61,7 @@ lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
     decay_steps=500,
     decay_rate=0.95,
     staircase=False)
-
+    
 # Exponential decay learning rate
 optimizer = AdamWeightDecay(learning_rate=lr_schedule, weight_decay_rate=0.01)
 
@@ -71,10 +80,13 @@ push_to_hub_callback = PushToHubCallback(
     hub_token="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"
 )
 
-# This cell is optional
+#This cell is optional
 from tensorflow.keras.callbacks import TensorBoard
 
-tensorboard_callback = TensorBoard(log_dir="./tensorboard", update_freq=1, histogram_freq=1, profile_batch=2)
+tensorboard_callback = TensorBoard(log_dir="./tensorboard",
+                                    update_freq=1,
+                                    histogram_freq=1,
+                                    profile_batch="2,10")
 
 callbacks = [push_to_hub_callback, tensorboard_callback]
 
@@ -91,7 +103,7 @@ text_generator = pipeline(
     model=model,
     tokenizer=tokenizer,
     framework="tf",
-    max_length=500
+    max_new_tokens=500
 )
 
 test_sentence = "clustering"
