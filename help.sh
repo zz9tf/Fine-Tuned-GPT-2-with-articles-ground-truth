@@ -10,8 +10,7 @@ if [[ $# -gt 0 ]]; then
     elif [[ $1 == 'info' ]]; then
         sinfo
     elif [[ $1 == 'install' ]]; then
-        source $( read_env PY_ENV ) gpt2
-        pip install $2
+        $(read_env PIP_ENV) install $2
     elif [[ $1 == 'build' && $2 == 'tensorflow' ]]; then
         docker stop $(docker ps -a -q)
         docker rm $(docker ps -a -q)
