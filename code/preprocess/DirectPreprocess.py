@@ -30,12 +30,15 @@ def read_documents_from_directory(directory):
     combined_text = []
     for filename in tqdm(os.listdir(directory)):
         file_path = os.path.join(directory, filename)
-        if filename.endswith(".pdf"):
-            new_text = read_pdf(file_path)
-        elif filename.endswith(".docx"):
-            new_text = read_word(file_path)
-        elif filename.endswith(".txt"):
-            new_text = read_txt(file_path)
-        # new_text = re.sub(r'\n+', '\n', new_text).strip()
-        combined_text.append(new_text)
+        try:
+            if filename.endswith(".pdf"):
+                new_text = read_pdf(file_path)
+            elif filename.endswith(".docx"):
+                new_text = read_word(file_path)
+            elif filename.endswith(".txt"):
+                new_text = read_txt(file_path)
+            # new_text = re.sub(r'\n+', '\n', new_text).strip()
+            combined_text.append(new_text)
+        except Exception as e:
+            print(str(e))
     return combined_text
