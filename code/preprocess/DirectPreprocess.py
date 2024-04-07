@@ -4,7 +4,7 @@ import re
 from PyPDF2 import PdfReader
 import os
 import docx
-import shutil
+from tqdm import tqdm
 
 def read_pdf(file_path):
     with open(file_path, "rb") as file:
@@ -28,7 +28,7 @@ def read_txt(file_path):
 
 def read_documents_from_directory(directory):
     combined_text = []
-    for i, filename in enumerate(os.listdir(directory)):
+    for filename in tqdm(os.listdir(directory)):
         file_path = os.path.join(directory, filename)
         if filename.endswith(".pdf"):
             new_text = read_pdf(file_path)
@@ -38,6 +38,4 @@ def read_documents_from_directory(directory):
             new_text = read_txt(file_path)
         # new_text = re.sub(r'\n+', '\n', new_text).strip()
         combined_text.append(new_text)
-        if i == 9:
-            break
     return combined_text
