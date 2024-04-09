@@ -21,7 +21,7 @@ Then, I tokenize the text into smaller chunks to ensure coherence and relevance.
 
 Initialize the GPT-2 model with pre-trained weights. Define the fine-tuning objective, specifying the task (e.g., text generation) and the evaluation metrics. Split the dataset into training, validation, and test sets to monitor the model's performance. Fine-tune the GPT model using techniques like transfer learning, adjusting hyperparameters such as learning rate and batch size. Then, evaluate the fine-tuned model based on human evaluation, with specific questions such as "What is a monosaccharide?"
 
-Test samples:
+**Generation samples:**
 
 ##### (1) on a small subset of the data
 
@@ -29,14 +29,32 @@ Test samples:
 
 ##### (2) on bigger datasets
   
-![image](https://github.com/zz9tf/Fine-Tuned-GPT-2-with-articles-ground-truth/assets/77183284/d9a6bbe2-8a96-4dfd-a6bf-9bf6e922e5df)
+<!--![image](https://github.com/zz9tf/Fine-Tuned-GPT-2-with-articles-ground-truth/assets/77183284/d9a6bbe2-8a96-4dfd-a6bf-9bf6e922e5df)-->
 
+```
+(.conda) (base) root@autodl-container-7b0e4cb38b-09225263:~/Fine-Tuned-GPT-2-with-articles-ground-truth/code# python main.py evaluate
+
+Evaluating...
+[Q] What is the Monosaccharide?
+<start>A. Glucose
+B. Fructose
+C. Sucrose
+D. Maltose
+CHECK GOOGLE PLA Y BOOKS FOR ANSWERS KEYSPRACTICEBOOK»NOTFORSALE2.2 Structure and Function of the Cell 254
+8.Which of the following is not a constituent of
+the cell membrane?
+A. Carbohydrates
+B. Lipids
+C. Proteins
+D. NucleicAcids
+9<end>
+```
 
 ### Challenges faced currently:
 
 - Low quality input data
 
-- Insufficience evaluation about the performance of the model.
+- Insufficient evaluation about the performance of the model.
 
 #### Next Steps
 - Improve the amount of data and the size of the model according to scaling laws.
