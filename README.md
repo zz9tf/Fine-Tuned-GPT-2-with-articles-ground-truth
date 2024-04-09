@@ -26,6 +26,18 @@ Initialize the GPT-2 model with pre-trained weights. Define the fine-tuning obje
 ##### (1) on a small subset of the data
 
 ![image](https://github.com/zz9tf/Fine-Tuned-GPT-2-with-articles-ground-truth/blob/main/images/QA%20example.png)
+```
+(.conda) (base) root@autodl-container-7b0e4cb38b-09225263:~/Fine-Tuned-GPT-2-with-articles-ground-truth/code# python main.py evaluate
+
+Evaluating...
+[Q] What is the Monosaccharide? 
+<start> A: Monosaccharide is a chemical compound that has been shown to be effective in the treatment of various diseases. 
+It has been shown to be effective in the treatment of various diseases. 
+It has been shown to be effective in the treatment of various diseases. 
+It has been shown to be effective in the treatment of various diseases. 
+It has been shown to be effective in the treatment of various diseases. 
+It has been shown to be effective in the treatment of various diseases. It has been<end>
+```
 
 ##### (2) on bigger datasets
   
