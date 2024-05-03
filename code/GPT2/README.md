@@ -25,7 +25,7 @@ Initialize the GPT-2 model with pre-trained weights. Define the fine-tuning obje
 
 ##### (1) on a small subset of the data
 
-![image](https://github.com/zz9tf/Fine-Tuned-GPT-2-with-articles-ground-truth/blob/main/images/QA%20example.png)
+![image](../../Demo/GPT2/QA%20example.png)
 
 The image shown above is generated based on `do_sample=True`, which means the generated text is based on randomly selected possible words. Therefore, the result has significant hallucinations, or may even be unrelated to our question.
 

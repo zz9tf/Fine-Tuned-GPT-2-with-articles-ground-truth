@@ -160,5 +160,7 @@ cython_debug/
 #.idea/
 
 pdf
-data/*
+download_papers.zip
 results/*
+chroma
+data/*
