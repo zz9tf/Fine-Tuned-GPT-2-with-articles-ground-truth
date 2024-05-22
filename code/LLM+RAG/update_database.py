@@ -1,10 +1,10 @@
 import argparse
 import os
 import shutil
-from langchain.document_loaders.pdf import PyPDFDirectoryLoader
+from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
-from langchain.vectorstores.chroma import Chroma
+from langchain_community.vectorstores import Chroma
 
 from langchain_community.embeddings.ollama import OllamaEmbeddings
 from langchain_community.embeddings.bedrock import BedrockEmbeddings
@@ -15,13 +15,8 @@ def clear_database(chroma_path):
 
 def load_documents(data_path):
     document_loader = PyPDFDirectoryLoader(data_path)
-    # List all files in the folder
-    files = os.listdir(data_path)
 
-    # Filter out only the PDF files
-    num_pdf = len([file for file in files if file.endswith(".pdf")])
-
-    return document_loader.load(num_pdf)
+    return document_loader.load()
 
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
@@ -136,7 +131,12 @@ def main():
             file_path = os.path.join(path, file)
             shutil.copy(file_path, folder_path)
             print(folder_path, "   {}/{} | {:.2f}%".format(i+1, n, 100*(i+1)*1.0/n))
-            add_to_database(folder_path, CHROMA_PATH)
+            try:
+                add_to_database(folder_path, CHROMA_PATH)
+            except Exception as e:
+                print("-------------------------------")
+                print(e)
+                print("-------------------------------")
             recorded_log.write(file+"\n")
             shutil.rmtree(folder_path)
 
