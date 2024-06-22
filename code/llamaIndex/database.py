@@ -17,7 +17,7 @@ from llama_index.core.node_parser import (
 )
 from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI
@@ -42,7 +42,7 @@ class Database():
             return OpenAI(model="gpt-4o")
         elif repo_config['name'] in VALID_MODELS:
             tokenizer = AutoTokenizer.from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True)
-            model = AutoModel.from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True)
+            model = AutoModelForCausalLM .from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True)
             return HuggingFaceLLM(model_name=repo_config['name'], model=model, tokenizer=tokenizer)
         else:
             raise Exception("Invalid embedding model name. Please provide LLM model {}".format(VALID_MODELS))
@@ -104,7 +104,6 @@ class Database():
             raise Exception("Invalid embedding model name. Please provide embedding models {}".format(VALID_EMBED_MODEL))
 
     def _init_nodes_generation_pipeline(self, index_config):
-        pipeline_config = index_config['pipeline']
         transformations = []
         
         # Get parser
@@ -172,40 +171,41 @@ class Database():
             print('[update_database] Updating index: {}'.format(index_id))
             pipeline = self._init_nodes_generation_pipeline(index_config)
             documents = self._load_documents()
+
             nodes = self._generate_nodes_from_documents(index_config, documents, pipeline)
 
-            # Initial storage_context config
-            storage_context_config = index_config['storage_context']
-            store_path = os.path.abspath(os.path.join(storage_context_config['store_dir_path'], storage_context_config['name']))
-            if os.path.exists(store_path):
-                print("[update_database] Storage does not find")
-                print("[update_database] Creating a new one...")
+            # # Initial storage_context config
+            # storage_context_config = index_config['storage_context']
+            # store_path = os.path.abspath(os.path.join(storage_context_config['store_dir_path'], storage_context_config['name']))
+            # if os.path.exists(store_path):
+            #     print("[update_database] Storage does not find")
+            #     print("[update_database] Creating a new one...")
 
-            # Generate index for nodes
-            indexGenerator = self._get_an_index(index_config['index'])
-            index = indexGenerator.from_documents(
-                documents=nodes,
-                storage_context=StorageContext.from_defaults(
-                    docstore=self._get_a_store(storage_context_config['docstore']),
-                    vector_store=self._get_a_store(storage_context_config['vector_store']),
-                    index_store=self._get_a_store(storage_context_config['index_store']),
-                    property_graph_store=self._get_a_store(storage_context_config['property_graph_store'])
-                ),
-                persist_dir=store_path if os.path.exists(store_path) else None,
-                show_progress=True
-            )
+            # # Generate index for nodes
+            # indexGenerator = self._get_an_index(index_config['index'])
+            # index = indexGenerator.from_documents(
+            #     documents=nodes,
+            #     storage_context=StorageContext.from_defaults(
+            #         docstore=self._get_a_store(storage_context_config['docstore']),
+            #         vector_store=self._get_a_store(storage_context_config['vector_store']),
+            #         index_store=self._get_a_store(storage_context_config['index_store']),
+            #         property_graph_store=self._get_a_store(storage_context_config['property_graph_store'])
+            #     ),
+            #     persist_dir=store_path if os.path.exists(store_path) else None,
+            #     show_progress=True
+            # )
 
-            if not os.path.exists(store_path):
-                index.set_index_id(self.config['index']['index_id'])
-                index.storage_context.persist(store_path)
+            # if not os.path.exists(store_path):
+            #     index.set_index_id(self.config['index']['index_id'])
+            #     index.storage_context.persist(store_path)
 
-            # docstore = self._get_a_store('SimpleDocumentStore')
-            # docstore.add_documents(nodes)
-            # doc_path = os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/database/doc.json'))
-            # docstore.persist(doc_path)
-            # print('done')
+            docstore = self._get_a_store('SimpleDocumentStore')
+            docstore.add_documents(nodes)
+            doc_path = os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/database/doc.json'))
+            docstore.persist(doc_path)
+            print('doc saved')
 
-        return index
+        # return index
         
 
 if __name__ == '__main__':

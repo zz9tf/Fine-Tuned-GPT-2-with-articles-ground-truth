@@ -19,13 +19,13 @@ document_preprocessing:
         #  - type: "QAExtractor"
         #    llm: "vicuna:13b"
         #    questions: 5
-      embedding_model:
-        name: "Linq-AI-Research/Linq-Embed-Mistral"
-        cache: "/scratch0/zhengzheng/.hf_cache"
+      # embedding_model:
+      #   name: "Linq-AI-Research/Linq-Embed-Mistral"
+      #   cache: "/scratch0/zhengzheng/.hf_cache"
       pipeline:
         is_cache: False # True
         cache_path: ""
-        num_workers: 10
+        num_workers: 1
       storage_context:
         name: "simple.json"
         store_dir_path: "./code/llamaIndex/database"
