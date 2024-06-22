@@ -9,10 +9,6 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings.ollama import OllamaEmbeddings
 from langchain_community.embeddings.bedrock import BedrockEmbeddings
 
-def clear_database(chroma_path):
-    if os.path.exists(chroma_path):
-        shutil.rmtree(chroma_path)
-
 def load_documents(data_path):
     document_loader = PyPDFDirectoryLoader(data_path)
 
@@ -63,44 +59,47 @@ def get_embedding_function():
     embeddings = OllamaEmbeddings(model="nomic-embed-text")
     return embeddings
 
-def add_to_chroma(chroma_path, chunks: list[Document]):
-    # Load the existing database.
-    # Chroma: vactor database
-    db = Chroma(
-        persist_directory=chroma_path, embedding_function=get_embedding_function()
-    )
-
-    # Calculate Page IDs.
-    chunks_with_ids = calculate_chunk_ids(chunks)
-
-    # Add or Update the documents.
-    existing_items = db.get(include=[])  # IDs are always included by default
-    existing_ids = set(existing_items["ids"])
-    print(f"Number of existing documents in DB: {len(existing_ids)}")
-
-    # Only add documents that don't exist in the DB.
-    new_chunks = []
-    print("adding new chunks...")
-    from tqdm import tqdm
-    for chunk in tqdm(chunks_with_ids):
-        if chunk.metadata["id"] not in existing_ids:
-            new_chunks.append(chunk)
-
-    if len(new_chunks):
-        print(f"👉 Adding new documents: {len(new_chunks)}")
-        new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
-        db.add_documents(new_chunks, ids=new_chunk_ids)
-        db.persist()
-    else:
-        print("✅ No new documents to add")
-
 def add_to_database(path, CHROMA_PATH):
+    def add_to_chroma(chroma_path, chunks: list[Document]):
+        # Load the existing database.
+        # Chroma: vactor database
+        db = Chroma(
+            persist_directory=chroma_path, embedding_function=get_embedding_function()
+        )
+
+        # Calculate Page IDs.
+        chunks_with_ids = calculate_chunk_ids(chunks)
+
+        # Add or Update the documents.
+        existing_items = db.get(include=[])  # IDs are always included by default
+        existing_ids = set(existing_items["ids"])
+        print(f"Number of existing documents in DB: {len(existing_ids)}")
+
+        # Only add documents that don't exist in the DB.
+        new_chunks = []
+        print("adding new chunks...")
+        from tqdm import tqdm
+        for chunk in tqdm(chunks_with_ids):
+            if chunk.metadata["id"] not in existing_ids:
+                new_chunks.append(chunk)
+
+        if len(new_chunks):
+            print(f"👉 Adding new documents: {len(new_chunks)}")
+            new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
+            db.add_documents(new_chunks, ids=new_chunk_ids)
+            db.persist()
+        else:
+            print("✅ No new documents to add")
     DATA_PATH = os.path.abspath(os.path.join(os.getcwd(), path))
 
     # Create (or update) the data store.
     documents = load_documents(DATA_PATH)
     chunks = split_documents(documents)
     add_to_chroma(CHROMA_PATH, chunks)
+
+def clear_database(chroma_path):
+    if os.path.exists(chroma_path):
+        shutil.rmtree(chroma_path)
 
 def main():
     path = "../../data/"

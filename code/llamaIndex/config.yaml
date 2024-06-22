@@ -1,0 +1,38 @@
+document_preprocessing:
+  data_dir_path: "./data/13C_Magnetic_Resonance_Spectroscopy_in_N"
+  indexes:
+    "test":
+      type: "VectorStoreIndex"
+      parser:
+        # name: "SimpleFileNodeParser"
+        # name: "SentenceSplitter"
+        # chunk_size: 1024
+        # chunk_overlap: 20
+        name: "HierarchicalNodeParser"
+        chunk_size: [2048, 512, 128]
+      extractors:
+        - name: "QuestionsAnsweredExtractor"
+          llm:
+            name: "lmsys/vicuna-13b-v1.5-16k" 
+            cache: "/scratch0/zhengzheng/.hf_cache"
+          questions: 5
+        #  - type: "QAExtractor"
+        #    llm: "vicuna:13b"
+        #    questions: 5
+      embedding_model:
+        name: "Linq-AI-Research/Linq-Embed-Mistral"
+        cache: "/scratch0/zhengzheng/.hf_cache"
+      pipeline:
+        is_cache: False # True
+        cache_path: ""
+        num_workers: 10
+      storage_context:
+        name: "simple.json"
+        store_dir_path: "./code/llamaIndex/database"
+        docstore: SimpleDocumentStore
+        vector_store: SimpleVectorStore
+        index_store: SimpleIndexStore
+        property_graph_store: None
+rag_initialization:
+  indexes:
+    - "test"

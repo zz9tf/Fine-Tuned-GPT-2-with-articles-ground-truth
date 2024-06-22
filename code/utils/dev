@@ -1,0 +1,130 @@
+#!/bin/bash
+
+HOME_PATH="/home/zhengzheng"
+
+function show_help {
+    echo "Usage: script.sh [command] [subcommand] [options]"
+    echo
+    echo "Commands:"
+    echo "  init conda                  Initialize conda for bash."
+    echo "  ollama [arguments]           Execute ollama with the specified arguments."
+    echo "  task [GPU type] [GPU number] Get an interactive session on a gpu node"
+    echo "  task submit [script]         Submit a batch job using sbatch."
+    echo "  task ls                      List jobs in the queue for user zhengzheng."
+    echo "  task kill [taskID]           Cancel job by task id"
+    echo "  task info                    View all computing resources and partitions"
+    echo "  list-free                    Execute list_free_gpu to list available GPUs."
+    echo "  gpu                          Execute nvidia-smi to list status of GPUs."
+    echo "  bg ollama                    Run ollama at the bg and generate log file \"ollama.log\" at the command execution location."
+    echo "  hf login                     Login huggingface with READ token"
+    echo "  hf pull [repo_name] [hf]     Pull tokenizer and model from huggingface [repo_name]. If use huggingface [hf]"
+    echo "  hf env                       Manage .env for huggingface. -h for more details"
+    echo "  hf ls                        Show all models cache"
+    echo "  space                        Show space usage; space is used space"
+    echo "  top                          Show cpu usage"
+    echo "  cuda:12                      Activate cuda 12 version"
+    echo
+    echo "Options:"
+    echo "  -h, --help                  Show this help message and exit."
+}
+
+# Check for help flag
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check if the first argument is "init" and the second argument is "python"
+if [ "$1" == "init" ] && [ "$2" == "conda" ]; then
+    ~/miniconda3/bin/conda init bash
+
+elif [ "$1" == "bg" ]; then
+    if [ "$2" == "ollama" ]; then
+        OLLAMA="${HOME_PATH}/packages/ollama"
+        echo "Executing: ollama serve > ollama.log 2>&1 &"
+        ($OLLAMA serve) > ollama.log 2>&1 &
+    fi
+
+elif [ "$1" == "ollama" ]; then
+    OLLAMA="${HOME_PATH}/packages/ollama"
+    COMMAND="${@:2}"
+    echo "Executing: ollama $COMMAND"
+    $OLLAMA $COMMAND
+
+elif [ "$1" == "task" ]; then
+    # Extract GPU types from the list
+    gpu_types=$(list_free_gpu | awk '{print $1}')
+
+    # Convert GPU types to an array
+    IFS=$'\n' read -rd '' -a gpu_types_array <<<"$gpu_types"
+
+    if [[ " ${gpu_types_array[@]} " =~ " $2 " ]]; then
+	GPU="$2"
+	num="$3"
+	echo "Executing: srun -A pengyu-lab -p pengyu-gpu --gres=gpu:$GPU:$num --qos medium --pty /bin/bash"
+	srun -A pengyu-lab -p pengyu-gpu --gres=gpu:$GPU:$num --qos medium --pty /bin/bash
+    elif [ "$2" == "submit" ]; then
+        COMMAND="${@:3}"
+        echo "Executing: sbatch $COMMAND"
+        sbatch $COMMAND
+    elif [ "$2" == "ls" ]; then
+        echo "Executing: squeue -u zhengzheng"
+        squeue -u zhengzheng
+    elif [ "$2" == "kill" ]; then
+	COMMAND="${@:3}"
+	echo "Executing: scancel $COMMAND"
+	scancel $COMMAND
+    elif [ "$2" == "info" ]; then
+	echo "Executing: sinfo"
+	sinfo
+    fi
+
+elif [ "$1" == "list-free" ]; then
+    echo "Executing: list_free_gpu"
+    list_free_gpu
+
+elif [ "$1" == "gpu" ]; then
+    echo "Executing: nvidia-smi"
+    nvidia-smi
+
+elif [ "$1" == 'hf' ]; then
+    hf_root=/home/zhengzheng/packages/hf_model
+    if [ "$2" == "login" ]; then
+        echo "Executing: python login_hf.py"
+        hf_login="${hf_root}/login_hf.py"
+        python $hf_login
+
+    elif [ "$2" == "pull" ]; then
+        COMMAND="${@:3}"
+        echo "Executing: python pull_hf_model.py $COMMAND"
+        pull_hf_model="${hf_root}/pull_hf_model.py"
+        python $pull_hf_model $COMMAND
+    elif [ "$2" == "env" ]; then
+        echo "Executing: python set_save_path.py"
+        set_save_path=/home/zhengzheng/packages/hf_model/set_save_path.py
+        COMMAND="${@:3}"
+        python $set_save_path $COMMAND
+    elif [ "$2" == "ls" ]; then
+        echo "Executing: python show_cache.py"
+        show_cache=/home/zhengzheng/packages/hf_model/show_cache.py
+        python $show_cache
+    fi
+elif [ "$1" == "space" ]; then
+    echo "Executing: quota -is"
+    quota -is
+
+elif [ "$1" == "top" ]; then
+    echo "Executing: top -u zhengzheng -d 5"
+    top -u zhengzheng -d 5
+
+elif [ "$1" == "cuda:12" ]; then
+    echo "Executing: module load cuda/12.4"
+    module load cuda/12.4
+    echo "*********************************************"
+    nvcc --version
+    echo "*********************************************"
+
+else
+    echo "Invalid command. Use -h or --help for usage information."
+    exit 1
+fi

@@ -166,3 +166,5 @@ chroma
 data/*
 
 *log*
+
+/database/*

@@ -1,0 +1,1352 @@
+{
+    "docstore/data": {
+        "34401f40-00eb-4333-8a69-e5fd37e816f6": {
+            "__data__": {
+                "id_": "34401f40-00eb-4333-8a69-e5fd37e816f6",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "1",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the selection criteria for books indexed in the Book Citation Index in Web of Science\u2122 Core Collection (BKCI)?\n2. How many open access books are available through IntechOpen?\n3. Which countries have the most contributors from top 500 universities on IntechOpen's platform?\n4. What is the citation rate for authors published by IntechOpen, and how does it compare to other publishers?\n5. How many downloads has the book \"13C Magnetic Resonance Spectroscopy in N\" received since its publication through IntechOpen?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_0",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "1",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "3dd4ff095995a83a39f81443607da262c39f18772e30bceb1684a5d206d1c267",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "Selection of our books indexed in the Book Citation Index \nin Web of Science\u2122 Core Collection (BKCI)\nInterested in publishing with us? \nContact book.department@intechopen.com\nNumbers displayed above are based on latest data collected. \nFor more information visit www.intechopen.comOpen access books available\nCountries  delivered  to Contributors from top 500 universitiesInternational   authors  and editors\nOur authors  are among th e\nmost cited scientistsDownloadsWe are IntechOpen,\nthe world\u2019s leading publisher of\nOpen Access books\nBuilt by scientists, for scientists\n12.2%148,000 185M\nTOP 1% 1546,000",
+                "start_char_idx": 0,
+                "end_char_idx": 606,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "21dd5deb-a779-4226-a4a9-4f4a7efb064c": {
+            "__data__": {
+                "id_": "21dd5deb-a779-4226-a4a9-4f4a7efb064c",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "2",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the purpose of 13C magnetic resonance spectroscopy in neurobiology?\n2. How does 13C magnetic resonance spectroscopy provide information on brain energy metabolism?\n3. What are some potential applications of 13C magnetic resonance spectroscopy in identifying novel metabolic substrates and pathways?\n4. How can 13C magnetic resonance spectroscopy be used to study the transfer of amino acids between different cell types in the brain?\n5. What are some technical aspects that should be considered when using 13C magnetic resonance spectroscopy in studies of brain and cultured brain cells?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_1",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "2",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "7de22090a6b548ae1641e965efe8700a5c1371375f2d13db560dce601510919c",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "2 \n13C Magnetic Resonance Spectroscopy in \nNeurobiology - Its Use in Monitoring Brain \nEnergy Metabolism and in Identifying Novel \nMetabolic Substrates and Metabolic Pathways \nBj\u00f8rnar Hassel \nDepartment of Neurohabilitation, Oslo  University Hospital-Ullev\u00e5l, Oslo \nNorwegian Defense Research Establishment, Kjeller \nNorway \n1. Introduction \nA wealth of information on brain metabolism has been gathered from studies in which 13C-\nlabeled metabolic substrates (often glucose) ha ve been administered to human subjects or \nexperimental animals. 13C Magnetic resonance spectroscopy (MRS1) of the brain (or extracts \nof brain) has shown to what degree the 13C-labeled compound has been metabolized, and, to \nsome extent, along which metabolic pathways. Th e latter interpretation derives from the fact \nthat 13C MRS shows the 13C labeling not of individual compounds, e.g. amino acids, but of \nindividual carbon positions in those different  compounds (Fig. 1). Because some enzymes of \namino acid metabolism have a cell-specific expr ession, it is possible to study the metabolic \nactivity of individual cell ty pes or the transfer of amin o acids between them. Finally, 13C \nMRS allows studies of a host of substrates to examine their potential as metabolic substrates \nfor the brain. An extensive review, which incl uded an overview of technical aspects of 13C \nMRS in studies of brain and cultured brain cells , appeared recently (Rodrigues et al., 2009). \n2. 13C MRS for the visualization of brain energy metabolism \nGlucose is considered the physiologic energy su bstrate of the brain and is used by all brain \ncells, neurons and glial cells alike. Glucose co nsumption is tightly coupled to the need for \nenergy (ATP), which in the brain largely reflec ts neuronal activity, or more specifically, \ndepolarization of neuronal cell membranes. The membrane potential derives from the ionic \ngradients created by ion pumps that tran sport sodium and pota ssium against their \nconcentration gradients across cell membranes, an activity that is fuelled by ATP (Attwell \nand Laughlin, 2001). Therefore, al terations in neuronal activity  will be reflected in changes \nin glucose consumption, and, conversely, constraints in the availability of glucose and \noxygen will limit neuronal activity. 13C MRS after administration of 13C-labeled glucose to \n                                                 \n1 Abbreviations:ATP: adenosine triphosphate, CoA: coenzyme A, GABA: \uf067-aminobutyrate, i.v. \nintravenously, MRS: magnetic resonance spectroscopy , PET; positron emission tomography, TCA cycle: \ntricarboxylic acid cycle. \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 2634,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "6b92d0d1-afd7-447d-bb9d-af792ed31096": {
+            "__data__": {
+                "id_": "6b92d0d1-afd7-447d-bb9d-af792ed31096",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "3",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the relationship between neuronal activity, energy requirements, and glucose metabolism according to the study?\n2. How does 13C MRS help investigate brain metabolism in humans or experimental animals?\n3. How does administration of 13C-labeled glucose affect labeling of glutamate in the brain?\n4. What is the metabolic pathway through which 13C-glucose is converted to 13C-acetyl-CoA and subsequently to citrate, alpha-ketoglutarate, and glutamate?\n5. How does labeling of the 2nd and 3rd positions in succinate, fumarate, malate, and oxaloacetate reflect passage of 13C through the TCA cycle?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_2",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "3",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "8ac8128e6fdb753df3ee86a60a873505dca712d799f981b4b51c5df10dfb9d47",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": " \nMagnetic Resonance Spectroscopy \n 30\nhuman volunteers or to experimental animals is  well suited to investigate the relationship \nbetween neuronal activity, energy requirements , and glucose metabolism, because several of \nthe downstream metabolites of glucose (lactate, alanine, glutamate, glutamine GABA, \naspartate \u2013 see Fig. 1)  can be detected by 13C MRS. \n \nFig. 1. 13C MR spectrum of a brain extract from  a mouse that received 150 \u00b5mol [U- 13C] \nglucose intravenously in the awake state and wa s sacrificed after 5 minutes. Peak numbers: \n1, lactate C3; 2, glutamate C4; 3, GABA C2; 4, glutamine C4, 5, aspartate C3, 6: lactate C2; 7, \nalanine C3, 8: glutamate C3, which is labeled af ter a full turn of th e TCA cycle. *Internal \nstandard (dioxane). Note the strong 13C labeling of glutamate C4 and lactate C3 from [U-\n13C]glucose. Reprinted from Nguyen et al., 2003, with permission from the publisher. \nAdministration of 13C-labeled glucose intravenously (i.v.) or intraperitoneally leads to \npredominant labeling of glutamate in the brain (F igs. 1 and 2). This is so, because glutamate \nis present in concentrations that allow detection by 13C MRS, and because virtually all \nglucose that enters the brain is metabolized through glutamate: glutamate equilibrates with \n\u03b1-ketoglutarate of the tricarboxylic acid (TCA) cycle, through which glucose is metabolized \noxidatively. Briefly, 13C-glucose is metabolized to 13C-acetyl-CoA, which reacts with \noxaloacetate to form citrate. Acetyl-CoA gives rise to the 1st and 2nd carbons of citrate, which \ncorrespond to the 5th and 4th carbon positions in \u03b1-ketoglutarate and glutamate (Fig. 2). \nLogically, these two positions are the first to be  labeled from glucose, provided that uniformly \nlabeled glucose, [U-13C]glucose is being used. If [1-13C]glucose is used, which is often the case, \nthe 2nd position of acetyl-CoA beco mes labeled, and hence the 4th position of glutamate (e.g. \nFitzpatrick et al., 1990; Shank et al., 1993;  Mason et al., 1999; see Figs. 1 and 2).  \nHowever, when \u03b1-ketoglutarate is metabolized further through the TCA cycle, succinate is \nformed. Succinate has four carbon atoms and is symmetrical, so the label is now scrambl ed \nbetween the 1st + 2nd positions and the 3rd + 4th positions (or the 2nd and 3rd positions if [1-\n13C]glucose is being used). From succinate fumarate, malate, and oxaloacetate are formed \nbefore another molecule of acetyl-CoA enters the TCA cycle to form ci trate. The labeling of \nthe 2nd and 3rd positions in succinate, fumarate, mala te, and oxaloacetate correspond to the \n2nd and 3rd positions in glutamate. Labeling of thes e positions in glutamate reflects passage \nof 13C through the TCA cycle (Fig. 1 and 2). From the labeling of the 2nd and 3rd vs. the 4th \npositions in glutamate from [1-13C]glucose an impression of the TCA cycle rate may be \ngained, or the rate may even be calculated (Hassel et al., 1995a; 1997; Mason et al., 1999; \nHyder et al., 2003). \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 3006,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "641aac56-5a94-4372-959d-20a2aae885bf": {
+            "__data__": {
+                "id_": "641aac56-5a94-4372-959d-20a2aae885bf",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "4",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the role of 13C Magnetic Resonance Spectroscopy in monitoring brain energy metabolism?\n2. How does glycolysis and the TCA cycle contribute to the metabolism of glucose in the brain?\n3. How is aspartate labeled with 13C in the TCA cycle, and what are its implications for GABAergic neurons?\n4. What are the effects of inhibition of TCA cycle activity on the labeling of glutamate, GABA, or glutamine from [13C]glucose?\n5. How does brain activity affect glucose metabolism in the brain as observed through 13C Magnetic Resonance Spectroscopy?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_3",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "4",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "b6e354cecc2c723848daedacd84cbe9e1ed1b427e622c966033dd5e7339b9246",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "13C Magnetic Resonance Spectroscopy in Neurobiology - Its Use in Monitoring  \nBrain Energy Metabolism and in Identifying Novel Metabolic Sub strates and Metabolic Pathways \n 31 \n \nFig. 2. Simplified scheme of glycolysis and the TCA cycle. Glucose is metabolized \nglycolytically to pyruvate, which may un dergo decarboxylation in the pyruvate \ndehydrogenase reaction to become acetyl-C oA. Acetyl-CoA enters the TCA cycle to \ncondense with oxaloacetate (OAA) and form ci trate. The two carbons from acetyl-CoA that \ncontribute to citrate (and hence \u03b1-ketoglutarate, glutamate, glutamine and GABA) are \nshown in italics. Due to the symmetry of succ inate these two carbons are distributed evenly \nbetween the C1+C2 positions and the C3+C4 posi tions in succinate and in fumarate, malate \nand oxaloacetate, which are formed downstream  of succinate. Pyruvate may also become \naminated to alanine or  reduced to lactate. \nOxaloacetate equilibrates with aspartate, and whereas oxaloacetate at a tissue concentration \nof ~10 \uf020nmol/g brain tissue (Siesj\u00f6, 1978) defies detection by 13C MRS, aspartate is readily \ndetected, especially its 2nd and 3rd carbon positions, the labeling  of which reflects the passage \nof 13C through the TCA cycle (Figs. 1 and 2). It has been shown with various techniques that \naspartate is concentrated in  GABAergic neurons (Ottersen and Storm-Mathisen, 1985; \nHassel et al., 1992; 1995b). With 13C MRS this has been verified by blocking the TCA cycle of \nGABAergic neurons specifically; this leads to a marked reduction in the 13C labeling of \naspartate from [1-13C]glucose (Hassel and Sonnewald, 1995a; Johannessen et al., 2001). \nInhibition of TCA cycle activity by drugs or toxins may reduce the 13C labeling of glutamate, \nGABA, or glutamine from [13C]glucose (e.g. Hassel and Sonnewald, 1995a). But because \nTCA cycle activity is closely coupled to neuron al activity, any influence that reduces brain \nactivity (e.g. anesthetics, antiepileptic drugs) will reduce glucose metabolism in the brain \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 2045,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "3e32efde-1e59-414d-b37b-01d3d403ad49": {
+            "__data__": {
+                "id_": "3e32efde-1e59-414d-b37b-01d3d403ad49",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "5",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the purpose of 13C Magnetic Resonance Spectroscopy in studying the brain?\n2. How does labeling with [13C]glucose reflect the metabolic activity of the brain, and what limitations should be considered when interpreting the results?\n3. Can the transport and initial phosphorylation of deoxyglucose be used as a method to detect brain energy metabolism? How does it differ from 13C MRS detection of glutamate labeling from [13C]glucose?\n4. What is the role of astrocytes in providing precursors for neurons, and how can isotopically labeled acetate be used to study this metabolic interplay between astrocytes and neurons?\n5. What are some challenges in assessing the metabolic activity of individual cell types in the brain, and how can selective metabolic substrates help in dissecting the brain's metabolism?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_4",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "5",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "a34fef5d7a1ac9cc39705cd54782d60ac4569266208f64ddb59c2dbc2385cf91",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": " \nMagnetic Resonance Spectroscopy \n 32\nand hence 13C labeling of glucose metabolites. Ther efore, a reduction in the labeling of \ncerebral metabolites from [13C]glucose must be interpreted with some caution. Such a \nreduction does not necessarily imply a direct effect, e.g. of a drug, on TCA cycle activity, for \ninstance through enzyme inhibition.  \nConversely, any influence that leads to incr eased activation of the brain may increase \nglucose metabolism and increase 13C labeling from [13C]glucose. Such effects have been seen \nin human subjects and in rats (Hyder et al.,  1996; Patel et al., 2004). However, it should be \nnoted that although previous studies on a variety of experimentally induced conditions, \nincluding epileptic seizures and stroke, ha ve shown increased uptake of the glucose \nanalogue deoxyglucose by  positron emissi on tomography (PET) or autoradiographic \nmethods, data obtained with 13C MRS seem to indicate that the oxidative metabolism of \nglucose may be only little affected or even redu ced (Petroff et al., 2002; Eloqayli et al., 2004; \nNguyen et al., 2007a; Pan et al., 2008; H\u00e5berg et al., 2009). The same is true for other \nconditions that would be expected to enta il an increased energy demand, e.g. traumatic \nbrain injury (Bartnik et al., 2007; Scafidi et al., 2009). Deoxyglucose is a substrate for the \nglucose transporter in the blood-brain barrier an d in neurons, as well as for the first enzyme \nof glucose metabolism, hexokinase, which phopsphorylates glucose and deoxygl ucose to \ntheir 6-phospho- derivatives. But once phophorylated deoxyglucose is not metabo lized \nfurther and accumulates intracellularly; this a llows its detection by PET or autoradiography. \nIt follows that the deoxyglucose-based method s strictly detect the transport and initial \nphosphorylation of deoxyglucose, whereas 13C MRS detection of glutamate labeling from \n[13C]glucose reflects both glycolytic and oxid ative metabolic activity in the brain.  \nThe possibility of visualizing brain energy meta bolism appeared to pave the way for studies \nin which brain activity, including sensory ac tivation and thought processes, could be \nmonitored by 13C MRS. It soon became clear, howe ver, that the increase in glucose \nmetabolism caused by various forms of physio logical activation, was quite small, and not \nalways readily detectable on the background of a high basal metabolic rate in the un-\nanesthetized brain (Shu lman et al., 2004).  \n3. Visualization of the metabolic interplay between astrocy tes and neurons \nThe cellular complexity of the brain makes it difficult to assess the metabolic activity of \nindividual cell types separately. However, because some metabolic pathways are unique to \ncertain cells, and because some metabolic substrates are metabolized selectively by certain \ncell types, some degree of metabolic dissection of the brain is made possible. Fi rst we \nconsider the transfer of glutamine from astroc ytes to neurons as a precursor for glutamate \nand GABA in neurons. Thereafter we discuss the transfer of glutamate from neurons to \nastrocytes during glutamat ergic neurotransmission.  \nIn the brain, acetate is metabolized oxidativel y by astrocytes and not by neurons. Because \nastrocytes express glutamine synthetase (Mar tinez-Hernandez et al., 1977), isotopically \nlabeled acetate (given i.v. or intracerebrally) le ads to preferential labeling of glutamine (van \nden Berg et al., 1969; Hassel et al., 1997; Lebon et al., 2002; Deelchand et al., 2009). Glutamine \nis exported from astrocytes to the extracellular fluid, from where it is taken up by neurons, \nboth glutamatergic and GABAergic. Inside neurons glutamine becomes deamidated to \nglutamate by phosphate-activated glutamin ase (Kvamme et al., 2001), a mitochondrial \nenzyme, which in the brain appears to be expressed only by neurons. In GABAergic neuron s \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 3902,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "ff8ac6e4-f7f5-43a3-a943-65895629d1f4": {
+            "__data__": {
+                "id_": "ff8ac6e4-f7f5-43a3-a943-65895629d1f4",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "6",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. How does the administration of 13C-labeled acetate to experimental animals illustrate a series of metabolic and transport-related events in the brain?\n2. What is the role of glutamine as a precursor of glutamate and GABA in the brain?\n3. How does the formation of [13C]GABA from [13C]acetate illustrate astrocytic uptake and oxidative metabolism of [13C]acetate, glutamine synthetase activity, and other metabolic processes in the brain?\n4. What are some of the key enzymes involved in the metabolism of 13C-labeled acetate in astrocytes and neurons?\n5. How does the use of 13C magnetic resonance spectroscopy (MRS) provide insight into brain energy metabolism and identify novel metabolic substrates and metabolic pathways in neurobiology?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_5",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "6",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "c8b70497eb299c2295c61b96926b16137bd8217c22dc8d2e44d91a97fe872dcc",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "13C Magnetic Resonance Spectroscopy in Neurobiology - Its Use in Monitoring  \nBrain Energy Metabolism and in Identifying Novel Metabolic Sub strates and Metabolic Pathways \n 33 \nthe glutamine-derived glutamate becomes deca rboxylated to GABA by glutamic acid \ndecarboxylase (GAD), an enzyme that in the brain is expressed in inhibitory GABAergic \nneurons (Fonnum et al., 1970). Ther efore, when administration of 13C-labeled acetate to \nexperimental animals leads to 13C labeling of GABA, this labeling illustrates a series of \nmetabolic and transport-related events (Fig. 3)  that highlights the role of (astrocytic) \nglutamine as a precursor of (neuronal) glutamate and GABA (Hassel et al., 1997). \n \nFig. 3. Metabolism of [13C]acetate in astrocytes with formation of [13C]glutamine, which is \ntransferred to neurons, wher e it is deamidated to [13C]glutamate. In GABAergic neurons \n[13C]glutamate is decarboxylated to [13C]GABA. The spectrum is fr om a brain extract from a \nmouse that received [1,2-13C]acetate, 150 \uf06dmol i.v. and was sacrificed after 15 minutes. Peaks \nare:  1, alanine C-3; 2, lactate C-3; 3, GABA  C-3; 5, glutamine C-3; 6, glutamate C-3; 7, \nglutamine C-4; 8, glutamate C-4;   10, GABA C-2; 11, aspartate C-3; 12, GABA C-4. Note the \nstrong labeling of glutamine compared to results with [13C]glucose (Fig. 1) (From Hassel et \nal., 1997, with permission from th e publisher). Thus, formation of [13C]GABA from \n[13C]acetate illustrates astrocytic uptake and oxidative metabolism of [13C]acetate, glutamine \nsynthetase activity, the activity of glutamine tr ansporters at the astrocytic and neuronal cell \nmembranes, neuronal glutaminase activity , and glutamate decarboxylase activity. \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 1729,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "0addba7e-8612-4a47-afaa-49e29a267bac": {
+            "__data__": {
+                "id_": "0addba7e-8612-4a47-afaa-49e29a267bac",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "7",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the role of acetate in brain metabolism, and why is it only taken up by astrocytes?\n2. How does propionate affect brain GABA levels and what are its implications for neuronal metabolism?\n3. Can 13C MRS be used to identify transmitter glutamate in the central nervous system, and how is it related to the metabolic processes of astrocytes and neurons?\n4. What is the relationship between the exchange of glutamate and glutamine between neurons and astrocytes, and how does this affect cerebral metabolism of glucose?\n5. How do different substrates such as lactate, pyruvate, and glycerol contribute to brain energy metabolism in neurons and glial cells?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_6",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "7",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "cd824f0b8deee05fefcba97efd013b9b42c1b34095c0138b2cc612def6acc41d",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": " \nMagnetic Resonance Spectroscopy \n 34\nAn enigma of brain metabolism is why acetate is oxidized only by astrocytes and not by \nneurons. Waniewski and Martin (1998) provided evidence that acetate is taken up across the \ncell membrane only in astrocytes. This finding was unexpected, since acetate is a small \nmonocarboxylate, for which neurons are rich ly equipped with transporters (Bergersen, \n2007). Nguyen et al (2007b) later found that neur ons take up propionate (which is closely \nrelated to acetate), which suggested that even acetate is taken up (but not metabolized) by \nneurons. Later it was found that administration of propionate to mice leads to an increase in \nbrain GABA levels, suggesting an inhibitory action of propionate on the GABA-degrading \nenzyme GABA transaminase (Hassel et al., unpublished). GABA transaminase is an \nintramitochondrial enzyme in GABAergic neuron s (Schousboe et al., 1974), and its inhibition \nby a small monocarboxylate such as propionate su ggests that propionate (and acetate) is taken \nup by neurons and neuronal mitochondria, but that  the latter are deficient in the enzyme that \nconverts acetate and propionate into their mitochondrial CoA derivatives.  \nBecause glutamate is readily labeled from 13C-labeled precursors, there has been \nconsiderable interest in identifying transmitter glutamate with 13C MRS. Glutamate is the \nmain excitatory neurotransmitter in the central nervous system. While glutamate serves \nmany functions in the brain, it has been esti mated that 2-20% of the total amount of brain \nglutamate serves a neurotrans mitter function (Hassel and Dingledine, 2006). After release \nfrom synaptic nerve endings glutamate is larg ely taken up by astrocytes that surround the \nsynaptic cleft, and converted into glutamine (Danbolt, 2001). This process may be illustrated \nwith 13C MRS. Administration of 13C-labeled glucose to experimental animals leads to rapid \n13C labeling of glutamate and, after a delay, of glutamine. This labeling of glutamine to a \nlarge extent reflects uptake of (neuronal) tr ansmitter glutamate into astrocytes. This was \nshown in an experiment in which mice had thei r astrocytic TCA cycle inhibited by the glia-\nspecific metabolic inhibitor fluoroacetate (Hassel et al., 1997). The mice could not form \nglutamate or glutamine through their TCA cycle activity, but they still produced 13C-\nglutamine from 13C-glucose. Formation of glutamine from 13C-glucose was interpreted to \nreflect formation of 13C-glutamate from 13C-glucose in neurons, release of 13C-labeled \ntransmitter glutamate from neurons, upta ke into astrocytes of the released 13C-labeled \ntransmitter glutamate and subsequent amid ation by glutamine synthetase (Fig. 4). \nThe exchange between neurons and astrocytes  of glutamate and glutamine has been the \nsubject of many studies, in both human subjects  and experimental animals (Shen et al., 1999; \nsee Rothman et al., 1999; 2003, for review). Interpretation of 13C MRS after infusion of 13C-\nlabeled glucose into awake humans indicated th at the flux of glutamate from neurons to \nastrocytes was close to 50% of the cerebral metabolism of glucose. This would suggest a \nmassive transfer of glutamate from neurons to astrocytes. However, if this is true, it is still \nnot known whether all this glutamate is transmi tter glutamate in the sense that it originates \nfrom presynaptic vesicles. \nIn 13C MRS studies of the brain, acetate is used as a glial substrate, and gl ucose is used as an \nenergy substrate for all brain cells, but with a dominant contribution from (glutamatergic) \nneurons. As will become evident below ('Identi fication of alternative substrates for brain \nenergy metabolism'), lactate and pyruvate have become regarded as more purely neuronal \nsubstrates that are used by glutamatergic an d GABAergic neurons alike, whereas glycerol \nappears to be a substrate specifically used by GABAergic neurons (Nguyen et al., 2003). \nThus, some degree of metabolic dissection of the brain is made possible by combi ning the \nadministration of an appropriate 13C-labeled energy substrate with 13C MRS.  \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 4146,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "753124c9-4c5e-46c6-b1d3-69a436a13521": {
+            "__data__": {
+                "id_": "753124c9-4c5e-46c6-b1d3-69a436a13521",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "8",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the primary use of 13C Magnetic Resonance Spectroscopy in Neurobiology?\n2. How does 13C Magnetic Resonance Spectroscopy aid in monitoring brain energy metabolism?\n3. Can you explain the significance of identifying novel metabolic substrates and metabolic pathways through 13C Magnetic Resonance Spectroscopy?\n4. What is the role of glutamate uptake by astrocytes in this context, and what does fluoroacetate achieve in blocking it?\n5. How does the inhibition of astrocytic TCA cycle impact glutamine formation and overall brain function?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_7",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "8",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "5546781b250044260dbba9ef0b9da231608fb85dd7cb6b4bd53b47529d68a1d2",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "13C Magnetic Resonance Spectroscopy in Neurobiology - Its Use in Monitoring  \nBrain Energy Metabolism and in Identifying Novel Metabolic Sub strates and Metabolic Pathways \n 35 \n \nFig. 4. Uptake of transmitter glutamate by astr ocytes. In this experiment mice received the \nglia-specific metabolic inhibitor fluoroacetate, which blocks the astroc ytic TCA cycle at the \nlevel of aconitase. Thus, the ability of astrocytes to form glutamate and hence glutamine \nfrom \u03b1-ketoglutarate from their own TCA cycl e was blocked. Even so, glutamine was \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 563,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "9a5a6aff-70b9-4a77-a3c1-585e07e8ba31": {
+            "__data__": {
+                "id_": "9a5a6aff-70b9-4a77-a3c1-585e07e8ba31",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "9",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the role of 13C Magnetic Resonance Spectroscopy in studying brain energy metabolism? How does it help identify alternative substrates for brain energy metabolism?\n2. Can you explain the formation of [13C]glutamine in the context of labeled glucose and transmitter glutamate release from neurons? What implications does this have for understanding brain energy metabolism?\n3. How do lactate, fructose, and propionate become potential substrates for brain energy metabolism despite not being traditionally considered as such? What are the specific transport proteins and enzymes involved in their metabolism in the brain?\n4. In what ways does the identification of alternative substrates for brain energy metabolism impact our understanding of brain physiology and potential therapeutic interventions? Are there any known examples of drugs or treatments that target these alternative substrates to modulate brain function?\n5. How do transport limitations at the blood-brain barrier affect the metabolism of certain substrates, such as dicarboxylates and monosaccharides? Can you provide specific examples of how this has been observed in research studies?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_8",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "9",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "a6acc9871070fed068031668d5916f01d48f98e3644ad4926c7b1bc4a27edd2f",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": " \nMagnetic Resonance Spectroscopy \n 36\nformed from [13C]glucose, presumably because 13C-labeled transmitter glutamate was still \nbeing released from neurons and taken up by  astrocytes with subsequent formation of \n[13C]glutamine. The upper spectrum is from the brain of a mouse that received [1,2-\n13C]acetate and [1-13C]glucose. The doubly labeled acetate gives rise to the double peaks in \nglutamine C4 (peak 7). The lower spectrum is from a mouse, whose astrocytic TCA ycle was \nblocked by fluoroacetate; here only glutamine labeled from [1-13C]glucose (single peak 7) \ncan be seen  (From Hassel et al., 1997, with permission from the publisher). \n4. Identification of alternative substrates for brain energ y metabolism \nSerum glucose is considered the physiological energy substrate of the brain. Even so, a \nnumber of substrates may feed into the glycolytic pathway or the TCA cycle of brain cells. \nFor example, lactate, which was shown by 13C MRS to be a substrate for brain metabolism in \nmice (Hassel and Br\u00e5the, 2000), was recently shown by 13C MRS to contribute importantly to \nenergy metabolism in the human brain under physiological conditions (Gallagher et al., \n2009; Boumezbeur et al., 2010). The ability of a subs trate to function as a metabolic substrate \nfor brain cells depends on its ability to cross th e blood-brain barrier, i.e. on the presence of \nspecific transporter proteins in the barrier. Further, brain cells must have the necessary \ntransporters to take the substrates up from the extracellular fluid as well as the enzymes \nnecessary for their metabolism. A substrate that  is not metabolized in the brain after i.v. \ninjection may prove to be metabolized after intracerebral injection, a finding that points to \ntransport limitations at the blood-brain barrier ; this holds true for dicarboxylates like \nfumarate and malate (Hassel et al., 2002); if injected directly into the brain parenchyma, \nthese substrates are taken up into astrocytes and rapidly metabolized through the TCA cycle \nto glutamine, indicating the presence of th e plasma membrane dicarboxylate transporter \npredominantly in astrocytes. A similar situat ion exists for the monosaccharide fructose \n(Hassel et al., submitted), which hardly crosses the blood-brain barrier at all. This can be \nshown by giving mice [13C]fructose i.v.; in contrast to liv er, the brain does not accumulate \nthe injected [13C]fructose, as can be shown by 13C MRS of brain and liver extracts. However, \nif fructose is injected into the brain parenchyma, it becomes metabolized. The oxidation of \nfructose by brain tissue would explain the ability of fructose to support energy-requiring \nprocesses, such a axon al activity, in vitro (Meakin et al., 2007). \nEven though a substrate crosses the blood-br ain barrier, the enzymatic machinery required \nfor its metabolism may not be present in the br ain. An example is propionate, which readily \ncrosses the blood-brain barrier, but hardly beco mes metabolized in the brain (Nguyen et al., \n2007b; Morland et al., in prep). The enzyme s required for the initial metabolism of \npropionate, propionyl-CoA synthetase is expressed at low levels, making it difficult to \ndetect propionate metabolites by 13C MRS after i.v. administration of [13C]propionate to \nexperimental animals. Cerebral metabolism of propionate may be detected with \nradiolabeled propionate, however, owing to the higher sensitivity of radiodetective methods \n(scintillation counting) than of 13C MRS (Nguyen et al., 2007b). \nWith the use of 13C MRS \uf062-hydroxybutyrate (K\u00fcnnecke et al., 1993; Pan et al., 2002; Andrews \net al., 2009), lactate (Hassel and Br\u00e5the, 2000; Tyson et al., 2003; Boumezbeur et al., 2010), \nand pyruvate (Gonzalez et al., 2005) have been shown to be energy substrates for the brain \nafter i.v. injection, pointing to the existence of the appropriate monocarboxylate transporters \nat the blood-brain barrier. The predominant labeling of glutamate (over glutamine) points to \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 4015,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "8d604143-3971-4455-ba47-46b130a916fc": {
+            "__data__": {
+                "id_": "8d604143-3971-4455-ba47-46b130a916fc",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "10",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the primary use of 13C magnetic resonance spectroscopy in neurobiology, and how does it contribute to monitoring brain energy metabolism?\n2. Can fatty acid metabolism occur in the brain? If so, what evidence suggests this?\n3. What are some key differences between [3-13C]pyruvate and [2-13C]pyruvate labeling in terms of metabolite labeling, and what insights do these differences provide about brain energy metabolism?\n4. How does the use of 13C-labeled acetate impact the visualization of metabolic interplay between astrocytes and neurons in the brain?\n5. Are there any potential implications or applications of using acetate to support brain energy metabolism, particularly in cases where glucose levels are low (e.g., hypoglycemic mice)?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_9",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "10",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "b02256f401a10c14ed92e37f7be6ad9175d46253ffe767e0ce1496dcee288ae6",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "13C Magnetic Resonance Spectroscopy in Neurobiology - Its Use in Monitoring  \nBrain Energy Metabolism and in Identifying Novel Metabolic Sub strates and Metabolic Pathways \n 37 \na predominantly neuronal metabolism of these subtrates (Fig. 5). Even octanoate has been \nshown to be metabolized by the brain (Ebert et al., 2003), suggesting a certain capacity for \nfatty acid metabolism in the brain; the preferential labeling of glutamine pointed to \nastrocytes as the main metabolic compartment. \n \nFig. 5. 13C MR spectra of brain extracts of mice that received [3-13C]pyruvate or [2-\n13C]pyruvate i.v. The (labeling of) individual carbon positions in certain metabolites is \nindicated. Wake mice received 9 mmoles/kg [3-13C]pyruvate (upper panel) or [2-\n13C]pyruvate (lower panel) i.v. Survival time was 5 min. [3-13C]Pyruvate labels the C3 of \nlactate (Lac) and alanine (Ala), the C4 of gl utamate (Glu) and glutamine (Gln), and GABA \nC2 (but not glutamate C5 or the C1 of GABA or lactate; insert). [2-13C]Pyruvate labels \nlactate and alanine C2, and glutamate C5, GABA C1 and lactate C1 (insert). D is diox ane \n(internal standard). The peak corresponding to Glu C4 in lower spectrum repres ents \nnaturally abundant 13C-glutamate. Reprinted from Gonzalez et al., 2005, with permission \nfrom the publisher. \n13C-Labeled acetate also yields good labeling  of cerebral amino acids, predominantly \nglutamine, after i.v. injection, a finding that  points to their metabolism in astrocytes (see \nabove, 3. Visualization of the metabolic interplay between astrocytes and neurons). The \nlabeling of amino acids in the brain from [13C]acetate is on a level similar to that achieved \nwith [13C]glucose (Hassel et al., 1995a;1997), which su ggests that acetate could support brain \nenergy metabolism; this has been shown in hypoglycemic mice (Urion et al., 1979). \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 1874,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "230fd876-cfc9-4b7d-a8b0-c189474c3972": {
+            "__data__": {
+                "id_": "230fd876-cfc9-4b7d-a8b0-c189474c3972",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "11",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the power of 13C MRS in elucidating cell-specific metabolism in the CNS?\n2. Can glycerol production increase during hypoxia or epileptic seizures, and which cells produce it?\n3. How does the formation of glycerol in both neurons and astrocytes point towards a 'glycerol cycle' in the brain?\n4. What is the significance of the strong labeling of GABA from [13C]glycerol, and how does it relate to glutamate labeling?\n5. How can 13C-labeled substrates be used to identify metabolic pathways in the brain, and which substrates are suitable for this purpose?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_10",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "11",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "9c67dbfc0ff6a620d242064dc249e00cfbac76a25c9a11d3cce6b3a8626f2fff",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": " \nMagnetic Resonance Spectroscopy \n 38\nAn interesting example of the power of 13C MRS in elucidating cell-specific metabolism in \nthe CNS is the avid labeling of GABA from [13C]glycerol (Nguyen et al., 2003); this labeling \ngreatly exceeded that of glutamate and glutam ine (Fig. 6), pointing to GABAergic neurons \nas the predominant cell compartment for glycerol metabolism. A later 13C MRS study \nshowed that glycerol is being produced from glucose by both neurons and astrocytes and \nthat this production increases during hypoxi a or epileptic seizures (Nguyen et al., 2007c). \nThe two findings put together (formation of glyc erol in both neurons and astrocytes and its \nmetabolism by GABAergic neurons) could poin t to a 'glycerol cycle' in the brain.  \n \nFig. 6. 13C MR spectra of brain extracts from mice that received [U- 13C]glycerol i.v. Wake \nmice received 150 \u00b5mol [U-13C]glycerol and were killed at 5 or 15 min. Peak numbers: 1, \nlactate C3; 2, glutamate C4; 3, GABA C2; 4, gl ycerol C1 + C3. *Internal standard (dioxane). \nNote the strong labeling of GABA C2 relative to glutamate C4 at 15 min after injection of  \n[U-13C]glycerol in comparison with the much higher labeling of glutamate from 13C-labeled \nglucose or pyruvate (Figs. 1 and 5). Reprinte d from Nguyen et al.,  2003, with permission \nfrom the publisher. \n5. Identification of metabolic pathways from the 13C labeling of specific \ncarbon positions in glutamate and glutamine \nIn the second paragraph of this paper ('13C MRS for the visualization of brain energy \nmetabolism') the 13C labeling of glutamate from [13C]glucose through TCA cycle activity is \ndescribed. In fact, any 13C-labeled substrate that gives rise to 13C-labeled acetyl-CoA will \nlabel glutamate and glutamine in positions that reflect the entry of label into the TCA cycle \nand its subsequent turning in the cycle. This applies to 13C-labeled lactate, pyruvate, alanine, \nbeta-hydroxybutyrate, acetate, butyrate, glycerol , and others. However, substrates that give \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 2032,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "7a9ed32b-f104-4d29-b5b6-53773b9d07ee": {
+            "__data__": {
+                "id_": "7a9ed32b-f104-4d29-b5b6-53773b9d07ee",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "12",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. How does the use of 13C magnetic resonance spectroscopy help in monitoring brain energy metabolism?\n2. What are the different enzymatic routes through which labeled pyruvate may enter the TCA cycle in the brain?\n3. Can you explain the process of pyruvate carboxylation and its significance in astrocytes and neurons?\n4. How does the reversible pyruvate carboxylation affect the formation of 13CO2 from [1-13C]pyruvate?\n5. What is the role of malic enzyme in the process of pyruvate carboxylation in neurons, and how does it compensate for the loss of \u03b1-ketoglutarate in glutamatergic and GABAergic neuron transmission?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_11",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "12",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "62c839f7f8d79e0d2093e6c617ac022b8d54961ad2285b06c03c37e685fee879",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "13C Magnetic Resonance Spectroscopy in Neurobiology - Its Use in Monitoring  \nBrain Energy Metabolism and in Identifying Novel Metabolic Sub strates and Metabolic Pathways \n 39 \nrise to 13C-labeled pyruvate in the brain (glucose, pyruvate, lactate, alanine, glycerol) may \nenter the TCA cycle through two different enzyma tic routes. The first, which gives rise to \nacetyl-CoA, is pyruvate dehydr ogenase, which removes a carb oxylic group from pyruvate \nin the form of CO 2. The second route involves the addi tion of a carboxylic group (from CO 2 \nor HCO 3-) to pyruvate to produce oxaloacetate or its immediate precursor malate (See upper \npart of Fig. 7); these reactions are known as  pyruvate carboxylation. In astrocytes, the \nreaction is catalyzed by pyruvate carboxylase,  in neurons, it may be catalyzed by malic  \nenzyme. These reactions are 'anaplerotic', mean ing that they function to 'fill up' the TCA \ncycle with intermediates. They are th ought to compensate for the loss of \u03b1-ketoglutarate \ninherent in export of glutamine from astrocytes and for the similar loss of \u03b1-ketoglutarate \ninherent in glutamatergic and GABAergic neur otransmission when (See below) astrocytes \ntake up glutamate or GABA from the synaptic cleft. \n \nFig. 7. Reversible pyruvate carboxylation and equilibration of malate with fumarate, which \nexplains rapid formation of 13CO 2 from [1-13C]pyruvate. [1-13C]Pyruvate undergoes \ncarboxylation to [1-13C]malate, presumably by malic enzyme. [1-13C]Malate equilibrates with \nthe symmetrical fumarate, so that both [1-13C]malate and [4-13C]malate are formed. \nDecarboxylation of these malates produces 13CO 2 as well as unlabeled CO 2. The 13C is \nrepresented in italics. \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 1728,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "6f51ef35-1ccc-490d-81ad-a151e428278e": {
+            "__data__": {
+                "id_": "6f51ef35-1ccc-490d-81ad-a151e428278e",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "13",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. How does the labeling of glucose in different positions affect the detection of metabolites through 13C MRS?\n2. What is pyruvate carboxylation, and how can it be studied using 13C MRS?\n3. Can pyruvate recycling occur in the brain, and how has it been identified through 13C MRS?\n4. What are some limitations of 13C MRS in studying brain metabolism, and what solutions have been proposed to improve sensitivity?\n5. How has 13C MRS been used to study glycogen concentration and turnover in the intact brain?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_12",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "13",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "a9d2892bcb4a917f6754860742a5719f62dc58d7b04a14ef1264e1b493d07753",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": " \nMagnetic Resonance Spectroscopy \n 40\nWhen pyruvate is 13C-labeled these reactions lead to the formation of 13C-labeled malate and \noxaloacetate. Pyruvate labeled in the 3rd carbon (which originates from glucose labeled in \nthe 1st position, [1-13C]glucose) leads to formation of malate or oxaloacetate labeled in the \n3rd carbon. This carbon position corresponds to the 2nd carbon in glutamate and \nglutamine. In several studies the greater labeling of the 2nd than the 3rd carbon in \nglutamine has been taken as evidence of pyruvate carboxylase activity in astrocytes \n(Shank et al., 1993; Hassel et al., 1995a; Serres  et al., 2008). A similar preferential labeling \nof the 2nd over the 3rd carbon in glutamate has not been  consistently found, apparently \npointing to the absence of pyruvate carboxyl ation in neurons. Howe ver, oxaloacetate and \nmalate tend to equilibrate with the symmetri cal fumarate, leading to scrambling of label \nbetween the two carbon position. 13C MRS evidence of such scrambling in neurons has \nbeen reported in both cultured neurons (Merle et al., 1996) and in vivo (Hassel et al., 2000; \nGonzalez et al., 2005). Another way to stud y pyruvate carboxylatio n is to use glucose \nlabeled in the 2nd position. Glucose labeled in this position ([2-13C]glucose) does not label \nacetyl-CoA, but it  may label the 2nd and 3rd positions in glutamate and glutamine through \npyruvate carboxylation. Mason et al (2007)  showed in awake human subjects the flux \nthrough pyruvate carboxylation to be approximately 6% of that through pyruvate \ndehydrogenase (the activity of which was studied with [1-13C]glucose). This value was in \ngood agreement with previous 13C MRS studies in rats (Shank et al., 1993) and with \nprevious estimates based on radiolabeling studies (Van den Berg, 1973).  \nFormation of pyruvate from TCA cycle intermed iates malate or oxaloacetate (through the \ndecarboxylating activities of malic enzyme and phosphoenolpyruvate carboxykinase, \nrespectively) is termed pyruvate  recycling. This process takes place in the brain (Cerdan et \nal., 1990; Hassel and Sonnewald, 1995b; Cruz et al., 1998)  as it does in liver. In one study this \nprocess was identified in brain by 13C MRS of brain extracts from rats that had received \n[13C]acetate, which labeled lactate (Hassel and Sonnewald, 1995b). Such labeling can only \noccur through formation of pyruvate from TC A cycle intermediates. When pyruvate thus \nformed (and labeled) enters the TCA cycle through pyruvate dehydrogenase a distinct \nlabeling pattern may be seen in glutamate (Cerdan et al., 1990; H\u00e5berg et al., 1998). Valid \ncriticism of the interpretation of previous studies has come from Serres et al. (2008) who \npointed out that hepatic gluconeogenesis with 13C labeling of serum glucose from \n[13C]acetate may influence findings in the brain. However, pyruva te recycling also occurs in \ncultured brain cells (astrocytes), in which hepatic gluconeogenesis is not an issue \n(Sonnewald et al., 1996).  \nWith the use of 13C MRS Gruetter and colleagues were able to determine the concentration \nand turnover of glycogen in the intact brain (van Heeswijk  et al., 2010), and they also \ndescribed the formation of N-acetyl-aspartate , which is present in the brain at high \nconcentrations, from [13C]glucose, and they determined the turnover rate of this presumed \n'inert' compound (Choi et al., 2004).  \n6. The use of hyperpolarization of 13C to increase MRS sensitivity \nA problem with 13C MRS is the low sensitivity of the method. This weakness implies that \n13C-labeled metabolic substrates have to be given in large amounts to achieve detection of \ntheir metabolites. In contrast, radiolabeling studies are done with minute quantities of \nsubstrate. In an attempt to improve 13C MRS sensitivity, hyperpolarization of 13C-labeled \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 3853,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "8a7ece1b-8f7f-4792-b59c-9fd1f45a0f5e": {
+            "__data__": {
+                "id_": "8a7ece1b-8f7f-4792-b59c-9fd1f45a0f5e",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "14",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the role of 13C Magnetic Resonance Spectroscopy in monitoring brain energy metabolism?\n2. How can hyperpolarized substrates enhance the MRS signal, and what are the limitations of using pyruvate labeled in the carboxylic position for MRS?\n3. What is reversible pyruvate carboxylation, and how does it contribute to the formation of 13CO2 within a few seconds?\n4. How does anesthesia affect brain metabolism of 13C-labeled substrates in studies using hyperpolarized substrates?\n5. What is the potential use of hyperpolarized [13C]pyruvate in the diagnostic workup of malignant tumors, including brain tumors?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_13",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "14",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "3549b9e60c3020a3ff2e42a78731734c76f7e164da00acf9395e8dd8d2851a89",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "13C Magnetic Resonance Spectroscopy in Neurobiology - Its Use in Monitoring  \nBrain Energy Metabolism and in Identifying Novel Metabolic Sub strates and Metabolic Pathways \n 41 \nsubstrates has been done prior to i.v. injectio n. The MRS signal may thus be enhanced more \nthan 10,000 times (Ardenkjaer-Larsen et al., 2003). In some studies pyruvate, which is \nlabeled in the carboxylic position, [1-13C]pyruvate, has been used (Hurd et al., 2010; \nMarja \u0144ska et al., 2010; Mayer et al., 2011). The [13C]pyruvate is hyperpolarized immediately \nbefore i.v. injection. The hyperpolarization is  lost within some seconds, however, and the \ndetection of metabolism of pyruvate is restricted to 13C-labeled lactate, alanine, and CO 2 (see \nFig. 2). Formation of 13CO 2 has been interpreted to reflect pyruvate dehydrogenase activity, \ni.e. the formation of acetyl-CoA, which may ente r the TCA cycle to form citrate. But in the \nbrain the activity of pyruva te dehydrogenase is quite lo w (Morland et al., 2007), and \nformation of TCA cycle intermediates and related amino acids takes several minutes \n(Gonzalez et al., 2005),  so a more lik ely explanation for the formation of 13CO 2 within a few \nseconds is reversible pyruvate carboxylation (Fig. 3): [13C]pyruvate is carboxylated  to \n[13C]malate, which equilibrates with (the symmetrical) fumarate, so that 13C is distributed \nevenly between the two carboxylic groups of fumarate. [13C]Fumarate equilibrates with \nmalate, which may become decarboxylated to pyruvate and CO 2. Some of this CO 2 will then \nbe 13C-labeled. This series of reactions has been  described in the brain with the use of [2-\n13C]pyruvate and [3-13C]pyruvate (Gonzalez et al., 2005), and they occur much more rapidly \nthan the pyruvate dehydrogenas e reaction. Another issue in st udies that use hyperpolarized \nsubstrates is the use of anesthesia , which reduces brain metabolism of 13C-labeled substrates \nmarkedly (Shank et al., 1993).  \nHyperpolarized [13C]pyruvate may prove useful in the diagnostic workup of malignant \ntumors, including brain tumors, which sh ow a greater tendency to convert [13C]pyruvate \ninto [13C]lactate than the normal surrounding tissu e. Some recent studies even suggest the \npossibility of monitoring tumor response to therapy from the reduced conversion of \npyruvate into lactate within a day\u2019s time after irradiation or chemotherapy (Day et al., 2007; \n2011; Park et al., 2011). \n7. References \nAndrews MT, Russeth KP, Drew es LR, Henry PG. (2009) Adaptive mechanisms regulate \npreferred utilization of ketones in the heart and brain of a hibernating mammal \nduring arousal from torpor. Am. J. Physiol. Regul. In tegr. Comp. Physiol. 296:R383-\n393.  \nArdenkjaer-Larsen JH, Fridlund B, Gram A, Ha nsson G, Hansson L, Lerche MH, Servin R, \nThaning M, Golman K. (2003) Increase in si gnal-to-noise ratio of > 10,000 times in \nliquid-state NMR. Proc. Natl. Ac ad. Sci. U. S. A. 100:10158-10163. \nAttwell D, Laughlin SB. (2001) An energy budget for signalin g in the grey matter of the \nbrain. J. Cereb. Blood Flow Metab. 21:1133-1145. \nBartnik BL, Lee SM, Hovda DA, Sutton RL. (2007) The fate of glucose during the period of \ndecreased metabolism after fluid percussion injury: a 13C NMR study. J. \nNeurotrauma. 24:1079-1092. \nBergersen LH. (2007) Is lactate food for neurons? Comparison of monocarboxylate \ntransporter subtypes in brain and muscle. Neuroscience 145:11-19.  \nBoumezbeur F, Petersen KF, Cline GW, Mason GF, Behar KL, Shulman GI, Rothman DL. \n(2010) The contribution of blood lactat e to brain energy metabolism in humans \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 3609,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "b2c5c7a1-6541-4351-a31c-e64f4e6c084f": {
+            "__data__": {
+                "id_": "b2c5c7a1-6541-4351-a31c-e64f4e6c084f",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "15",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is dynamic 13C nuclear magnetic resonance spectroscopy, and how is it used in neuroscience research?\n2. Can you explain the role of N-acetyl aspartate (NAA) and glutathione (GSH) in cerebral metabolism as detected by 13C NMR spectroscopy?\n3. How does pyruvate recycling system contribute to cellular metabolism in the rat brain?\n4. What is the role of glutamate uptake in glial cells, and how is it related to the energy metabolism of neurons?\n5. How does lactate utilization in the human brain contribute to the tricarboxylic acid (TCA) cycle, as observed through 13C-labelled microdialysis and high-resolution nuclear magnetic resonance studies?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_14",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "15",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "d28c1cdb36899c14537d22e1e7cb972951087ff45e825369686cde079e152aa8",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": " \nMagnetic Resonance Spectroscopy \n 42\nmeasured by dynamic 13C nuclear magnetic resonance spectroscopy. J. Neurosci. \n30:13983-13991. \nCerdan S, K\u00fcnnecke B, Seelig J. (1990) Cerebral metabolism of [1,2-13C2]acetate as detected \nby in vivo and in vitro 13C NMR. J. Biol. Chem. 265:12916-12926. \nChoi IY, Gruetter R. (2004) Dynamic or inert metabolism? Turnover of N-acetyl aspartate \nand glutathione from D-[1-13C]glucose in the rat brain in vivo. J. Neurochem. \n91:778-787. \nCruz F, Scott SR, Barroso I, Santisteban P, Cerd\u00e1n S. (1998) Ontogeny and cellular \nlocalization of the pyruvate recycling sy stem in rat brain. J. Neurochem. 70:2613-\n2619. \nDanbolt NC. (2001) Glutamate uptake. Prog. Neurobiol. 65:1-105. \nDay SE, Kettunen MI, Gallagher FA, Hu DE, Lerc he M, Wolber J, Golman K, Ardenkjaer-\nLarsen JH, Brindle KM. (2007) Detectin g tumor response to treatment using \nhyperpolarized 13C magnetic resonance imaging and spectroscopy. Nat. Med. \n13:1382-1387.  \nDay SE, Kettunen MI, Cherukuri MK, Mitchell JB, Lizak MJ, Morris HD, Matsumoto S, \nKoretsky AP, Brindle KM. (2011) Detecting response of rat C6 glioma tumors to \nradiotherapy using hyperpolarized [1- 13C]pyruvate and 13C magnetic resonance \nspectroscopic imaging. Magn . Reson. Med. 65:557-563. \nDeelchand DK, Shestov AA, Koski DM, U \u011furbil K, Henry PG. (2009) Acetate transport and \nutilization in the rat brain. J. Neurochem. 109 Suppl 1:46-54. \nEbert D, Haller RG, Walton ME. (2003) Energy contribution of octanoate to intact rat brain \nmetabolism measured by 13C nuclear magnetic resonance spectroscopy. J. Neurosci. \n23:5928-5935. \nEloqayli H, Dahl CB, G\u00f6testam KG, Unsg\u00e5rd G, Sonnewald U. (2004) Changes of glial-\nneuronal interaction and metabolism after a subconvulsive dose of \npentylenetetrazole. Neurochem. Int. 45:739-745. \nFitzpatrick SM, Hetherington HP, Behar KL, Sh ulman RG. (1990) The flux from glucose to \nglutamate in the rat brain in vivo as determined by 1H-observed, 13C-edited NMR \nspectroscopy. J. Cereb. Bl ood Flow Metab. 10:170-179. \nFonnum F, Storm-Mathisen J, Walberg F. ( 1970) Glutamate decarboxylase in inhibitory \nneurons. A study of the enzyme in Purkinje  cell axons and boutons in the cat. Brain \nRes. 20:259-275. \nGallagher CN, Carpenter KL, Grice P, Howe  DJ, Mason A, Timofeev I, Menon DK, \nKirkpatrick PJ, Pickard JD, Sutherland GR , Hutchinson PJ. (2009) The human brain \nutilizes lactate via the tricarboxylic acid cycle: a 13C-labelled microdialysis and \nhigh-resolution nuclear magnetic resonance study. Brain 132:2839-2849. \nGonzalez SV, Nguyen NH, Rise F, Hassel  B. (2005) Brain metabolism of exogenous \npyruvate. J. Neurochem. 95:284-293. \nHassel B, Paulsen RE, Johnsen A, Fonnum F. (1992) Selective inhibition of glial cell \nmetabolism in vivo by fluoroci trate. Brain Res. 576:120-124. \nHassel B, Sonnewald U, Fonnum F. (1995a) Glia l-neuronal interactions as studied by \ncerebral metabolism of [2-13C]acetate and [1-13C]glucose: an ex vivo 13C NMR \nspectroscopic study. J.  Neurochem. 64:2773-2782. \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 3037,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "21384868-54e0-4f53-bb4e-562404665426": {
+            "__data__": {
+                "id_": "21384868-54e0-4f53-bb4e-562404665426",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "16",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the main focus of the article \"13C Magnetic Resonance Spectroscopy in Neurobiology - Its Use in Monitoring Brain Energy Metabolism and in Identifying Novel Metabolic Substrates and Metabolic Pathways\"?\n2. What are some metabolic differences between primary cultures of astrocytes and neurons from cerebellum and cerebral cortex, as mentioned in the Hassel et al. (1995b) study?\n3. How does fluoroacetate affect glial metabolism, according to the Hassel et al. (1997) study?\n4. What is the evidence for neuronal pyruvate carboxylation in vivo, as described by Hassel and Dingledine (2006)?\n5. How can hyperpolarized [1-13C] pyruvate and [1-13C] ethyl pyruvate be used for metabolic imaging in the anesthetized rat brain, as shown by Hurd et al. (2010)?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_15",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "16",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "9b28e8a722721968d1f4a5d7beb0a83d6424c59614981359f4688de7ee36c1a2",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "13C Magnetic Resonance Spectroscopy in Neurobiology - Its Use in Monitoring  \nBrain Energy Metabolism and in Identifying Novel Metabolic Sub strates and Metabolic Pathways \n 43 \nHassel B, Westergaard N, Schousboe A, Fonnu m F. (1995b) Metabolic differences between \nprimary cultures of astrocytes and neuron s from cerebellum and cerebral cortex. \nEffects of fluorocitrate. Neurochem. Res. 20:413-420. \nHassel B, Sonnewald U. (1995a) Selective inhibi tion of the tricarbo xylic acid cycle of \nGABAergic neurons with 3-nitropropionic  acid in vivo. J. Neurochem. 65:1184-\n1191. \nHassel B, Sonnewald U. (1995b) Glial formation of pyruvate and lactate from TCA cycle \nintermediates: implications for the inacti vation of transmitter amino acids? J. \nNeurochem. 65:2227-2234. \nHassel B, Bachelard H, Jones P, Fonnum F, So nnewald U. (1997) Trafficking of amino acids \nbetween neurons and glia in vivo. Effects of inhibition of glial metabolism by \nfluoroacetate. J. Cereb. Bl ood Flow Metab. 17:1230-1238. \nHassel B, Br\u00e5the A. (2000) Cerebral metabolism of lactate in vivo: evidence for neuronal \npyruvate carboxylation. J. Cereb. Blood Flow Metab. 20:327-336. \nHassel B, Dingledine R. (2006) Glutamate. In GJ Siegel (ed) Basic Neurochemistry . Elsevier, \npp. 267-290. \nHurd RE, Yen YF, Mayer D, Chen A, Wilson D, Kohler S, Bok R, Vig neron D, Kurhanewicz \nJ, Tropp J, Spielman D, Pfefferbau m A. (2010) Metabolic imaging in the \nanesthetized rat brain using hyperpolarized [1-13C] pyruvate and [1-13C] ethyl \npyruvate. Magn. Reson. Med. 63:1137-1143. \nHyder F, Chase JR, Behar KL, Mason GF, Siddeek M, Rothman DL, Shulman RG. (1996) \nIncreased tricarboxylic acid cycle flux in rat brain during forepaw stimulation \ndetected with 1H[13C]NMR. Proc. Natl. Acad. Sci. U. S. A. 93:7612-7617. \nHyder F, Brown P, Nixon TW, Behar KL. (2003) Mapping cerebral glutamate 13C turnover \nand oxygen consumption by in vivo NM R. Adv. Exp. Med. Biol. 530:29-39. \nH\u00e5berg A, Qu H, Bakken IJ, Sande LM, White LR, Haraldseth O, Unsg\u00e5rd G, Aasly J, \nSonnewald U. (1998) In vitro and ex vivo 13C-NMR spectroscopy studies of \npyruvate recycling in brain.  Dev. Neurosci. 20:389-398. \nH\u00e5berg AK, Qu H, Sonnewald U. (2009) Acut e changes in intermediary metabolism in \ncerebellum and contralateral hemisphere  following middle cerebral artery \nocclusion in rat. J. Neurochem. 109 Suppl 1:174-181. \nJohannessen CU, Qu H, Sonnewald U, Hassel B,  Fonnum F. (2001) Estimation of aspartate \nsynthesis in GABAergic neurons in mice  by 13 C NMR spectroscopy. Neuroreport \n12:3729-3732. \nK\u00fcnnecke B, Cerdan S, Seelig J. ( 1993) Cerebral metabolism of [1,2-13C2]glucose and [U-\n13C4]3-hydroxybutyrate in rat brain as detected by 13C NMR spectroscopy. NMR \nBiomed. 6:264-277. \nKvamme E, Torgner IA, Roberg B. (2001) Ki netics and localization of brain phosphate \nactivated glutaminase. J. Neurosci. Res. 66:951-958. \nLebon V, Petersen KF, Cline GW, Shen J, Mason GF, Dufour S, Behar KL, Shulman GI, \nRothman DL. (2002) Astroglial contribution to brain energy metabolism in humans \nrevealed by 13C nuclear magnetic resonance spectroscopy: elucidation of the \ndominant pathway for neurotransmitter gl utamate repletion and measurement of \nastrocytic oxidative metabo lism. J. Neurosci. 22:1523-1531. \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 3279,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "ee671e17-391b-4a4f-af2c-902d8af712a1": {
+            "__data__": {
+                "id_": "ee671e17-391b-4a4f-af2c-902d8af712a1",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "17",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the focus of the article \"In vivo 13C spectroscopy in the rat brain using hyperpolarized [1-13C]pyruvate and [2-13C]pyruvate\" by Marja Maska\u0144ska et al. (2010)?\nThe article focuses on in vivo 13C spectroscopy in the rat brain using hyperpolarized [1-13C]pyruvate and [2-13C]pyruvate, providing insights into brain metabolism.\n2. What is glutamine synthetase's glial localization in the brain according to Martinez-Hernandez et al. (1977)?\nThe study by Martinez-Hernandez et al. (1977) suggests that glutamine synthetase is localized in astrocytes, a type of glial cell in the brain.\n3. What are some findings from Mason et al.'s (2006) study on increased brain monocarboxylic acid transport and utilization in type 1 diabetes?\nMason et al. (2006) found that individuals with type 1 diabetes exhibit increased brain monocarboxylic acid transport and utilization, which may contribute to metabolic dysfunction in the disease.\n4. What is the purpose of the study \"Dynamic and high-resolution metabolic imaging of hyperpolarized [1-13C]-pyruvate in the rat brain using a high-performance gradient insert\" by Mayer et al. (2011)?\nThe study by Mayer et al. (2011) aims to investigate dynamic and high-resolution metabolic imaging of hyperpolarized [1-13C]-pyruvate in the rat brain using advanced imaging techniques, providing insights into brain metabolism.\n5. How does Nguyen et al.'s (2007c) study contribute to our understanding of glycerol formation in the brain?\nNguyen et al.'s (2007c) study investigates the formation of glycerol from glucose in rat brains and cultured brain cells, providing insights into the metabolic processes involved in glycerol production."
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_16",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "17",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "518dcf824dedaeaaef397dcc635e517fff181082504c0f46ffc2808e19672e58",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": " \nMagnetic Resonance Spectroscopy \n 44\nMarja \u0144ska M, Iltis I, Shestov AA, Deelchand DK, Nelson C, U \u011furbil K, Henry PG. (2010) In \nvivo 13C spectroscopy in the rat br ain using hyperpolarized [1-13C]pyruvate and [2-\n13C]pyruvate. J. Magn. Reson. 206:210-218. \nMartinez-Hernandez A, Bell KP, Norenberg MD. (1977) Glutamine synthetase: glial \nlocalization in brain. Science 195:1356-1358. \nMason GF, Pan JW, Chu WJ, Newcomer BR, Zhang Y, Orr R, Hetherington HP. (1999) \nMeasurement of the tricarboxylic acid cycl e rate in human grey and white matter in \nvivo by 1H-[13C] magnetic resonance spectroscopy at 4.1T. J. Cereb. Blood Flow \nMetab. 19:1179-1188. \nMason GF, Petersen KF, de Graaf RA, Shulma n GI, Rothman DL. (2007) Measurements of \nthe anaplerotic rate in the human cerebral cortex using 13C magnetic resonance \nspectroscopy and [1-13C] and [2-13C] glucose. J. Neurochem. 100:73-86. \nMason GF, Petersen KF, Lebon V, Rothman DL, Shulman GI. (2006) Increased brain \nmonocarboxylic acid transport and utilization in type 1 diabetes. Diabetes 55:929-\n934. \nMayer D, Yen YF, Takahashi A, Josan S, Tropp J, Rutt BK, Hurd RE, Spielman DM, \nPfefferbaum A. (2011) Dynamic and hi gh-resolution metabolic imaging of \nhyperpolarized [1-13C]-pyruvate in the rat brain using a high-performance gradient \ninsert. Magn. Reson. Med. 65:1228-1233. \nMerle M, Martin M, Vill\u00e9gier A, Canioni P. (1996) [1-13C]glucose metabolism in brain cells: \nisotopomer analysis of glutamine from cerebellar astrocytes and glutamate from \ngranule cells. Dev. Neurosci. 18:460-468. \nMorland C, Henjum S, Iversen EG, Skrede KK,  Hassel B. (2007) Evidence for a higher \nglycolytic than oxidative metabolic activity in white matter of rat brain. \nNeurochem. Int. 50:703-709. \nNguyen NH, Br\u00e5the A, Hassel B. (2003) Neuron al uptake and metabolism of glycerol and \nthe neuronal expression of mitochondrial glycerol-3-phosphate dehydrogenase. J. \nNeurochem. 85:831-842. \nNguyen N, Gonzalez SV, Rise F, Hassel B. (2007a) Cerebral metabolism of glucose and \npyruvate in soman poisoning. A 13C nuclear magnetic resonance spectroscopic \nstudy. Neurotoxicology 28:13-18.  \nNguyen NH, Morland C, Gonzalez  SV , Ri se F , Storm -M ath isen  J, G u n dersen  V , Has sel B . \n(2007b) Propionate increases neuronal hi stone acetylation, but is metabolized \noxidatively by glia. Relevance for propionic acidemia. J. Neurochem. 101:806-814. \nNguyen NH, Gonzalez SV, Hassel B. (2007c) Form ation of glycerol from glucose in rat brain \nand cultured brain cells. Augmentation with kainate or ischemia. J. Neurochem. \n101:1694-1700. \nOttersen OP, Storm-Mathisen J. (1985) Different  neuronal localization of aspartate-like and \nglutamate-like immunoreactivities in th e hippocampus of rat, guinea-pig and \nSenegalese baboon (Papio papio), with a note on the distribution of gamma-\naminobutyrate. Neuroscience 16:589-606. \nPan JW, Williamson A, Cavus I, Hetherington HP , Zaveri H, Petroff OA, Spencer DD. (2008) \nNeurometabolism in human epileps y. Epilepsia. 49 Suppl 3:31-41. \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 3048,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "057cbb9f-6a92-4a3d-bf8c-a69fbc2782c9": {
+            "__data__": {
+                "id_": "057cbb9f-6a92-4a3d-bf8c-a69fbc2782c9",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "18",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the role of 13C Magnetic Resonance Spectroscopy in monitoring brain energy metabolism?\n2. How does hyperpolarized 13C MR metabolic imaging detect early responses to temozolomide treatment in brain tumors?\n3. What is glutamate-glutamine cycling, and how is it coupled with neuronal glucose oxidation during intense neural activation?\n4. What are the implications of 13C NMR tracers for molecular imaging in neurochemistry?\n5. How does brain pyruvate recycling and peripheral metabolism affect astrocytic and neuronal metabolisms to fulfill anaplerotic and energy needs in the rat brain?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_17",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "18",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "188a5280493aac9aa7b5bd683d75f602594016d08e2a247f5711e58e206a52d8",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "13C Magnetic Resonance Spectroscopy in Neurobiology - Its Use in Monitoring  \nBrain Energy Metabolism and in Identifying Novel Metabolic Sub strates and Metabolic Pathways \n 45 \nPan JW, de Graaf RA, Petersen KF, Shulman GI, Hetherington HP, Rothman DL. (2002) [2,4-\n13C2 ]-beta-Hydroxybutyrate metabolism in human brain. J. Cereb. Blood Flow \nMetab. 22:890-898. \nPark I, Bok R, Ozawa T, Phillips JJ, James CD, Vigneron DB, Ronen SM, Nelson SJ. (2011) \nDetection of early response to temozolomide treatment in brain tumors using \nhyperpolarized 13C MR metabolic imaging. J. Ma gn. Reson. Imaging 33:1284-1290.  \nPatel AB, de Graaf RA, Mason GF, Kanamatsu T, Rothman DL, Shulman RG, Behar KL. \n(2004) Glutamatergic neurotransmission and neuronal glucose oxidation are \ncoupled during intense neuronal activati on. J. Cereb. Blood Flow Metab. 24:972-\n985. \nPetroff OA, Errante LD, Rothman DL, Kim JH , Spencer DD. (2002) Glutamate-glutamine \ncycling in the epileptic human hippocampus. Epilepsia 43:703-710. \nRodrigues TB, Fonseca CP, Castro MM, Cerd\u00e1n S, Geraldes CF. (2009) 13C NMR tracers in \nneurochemistry: implications for molecular imaging. Q. J. Nucl. Med. Mol. Imaging \n53:631-645. \nRothman DL, Sibson NR, Hyder F, Shen J, Be har KL, Shulman RG. (1999) In vivo nuclear \nmagnetic resonance spectroscopy stud ies of the relationship between the \nglutamate-glutamine neurotransmitter cycle and functional neuroenergetics. \nPhilos. Trans. R. Soc. Lond . B Biol. Sci. 354:1165-1177.  \nRothman DL, Behar KL, Hyder F, Shulman RG. ( 2003) In vivo NMR studies of the glutamate \nneurotransmitter flux and neuroenergetics:  implications for brain function. Annu. \nRev. Physiol. 65:401-27. \nScafidi S, O'Brien J, Hopkins I, Robertson C, Fiskum G, McKenna M. (2009) Delayed cerebral \noxidative glucose metabolism after traumatic brain injury in young rats. J. \nNeurochem. 109 Suppl 1:189-197. \nSerres S, Bezancon E, Franconi JM, Merle M. ( 2007) Brain pyruvate recycling and peripheral \nmetabolism: an NMR analysis ex vivo of acetate and glucose metabolism in the rat. \nJ. Neurochem. 101:1428-1240. \nSerres S, Raffard G, Franconi JM, Merle M. (2008) Close coupling between astrocytic and \nneuronal metabolisms to fulfill anaplerotic and energy needs in the rat brain. J. \nCereb. Blood Flow Metab. 28:712-724.  \nShank RP, Leo GC, Zielke HR. (1993) Cerebral metabolic compartmentation as revealed by \nnuclear magnetic resona nce analysis of D-[1-13C]glucose metabolism. J. \nNeurochem. 61:315-323. \nShen J, Petersen KF, Behar KL, Brown P, Nixon TW, Mason GF, Petroff OA, Shulman GI, \nShulman RG, Rothman DL. (1999) Determination of the rate of the \nglutamate/glutamine cycle in the human brain by in vivo 13C NMR. Proc. Natl. \nAcad. Sci. U. S. A. 96:8235-8240. \nShulman RG, Rothman DL, Behar KL, Hyder F. (2004) Energetic basis of brain activity: \nimplications for neuroimaging . Trends Neurosci. 27:489-495. \nSiesj\u00f6 BK. (1978) Brain Energy Metabolism , New York. \nSonnewald U, Westergaard N, Jones P, Tayl or A, Bachelard HS, Schousboe A. (1996) \nMetabolism of [U-13C5] glutamine in cultured astrocytes studied by NMR \nspectroscopy: first evidence of astrocytic pyruvate recycling. J. Neurochem. \n67:2566-2572. \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 3221,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "8c6eb046-d3b7-4d4c-8cda-233d733fdfb5": {
+            "__data__": {
+                "id_": "8c6eb046-d3b7-4d4c-8cda-233d733fdfb5",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "19",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the purpose of 13C-Magnetic Resonance Spectroscopy in neuroscience research?\n2. How does acetate affect cerebral metabolic compartmentalization?\n3. Can 13C NMR be used to quantify brain glycogen concentration and turnover?\n4. What is the role of transport in preferential utilization of acetate by astrocytes?\n5. Who edited \"Metabolic compartmentation in the brain\"?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_18",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "19",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "3c94236e0cce6325e9f695de94bcb2f1169704f391b0a7934743d835c5e4f33b",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": " \nMagnetic Resonance Spectroscopy \n 46\nTyson RL, Gallagher C, Sutherland GR. (2003) 13C-Labeled substrates and the cerebral \nmetabolic compartmentalization of acet ate and lactate. Brain Res. 992:43-52. \nUrion D, Vreman HJ, Weiner MW. (1979) Effect of acetate on hypoglycemic seizures in mice. \nDiabetes 28:1022-1026. \nVan den Berg, C. J. (1973) Metabolic compartmentation in the brain  (Bal\u00e1zs R and Cremer JE, \neds), Macmillan, London, pp. 137\u2013166. \nvan Heeswijk RB, Morgenthaler FD, Xin L, Gruetter R. (2010) Quantification of brain \nglycogen concentration and turnover through localized 13C NMR of both the C1 \nand C6 resonances. NMR Biomed. 23:270-276. \nWaniewski RA, Martin DL. (1998) Preferential utilization of acetate by astrocytes is \nattributable to transport. J. Neurosci. 18:5225-5233. \nwww.intechopen.com",
+                "start_char_idx": 0,
+                "end_char_idx": 818,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "9b41a364-62ff-4e14-ad93-bbc43b1bfae1": {
+            "__data__": {
+                "id_": "9b41a364-62ff-4e14-ad93-bbc43b1bfae1",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "20",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the primary focus of Magnetic Resonance Spectroscopy (MRS) in the clinical field, according to the book \"Magnetic Resonance Spectroscopy\" edited by Prof. Dong-Hyun Kim?\n2. How does MRS contribute to investigating disease states, as described in the aforementioned book?\n3. What is the second section of the book called and what are its main topics according to the introduction?\n4. Who is the editor of the book \"Magnetic Resonance Spectroscopy\" and what is their affiliation?\n5. How many pages is the book and what is the ISBN number according to the provided context?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_19",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "20",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "10e8f2a17513995f908ea17ba81655f616fd4a67bf1b71b3b857a89c8bf0abce",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "Magnetic Resonance Spectroscopy\nEdited by Prof. Dong-Hyun Kim\nISBN 978-953-51-0065-2\nHard cover, 264 pages\nPublisher InTech\nPublished online 02, March, 2012\nPublished in print edition March, 2012\nInTech Europe\nUniversity Campus STeP Ri \nSlavka Krautzeka 83/A \n51000 Rijeka, Croatia \nPhone: +385 (51) 770 447 \nFax: +385 (51) 686 166\nwww.intechopen.comInTech China\nUnit 405, Office Block, Hotel Equatorial Shanghai \nNo.65, Yan An Road (West), Shanghai, 200040, China \nPhone: +86-21-62489820 \nFax: +86-21-62489821Magnetic Resonance Spectroscopy (MRS) is a unique tool to p robe the biochemistry in vivo providing\nmetabolic information non-invasively. Applications using MR S has been found over a broad spectrum in\ninvestigating the underlying structures of compounds as well  as in determining disease states. In this book,\ntopics of MRS both relevant to the clinic and also those t hat are beyond the clinical arena are covered. The\nbook consists of two sections. The first section is entitled ' MRS inside the clinic' and is focused on clinical\napplications of MRS while the second section is entitled ' MRS beyond the clinic' and discusses applications of\nMRS in other academic fields. Our hope is that through this book, readers can understand the broad\napplications that NMR and MRS can offer and also that t here are enough references to guide the readers for\nfurther study in this important topic.\nHow to reference\nIn order to correctly reference this scholarly work, feel f ree to copy and paste the following:\nBj\u00f8rnar Hassel (2012). 13C Magnetic Resonance Spectroscopy i n Neurobiology - Its Use in Monitoring Brain\nEnergy Metabolism and in Identifying Novel Metabolic Sub strates and Metabolic Pathways, Magnetic\nResonance Spectroscopy, Prof. Dong-Hyun Kim (Ed.), ISBN: 9 78-953-51-0065-2, InTech, Available from:\nhttp://www.intechopen.com/books/magnetic-resonance-spectroscop y/13c-magnetic-resonance-spectroscopy-\nin-neurobiology-its-use-in-monitoring-brain-energy-meta bolism-an\n",
+                "start_char_idx": 0,
+                "end_char_idx": 1990,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        },
+        "25d68109-11a2-4ba3-894a-dac8aab583aa": {
+            "__data__": {
+                "id_": "25d68109-11a2-4ba3-894a-dac8aab583aa",
+                "embedding": null,
+                "metadata": {
+                    "page_label": "21",
+                    "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                    "questions_this_excerpt_can_answer": "1. What is the main topic of the file named \"13C\\_Magnetic\\_Resonance\\_Spectroscopy\\_in\\_N.pdf\"?\n2. Who is the author of the article?\n3. When was the article published?\n4. What license does the article use, and what are its terms?\n5. How can I cite this article in my own work, according to the terms of the Creative Commons Attribution 3.0 License?"
+                },
+                "excluded_embed_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "excluded_llm_metadata_keys": [
+                    "file_name",
+                    "file_type",
+                    "file_size",
+                    "creation_date",
+                    "last_modified_date",
+                    "last_accessed_date"
+                ],
+                "relationships": {
+                    "1": {
+                        "node_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_20",
+                        "node_type": "4",
+                        "metadata": {
+                            "page_label": "21",
+                            "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                            "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf"
+                        },
+                        "hash": "741fb9a7950e2979ecd1573e78f0066ae1b38a969fb3b6e183b56448cba345b4",
+                        "class_name": "RelatedNodeInfo"
+                    }
+                },
+                "text": "\u00a9 2012 The Author(s). Licensee IntechOpen. This is an ope n access article\ndistributed under the terms of the Creative Commons Attribution 3.0\nLicense , which permits unrestricted use, distribution, and repro duction in\nany medium, provided the original work is properly cited.",
+                "start_char_idx": 0,
+                "end_char_idx": 277,
+                "text_template": "[Excerpt from document]\n{metadata_str}\nExcerpt:\n-----\n{content}\n-----\n",
+                "metadata_template": "{key}: {value}",
+                "metadata_seperator": "\n",
+                "class_name": "TextNode"
+            },
+            "__type__": "1"
+        }
+    },
+    "docstore/metadata": {
+        "34401f40-00eb-4333-8a69-e5fd37e816f6": {
+            "doc_hash": "d9ced1f568e480ebf29c3319348a2f462c4d8f06cb26ad9403d60045b4e4587b",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_0"
+        },
+        "21dd5deb-a779-4226-a4a9-4f4a7efb064c": {
+            "doc_hash": "bfbad79748bc9707cb2a081a82202029264e363327a5ef1cb832e6b2454365c3",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_1"
+        },
+        "6b92d0d1-afd7-447d-bb9d-af792ed31096": {
+            "doc_hash": "b5cadc2a4756d18b044f816536e6fb192b3351002e52207ac735b3013fe77b3d",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_2"
+        },
+        "641aac56-5a94-4372-959d-20a2aae885bf": {
+            "doc_hash": "c09f0838e5c422c2204840e14474eaffa85fdef31a817235171dee981212866c",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_3"
+        },
+        "3e32efde-1e59-414d-b37b-01d3d403ad49": {
+            "doc_hash": "7260e555b9ff15b112bfb7813c6235bfe64d5bccd7252f747f93ad608c30861d",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_4"
+        },
+        "ff8ac6e4-f7f5-43a3-a943-65895629d1f4": {
+            "doc_hash": "c5d20906158763bcf9340d848e5913fe80f41adaddafac90bd7213c5d0392496",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_5"
+        },
+        "0addba7e-8612-4a47-afaa-49e29a267bac": {
+            "doc_hash": "21d48da4c6d59d6d77d7af1ea5d165f29a0ab97eb3b12c1a3625457e1ac426de",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_6"
+        },
+        "753124c9-4c5e-46c6-b1d3-69a436a13521": {
+            "doc_hash": "78a4795f5c14fdb462b35012c021543842d8e4063235adebd4e005f61a6262c3",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_7"
+        },
+        "9a5a6aff-70b9-4a77-a3c1-585e07e8ba31": {
+            "doc_hash": "e4572be61681f688cdfe02ad5248fb89cdaa49d5d3ccfad4b9d8e003218f848d",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_8"
+        },
+        "8d604143-3971-4455-ba47-46b130a916fc": {
+            "doc_hash": "eb126cd042a48f13488b3cb23216e2aeaf0d54e010135540db8eb2dad7fd3da7",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_9"
+        },
+        "230fd876-cfc9-4b7d-a8b0-c189474c3972": {
+            "doc_hash": "b5d61e25e12e6c5ba5d5b24083bfd5890244d36aa04edd1e0423a4091f4d3119",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_10"
+        },
+        "7a9ed32b-f104-4d29-b5b6-53773b9d07ee": {
+            "doc_hash": "822f43ff3462ab37206a3b5716a14a2f802d13d02cdd2a5e3718d92ccbb9cf6d",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_11"
+        },
+        "6f51ef35-1ccc-490d-81ad-a151e428278e": {
+            "doc_hash": "eac0257d2aa2e617d3b4d3eb4336150e274855070b0ad374ba5a008ea8864042",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_12"
+        },
+        "8a7ece1b-8f7f-4792-b59c-9fd1f45a0f5e": {
+            "doc_hash": "65110fe215bf7a82411a8b8838bf4207513a14f550737faf19c8d0169142d16a",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_13"
+        },
+        "b2c5c7a1-6541-4351-a31c-e64f4e6c084f": {
+            "doc_hash": "7089fb511e11fc4c630b857833015ebb75a26b9330f754801114f7ec8294951c",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_14"
+        },
+        "21384868-54e0-4f53-bb4e-562404665426": {
+            "doc_hash": "8c313deee41305bce0fc74600e272c8cfb8b2b0582ed4587df8c82517a8aaca2",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_15"
+        },
+        "ee671e17-391b-4a4f-af2c-902d8af712a1": {
+            "doc_hash": "b36df61bb175319b489deaeab27666dc325715dc82d0b270405c610b1ca06b32",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_16"
+        },
+        "057cbb9f-6a92-4a3d-bf8c-a69fbc2782c9": {
+            "doc_hash": "3a149312f744c2b784f9fc20c5ff786b90ddb6cbeee208467f5045e46dceb834",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_17"
+        },
+        "8c6eb046-d3b7-4d4c-8cda-233d733fdfb5": {
+            "doc_hash": "0bff8e5583bd63a49569bde4b9c4d0b6aa00c2e0e78a5ca8aaa0f27c2c6ab764",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_18"
+        },
+        "9b41a364-62ff-4e14-ad93-bbc43b1bfae1": {
+            "doc_hash": "3662ae514e4b02771f9c2fd590e13d791545ce590bc08c8ae41db3f1995845da",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_19"
+        },
+        "25d68109-11a2-4ba3-894a-dac8aab583aa": {
+            "doc_hash": "b2d7c620087640a5dde8f40afc50817d5eface36e06bd6c476e69eefc8797b76",
+            "ref_doc_id": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_20"
+        }
+    },
+    "docstore/ref_doc_info": {
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_0": {
+            "node_ids": [
+                "34401f40-00eb-4333-8a69-e5fd37e816f6"
+            ],
+            "metadata": {
+                "page_label": "1",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the selection criteria for books indexed in the Book Citation Index in Web of Science\u2122 Core Collection (BKCI)?\n2. How many open access books are available through IntechOpen?\n3. Which countries have the most contributors from top 500 universities on IntechOpen's platform?\n4. What is the citation rate for authors published by IntechOpen, and how does it compare to other publishers?\n5. How many downloads has the book \"13C Magnetic Resonance Spectroscopy in N\" received since its publication through IntechOpen?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_1": {
+            "node_ids": [
+                "21dd5deb-a779-4226-a4a9-4f4a7efb064c"
+            ],
+            "metadata": {
+                "page_label": "2",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the purpose of 13C magnetic resonance spectroscopy in neurobiology?\n2. How does 13C magnetic resonance spectroscopy provide information on brain energy metabolism?\n3. What are some potential applications of 13C magnetic resonance spectroscopy in identifying novel metabolic substrates and pathways?\n4. How can 13C magnetic resonance spectroscopy be used to study the transfer of amino acids between different cell types in the brain?\n5. What are some technical aspects that should be considered when using 13C magnetic resonance spectroscopy in studies of brain and cultured brain cells?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_2": {
+            "node_ids": [
+                "6b92d0d1-afd7-447d-bb9d-af792ed31096"
+            ],
+            "metadata": {
+                "page_label": "3",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the relationship between neuronal activity, energy requirements, and glucose metabolism according to the study?\n2. How does 13C MRS help investigate brain metabolism in humans or experimental animals?\n3. How does administration of 13C-labeled glucose affect labeling of glutamate in the brain?\n4. What is the metabolic pathway through which 13C-glucose is converted to 13C-acetyl-CoA and subsequently to citrate, alpha-ketoglutarate, and glutamate?\n5. How does labeling of the 2nd and 3rd positions in succinate, fumarate, malate, and oxaloacetate reflect passage of 13C through the TCA cycle?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_3": {
+            "node_ids": [
+                "641aac56-5a94-4372-959d-20a2aae885bf"
+            ],
+            "metadata": {
+                "page_label": "4",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the role of 13C Magnetic Resonance Spectroscopy in monitoring brain energy metabolism?\n2. How does glycolysis and the TCA cycle contribute to the metabolism of glucose in the brain?\n3. How is aspartate labeled with 13C in the TCA cycle, and what are its implications for GABAergic neurons?\n4. What are the effects of inhibition of TCA cycle activity on the labeling of glutamate, GABA, or glutamine from [13C]glucose?\n5. How does brain activity affect glucose metabolism in the brain as observed through 13C Magnetic Resonance Spectroscopy?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_4": {
+            "node_ids": [
+                "3e32efde-1e59-414d-b37b-01d3d403ad49"
+            ],
+            "metadata": {
+                "page_label": "5",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the purpose of 13C Magnetic Resonance Spectroscopy in studying the brain?\n2. How does labeling with [13C]glucose reflect the metabolic activity of the brain, and what limitations should be considered when interpreting the results?\n3. Can the transport and initial phosphorylation of deoxyglucose be used as a method to detect brain energy metabolism? How does it differ from 13C MRS detection of glutamate labeling from [13C]glucose?\n4. What is the role of astrocytes in providing precursors for neurons, and how can isotopically labeled acetate be used to study this metabolic interplay between astrocytes and neurons?\n5. What are some challenges in assessing the metabolic activity of individual cell types in the brain, and how can selective metabolic substrates help in dissecting the brain's metabolism?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_5": {
+            "node_ids": [
+                "ff8ac6e4-f7f5-43a3-a943-65895629d1f4"
+            ],
+            "metadata": {
+                "page_label": "6",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. How does the administration of 13C-labeled acetate to experimental animals illustrate a series of metabolic and transport-related events in the brain?\n2. What is the role of glutamine as a precursor of glutamate and GABA in the brain?\n3. How does the formation of [13C]GABA from [13C]acetate illustrate astrocytic uptake and oxidative metabolism of [13C]acetate, glutamine synthetase activity, and other metabolic processes in the brain?\n4. What are some of the key enzymes involved in the metabolism of 13C-labeled acetate in astrocytes and neurons?\n5. How does the use of 13C magnetic resonance spectroscopy (MRS) provide insight into brain energy metabolism and identify novel metabolic substrates and metabolic pathways in neurobiology?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_6": {
+            "node_ids": [
+                "0addba7e-8612-4a47-afaa-49e29a267bac"
+            ],
+            "metadata": {
+                "page_label": "7",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the role of acetate in brain metabolism, and why is it only taken up by astrocytes?\n2. How does propionate affect brain GABA levels and what are its implications for neuronal metabolism?\n3. Can 13C MRS be used to identify transmitter glutamate in the central nervous system, and how is it related to the metabolic processes of astrocytes and neurons?\n4. What is the relationship between the exchange of glutamate and glutamine between neurons and astrocytes, and how does this affect cerebral metabolism of glucose?\n5. How do different substrates such as lactate, pyruvate, and glycerol contribute to brain energy metabolism in neurons and glial cells?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_7": {
+            "node_ids": [
+                "753124c9-4c5e-46c6-b1d3-69a436a13521"
+            ],
+            "metadata": {
+                "page_label": "8",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the primary use of 13C Magnetic Resonance Spectroscopy in Neurobiology?\n2. How does 13C Magnetic Resonance Spectroscopy aid in monitoring brain energy metabolism?\n3. Can you explain the significance of identifying novel metabolic substrates and metabolic pathways through 13C Magnetic Resonance Spectroscopy?\n4. What is the role of glutamate uptake by astrocytes in this context, and what does fluoroacetate achieve in blocking it?\n5. How does the inhibition of astrocytic TCA cycle impact glutamine formation and overall brain function?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_8": {
+            "node_ids": [
+                "9a5a6aff-70b9-4a77-a3c1-585e07e8ba31"
+            ],
+            "metadata": {
+                "page_label": "9",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the role of 13C Magnetic Resonance Spectroscopy in studying brain energy metabolism? How does it help identify alternative substrates for brain energy metabolism?\n2. Can you explain the formation of [13C]glutamine in the context of labeled glucose and transmitter glutamate release from neurons? What implications does this have for understanding brain energy metabolism?\n3. How do lactate, fructose, and propionate become potential substrates for brain energy metabolism despite not being traditionally considered as such? What are the specific transport proteins and enzymes involved in their metabolism in the brain?\n4. In what ways does the identification of alternative substrates for brain energy metabolism impact our understanding of brain physiology and potential therapeutic interventions? Are there any known examples of drugs or treatments that target these alternative substrates to modulate brain function?\n5. How do transport limitations at the blood-brain barrier affect the metabolism of certain substrates, such as dicarboxylates and monosaccharides? Can you provide specific examples of how this has been observed in research studies?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_9": {
+            "node_ids": [
+                "8d604143-3971-4455-ba47-46b130a916fc"
+            ],
+            "metadata": {
+                "page_label": "10",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the primary use of 13C magnetic resonance spectroscopy in neurobiology, and how does it contribute to monitoring brain energy metabolism?\n2. Can fatty acid metabolism occur in the brain? If so, what evidence suggests this?\n3. What are some key differences between [3-13C]pyruvate and [2-13C]pyruvate labeling in terms of metabolite labeling, and what insights do these differences provide about brain energy metabolism?\n4. How does the use of 13C-labeled acetate impact the visualization of metabolic interplay between astrocytes and neurons in the brain?\n5. Are there any potential implications or applications of using acetate to support brain energy metabolism, particularly in cases where glucose levels are low (e.g., hypoglycemic mice)?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_10": {
+            "node_ids": [
+                "230fd876-cfc9-4b7d-a8b0-c189474c3972"
+            ],
+            "metadata": {
+                "page_label": "11",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the power of 13C MRS in elucidating cell-specific metabolism in the CNS?\n2. Can glycerol production increase during hypoxia or epileptic seizures, and which cells produce it?\n3. How does the formation of glycerol in both neurons and astrocytes point towards a 'glycerol cycle' in the brain?\n4. What is the significance of the strong labeling of GABA from [13C]glycerol, and how does it relate to glutamate labeling?\n5. How can 13C-labeled substrates be used to identify metabolic pathways in the brain, and which substrates are suitable for this purpose?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_11": {
+            "node_ids": [
+                "7a9ed32b-f104-4d29-b5b6-53773b9d07ee"
+            ],
+            "metadata": {
+                "page_label": "12",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. How does the use of 13C magnetic resonance spectroscopy help in monitoring brain energy metabolism?\n2. What are the different enzymatic routes through which labeled pyruvate may enter the TCA cycle in the brain?\n3. Can you explain the process of pyruvate carboxylation and its significance in astrocytes and neurons?\n4. How does the reversible pyruvate carboxylation affect the formation of 13CO2 from [1-13C]pyruvate?\n5. What is the role of malic enzyme in the process of pyruvate carboxylation in neurons, and how does it compensate for the loss of \u03b1-ketoglutarate in glutamatergic and GABAergic neuron transmission?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_12": {
+            "node_ids": [
+                "6f51ef35-1ccc-490d-81ad-a151e428278e"
+            ],
+            "metadata": {
+                "page_label": "13",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. How does the labeling of glucose in different positions affect the detection of metabolites through 13C MRS?\n2. What is pyruvate carboxylation, and how can it be studied using 13C MRS?\n3. Can pyruvate recycling occur in the brain, and how has it been identified through 13C MRS?\n4. What are some limitations of 13C MRS in studying brain metabolism, and what solutions have been proposed to improve sensitivity?\n5. How has 13C MRS been used to study glycogen concentration and turnover in the intact brain?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_13": {
+            "node_ids": [
+                "8a7ece1b-8f7f-4792-b59c-9fd1f45a0f5e"
+            ],
+            "metadata": {
+                "page_label": "14",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the role of 13C Magnetic Resonance Spectroscopy in monitoring brain energy metabolism?\n2. How can hyperpolarized substrates enhance the MRS signal, and what are the limitations of using pyruvate labeled in the carboxylic position for MRS?\n3. What is reversible pyruvate carboxylation, and how does it contribute to the formation of 13CO2 within a few seconds?\n4. How does anesthesia affect brain metabolism of 13C-labeled substrates in studies using hyperpolarized substrates?\n5. What is the potential use of hyperpolarized [13C]pyruvate in the diagnostic workup of malignant tumors, including brain tumors?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_14": {
+            "node_ids": [
+                "b2c5c7a1-6541-4351-a31c-e64f4e6c084f"
+            ],
+            "metadata": {
+                "page_label": "15",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is dynamic 13C nuclear magnetic resonance spectroscopy, and how is it used in neuroscience research?\n2. Can you explain the role of N-acetyl aspartate (NAA) and glutathione (GSH) in cerebral metabolism as detected by 13C NMR spectroscopy?\n3. How does pyruvate recycling system contribute to cellular metabolism in the rat brain?\n4. What is the role of glutamate uptake in glial cells, and how is it related to the energy metabolism of neurons?\n5. How does lactate utilization in the human brain contribute to the tricarboxylic acid (TCA) cycle, as observed through 13C-labelled microdialysis and high-resolution nuclear magnetic resonance studies?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_15": {
+            "node_ids": [
+                "21384868-54e0-4f53-bb4e-562404665426"
+            ],
+            "metadata": {
+                "page_label": "16",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the main focus of the article \"13C Magnetic Resonance Spectroscopy in Neurobiology - Its Use in Monitoring Brain Energy Metabolism and in Identifying Novel Metabolic Substrates and Metabolic Pathways\"?\n2. What are some metabolic differences between primary cultures of astrocytes and neurons from cerebellum and cerebral cortex, as mentioned in the Hassel et al. (1995b) study?\n3. How does fluoroacetate affect glial metabolism, according to the Hassel et al. (1997) study?\n4. What is the evidence for neuronal pyruvate carboxylation in vivo, as described by Hassel and Dingledine (2006)?\n5. How can hyperpolarized [1-13C] pyruvate and [1-13C] ethyl pyruvate be used for metabolic imaging in the anesthetized rat brain, as shown by Hurd et al. (2010)?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_16": {
+            "node_ids": [
+                "ee671e17-391b-4a4f-af2c-902d8af712a1"
+            ],
+            "metadata": {
+                "page_label": "17",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the focus of the article \"In vivo 13C spectroscopy in the rat brain using hyperpolarized [1-13C]pyruvate and [2-13C]pyruvate\" by Marja Maska\u0144ska et al. (2010)?\nThe article focuses on in vivo 13C spectroscopy in the rat brain using hyperpolarized [1-13C]pyruvate and [2-13C]pyruvate, providing insights into brain metabolism.\n2. What is glutamine synthetase's glial localization in the brain according to Martinez-Hernandez et al. (1977)?\nThe study by Martinez-Hernandez et al. (1977) suggests that glutamine synthetase is localized in astrocytes, a type of glial cell in the brain.\n3. What are some findings from Mason et al.'s (2006) study on increased brain monocarboxylic acid transport and utilization in type 1 diabetes?\nMason et al. (2006) found that individuals with type 1 diabetes exhibit increased brain monocarboxylic acid transport and utilization, which may contribute to metabolic dysfunction in the disease.\n4. What is the purpose of the study \"Dynamic and high-resolution metabolic imaging of hyperpolarized [1-13C]-pyruvate in the rat brain using a high-performance gradient insert\" by Mayer et al. (2011)?\nThe study by Mayer et al. (2011) aims to investigate dynamic and high-resolution metabolic imaging of hyperpolarized [1-13C]-pyruvate in the rat brain using advanced imaging techniques, providing insights into brain metabolism.\n5. How does Nguyen et al.'s (2007c) study contribute to our understanding of glycerol formation in the brain?\nNguyen et al.'s (2007c) study investigates the formation of glycerol from glucose in rat brains and cultured brain cells, providing insights into the metabolic processes involved in glycerol production."
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_17": {
+            "node_ids": [
+                "057cbb9f-6a92-4a3d-bf8c-a69fbc2782c9"
+            ],
+            "metadata": {
+                "page_label": "18",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the role of 13C Magnetic Resonance Spectroscopy in monitoring brain energy metabolism?\n2. How does hyperpolarized 13C MR metabolic imaging detect early responses to temozolomide treatment in brain tumors?\n3. What is glutamate-glutamine cycling, and how is it coupled with neuronal glucose oxidation during intense neural activation?\n4. What are the implications of 13C NMR tracers for molecular imaging in neurochemistry?\n5. How does brain pyruvate recycling and peripheral metabolism affect astrocytic and neuronal metabolisms to fulfill anaplerotic and energy needs in the rat brain?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_18": {
+            "node_ids": [
+                "8c6eb046-d3b7-4d4c-8cda-233d733fdfb5"
+            ],
+            "metadata": {
+                "page_label": "19",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the purpose of 13C-Magnetic Resonance Spectroscopy in neuroscience research?\n2. How does acetate affect cerebral metabolic compartmentalization?\n3. Can 13C NMR be used to quantify brain glycogen concentration and turnover?\n4. What is the role of transport in preferential utilization of acetate by astrocytes?\n5. Who edited \"Metabolic compartmentation in the brain\"?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_19": {
+            "node_ids": [
+                "9b41a364-62ff-4e14-ad93-bbc43b1bfae1"
+            ],
+            "metadata": {
+                "page_label": "20",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the primary focus of Magnetic Resonance Spectroscopy (MRS) in the clinical field, according to the book \"Magnetic Resonance Spectroscopy\" edited by Prof. Dong-Hyun Kim?\n2. How does MRS contribute to investigating disease states, as described in the aforementioned book?\n3. What is the second section of the book called and what are its main topics according to the introduction?\n4. Who is the editor of the book \"Magnetic Resonance Spectroscopy\" and what is their affiliation?\n5. How many pages is the book and what is the ISBN number according to the provided context?"
+            }
+        },
+        "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf_part_20": {
+            "node_ids": [
+                "25d68109-11a2-4ba3-894a-dac8aab583aa"
+            ],
+            "metadata": {
+                "page_label": "21",
+                "file_name": "13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "file_path": "/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/data/13C_Magnetic_Resonance_Spectroscopy_in_N/13C_Magnetic_Resonance_Spectroscopy_in_N.pdf",
+                "questions_this_excerpt_can_answer": "1. What is the main topic of the file named \"13C\\_Magnetic\\_Resonance\\_Spectroscopy\\_in\\_N.pdf\"?\n2. Who is the author of the article?\n3. When was the article published?\n4. What license does the article use, and what are its terms?\n5. How can I cite this article in my own work, according to the terms of the Creative Commons Attribution 3.0 License?"
+            }
+        }
+    }
+}
