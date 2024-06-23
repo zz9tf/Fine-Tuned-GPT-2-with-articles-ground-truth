@@ -14,14 +14,14 @@ document_preprocessing:
         - name: "QuestionsAnsweredExtractor"
           llm:
             name: "lmsys/vicuna-13b-v1.5-16k" 
-            cache: "/scratch0/zhengzheng/.hf_cache"
+            cache: "/workspace/.hf_cache"
           questions: 5
         #  - type: "QAExtractor"
         #    llm: "vicuna:13b"
         #    questions: 5
       # embedding_model:
       #   name: "Linq-AI-Research/Linq-Embed-Mistral"
-      #   cache: "/scratch0/zhengzheng/.hf_cache"
+      #   cache: "/workspace/.hf_cache"
       pipeline:
         is_cache: False # True
         cache_path: ""
