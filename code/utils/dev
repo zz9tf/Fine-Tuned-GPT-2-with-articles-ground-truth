@@ -39,6 +39,9 @@ if [ "$1" == "init" ] ; then
     source ~/.bashrc
     # Install gh
     ~/miniconda3/bin/conda install gh --channel conda-forge -y
+    # Set up git
+    git config --global user.email "zhengzheng@brandeis.edu"
+    git config --global user.name "Zheng"
     
 elif [ "$1" == "gpu" ]; then
     echo "Executing: nvidia-smi"
