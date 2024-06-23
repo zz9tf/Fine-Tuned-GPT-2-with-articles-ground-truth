@@ -18,7 +18,10 @@ def main():
 
     # Retrieve environment variables
     hug_token = os.getenv('HUGGINGFACE_TOKEN')
-    save_dir_path = os.getenv('SAVE_DIR_PATH')
+    save_dir_path = os.path.join(os.getenv('SAVE_DIR_PATH'), '.hf_cache')
+
+    if not os.path.exists(save_dir_path):
+        os.mkdir(save_dir_path)
 
     # Parse arguments
     args = parse_args()
@@ -32,15 +35,9 @@ def main():
         # Load model and tokenizer from the specified repository
         AutoTokenizer.from_pretrained(repo_name, cache_dir=save_dir_path)
         AutoModel.from_pretrained(repo_name, cache_dir=save_dir_path)
-        # Save the tokenizer and model
-        # print("saving the tokenizer and model")
-        # tokenizer.save_pretrained(save_dir_path)
-        # model.save_pretrained(save_dir_path)
+
     else:
         SentenceTransformer(repo_name, cache_folder=save_dir_path)
-        # print("saving the tokenizer and model")
-        # save_dir_path = os.path.join(save_dir_path, repo_name.split('/')[1])
-        # sentencetransformer.save(save_dir_path)
 
     
 
