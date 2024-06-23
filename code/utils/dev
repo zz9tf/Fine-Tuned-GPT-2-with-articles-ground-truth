@@ -25,7 +25,10 @@ fi
 
 # Check if the first argument is "init" and the second argument is "python"
 if [ "$1" == "init" ] ; then
-    # bash -c 'apt-get update && apt-get install vim -y && cp $2/.bashrc ~/.bashrc && source ~/.bashrc && /start.sh'
+    # Runpod
+    # bash -c 'apt-get update && apt-get install vim -y && /start.sh'
+    # bash -c 'apt-get update && apt-get install vim -y && cp /workspace/.bashrc ~/.bashrc && source ~/.bashrc && /start.sh'
+
     # Install miniconda3
     mkdir -p $2/miniconda3 &&
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O $2/miniconda3/miniconda.sh &&
@@ -73,5 +76,4 @@ elif [ "$1" == 'hf' ]; then
     fi
 else
     echo "Invalid command. Use -h or --help for usage information."
-    exit 1
 fi
