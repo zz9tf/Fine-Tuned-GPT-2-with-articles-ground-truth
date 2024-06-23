@@ -60,12 +60,12 @@ elif [ "$1" == "gpu" ]; then
 elif [ "$1" == 'hf' ]; then
     dev_dir=$(dirname "$(which dev)")
     hf_root="${dev_dir}/hf_model"
-    # if [ "$2" == "login" ]; then
-    #     echo "Executing: python login_hf.py"
-    #     hf_login="${hf_root}/login_hf.py"
-    #     python $hf_login
+    if [ "$2" == "login" ]; then
+        echo "Executing: python login_hf.py"
+        hf_login="${hf_root}/login_hf.py"
+        python $hf_login
 
-    if [ "$2" == "pull" ]; then
+    elif [ "$2" == "pull" ]; then
         COMMAND="${@:3}"
         echo "Executing: python pull_hf_model.py $COMMAND"
         pull_hf_model="${hf_root}/pull_hf_model.py"
