@@ -26,8 +26,8 @@ fi
 # Check if the first argument is "init" and the second argument is "python"
 if [ "$1" == "init" ] ; then
     # Runpod
-    bash -c 'apt-get update && apt-get install vim -y && /start.sh'
-    bash -c 'apt-get update && apt-get install vim -y && cp /workspace/.bashrc ~/.bashrc && source ~/.bashrc && /start.sh'
+    # bash -c 'apt-get update && apt-get install vim -y && /start.sh'
+    # bash -c 'apt-get update && apt-get install vim -y && cp /workspace/.bashrc ~/.bashrc && source ~/.bashrc && /start.sh'
 
     # Install miniconda3
     mkdir -p $2/miniconda3 &&
@@ -39,15 +39,19 @@ if [ "$1" == "init" ] ; then
     # Install packages
     cd ../llamaIndex &&
     $2/miniconda3/bin/pip install -r requirements.txt
+
     # Set up dev
-    echo "export PATH=$PATH:${2}/Fine-Tuned-GPT-2-with-articles-ground-truth/code/utils" >> $2/.bashrc
+    echo "export PATH=$PATH:${2}/Fine-Tuned-GPT-2-with-articles-ground-truth/code/utils" >> ~/.bashrc
     cp ~/.bashrc $2
     source ~/.bashrc
+
     # Install gh
     $2/miniconda3/bin/conda install gh --channel conda-forge -y
+
     # Set up git
     git config --global user.email "zhengzheng@brandeis.edu"
     git config --global user.name "Zheng"
+    git config --global credential.helper store
     
 elif [ "$1" == "gpu" ]; then
     echo "Executing: nvidia-smi"
