@@ -5,7 +5,10 @@ from llama_index.core import (
     SimpleDirectoryReader, 
     VectorStoreIndex,
     PropertyGraphIndex,
-    StorageContext
+    StorageContext,
+    load_index_from_storage,
+    load_indices_from_storage,
+    load_graph_from_storage
 )
 from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.core.storage.index_store import SimpleIndexStore
@@ -19,7 +22,6 @@ from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from llama_index.llms.huggingface import HuggingFaceLLM
-from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI
 from llama_index.core.ingestion import IngestionPipeline
 from extractor.qa_extractor import QAExtractor
@@ -95,7 +97,7 @@ class Database():
         if store_type == 'SimpleVectorStore':
             return SimpleVectorStore()
 
-    def _get_an_index(self, index_config):
+    def get_an_index(self, index_config):
         if index_config['type'] == 'VectorStoreIndex':
             return VectorStoreIndex
         elif index_config['type'] == '':
@@ -109,23 +111,24 @@ class Database():
         # Get parser
         if 'parser' in index_config:
             print("[update_database] Initializing parser...", end=' ')
-            parser = self._get_parser(index_config['parser'])
+            parser_config = self.config['prefix_config']['parser'][index_config['parser']]
+            parser = self._get_parser(parser_config)
             transformations.append(parser)
             print("done")
         
         # Get extractors
         if 'extractors' in index_config:
             print("[update_database] Initializing extractors...", end=' ')
-            extractors = []
-            for extractor_config in index_config['extractors']:
-                extractors.append(self._get_extractors(extractor_config))
-            transformations.append(*extractors)
+            for extractor_config_name in index_config['extractors']:
+                extractor_config = self.config['prefix_config']['extractor'][extractor_config_name]
+                transformations.append(self._get_extractors(extractor_config))
             print("done")
 
         # Get a embedding model
         if 'embedding_model' in index_config:
             print('[update_database] Initializing the embedding model...', end=' ')
-            embed_model = self._get_embedding_model(index_config['embedding_model'])
+            embedding_config = self.config['prefix_config']['embedding_model'][index_config['embedding_model']]
+            embed_model = self._get_embedding_model(embedding_config)
             transformations.append(embed_model)
             print("done")
         
@@ -167,7 +170,8 @@ class Database():
         return nodes
 
     def create_or_update_indexes(self):
-        for index_id, index_config in self.config['document_preprocessing']['indexes'].items():
+        for index_id in self.config['document_preprocessing']['indexes']:
+            index_config = self.config['prefix_config']['indexes'][index_id]
             print('[update_database] Updating index: {}'.format(index_id))
             pipeline = self._init_nodes_generation_pipeline(index_config)
             documents = self._load_documents()
@@ -175,7 +179,7 @@ class Database():
             nodes = self._generate_nodes_from_documents(index_config, documents, pipeline)
 
             # Initial storage_context config
-            storage_context_config = index_config['storage_context']
+            storage_context_config = self.config['prefix_config']['storage_context'][index_config['storage_context']]
             store_path = os.path.abspath(os.path.join(storage_context_config['store_dir_path'], storage_context_config['name']))
             if os.path.exists(store_path):
                 print("[update_database] Storage does not find")
@@ -199,15 +203,7 @@ class Database():
                 index.set_index_id(self.config['index']['index_id'])
                 index.storage_context.persist(store_path)
 
-            # docstore = self._get_a_store('SimpleDocumentStore')
-            # docstore.add_documents(nodes)
-            # doc_path = os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/database/doc.json'))
-            # docstore.persist(doc_path)
-            # print('doc saved')
-
         return index
-    
-    def _load_index()
 
 if __name__ == '__main__':
     d = Database(config_path='./code/llamaIndex/config.yaml')
