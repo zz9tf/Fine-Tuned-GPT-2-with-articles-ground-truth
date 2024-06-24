@@ -174,39 +174,40 @@ class Database():
 
             nodes = self._generate_nodes_from_documents(index_config, documents, pipeline)
 
-            # # Initial storage_context config
-            # storage_context_config = index_config['storage_context']
-            # store_path = os.path.abspath(os.path.join(storage_context_config['store_dir_path'], storage_context_config['name']))
-            # if os.path.exists(store_path):
-            #     print("[update_database] Storage does not find")
-            #     print("[update_database] Creating a new one...")
+            # Initial storage_context config
+            storage_context_config = index_config['storage_context']
+            store_path = os.path.abspath(os.path.join(storage_context_config['store_dir_path'], storage_context_config['name']))
+            if os.path.exists(store_path):
+                print("[update_database] Storage does not find")
+                print("[update_database] Creating a new one...")
 
-            # # Generate index for nodes
-            # indexGenerator = self._get_an_index(index_config['index'])
-            # index = indexGenerator.from_documents(
-            #     documents=nodes,
-            #     storage_context=StorageContext.from_defaults(
-            #         docstore=self._get_a_store(storage_context_config['docstore']),
-            #         vector_store=self._get_a_store(storage_context_config['vector_store']),
-            #         index_store=self._get_a_store(storage_context_config['index_store']),
-            #         property_graph_store=self._get_a_store(storage_context_config['property_graph_store'])
-            #     ),
-            #     persist_dir=store_path if os.path.exists(store_path) else None,
-            #     show_progress=True
-            # )
+            # Generate index for nodes
+            indexGenerator = self._get_an_index(index_config['index'])
+            index = indexGenerator.from_documents(
+                documents=nodes,
+                storage_context=StorageContext.from_defaults(
+                    docstore=self._get_a_store(storage_context_config['docstore']),
+                    vector_store=self._get_a_store(storage_context_config['vector_store']),
+                    index_store=self._get_a_store(storage_context_config['index_store']),
+                    property_graph_store=self._get_a_store(storage_context_config['property_graph_store'])
+                ),
+                persist_dir=store_path if os.path.exists(store_path) else None,
+                show_progress=True
+            )
 
-            # if not os.path.exists(store_path):
-            #     index.set_index_id(self.config['index']['index_id'])
-            #     index.storage_context.persist(store_path)
+            if not os.path.exists(store_path):
+                index.set_index_id(self.config['index']['index_id'])
+                index.storage_context.persist(store_path)
 
-            docstore = self._get_a_store('SimpleDocumentStore')
-            docstore.add_documents(nodes)
-            doc_path = os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/database/doc.json'))
-            docstore.persist(doc_path)
-            print('doc saved')
+            # docstore = self._get_a_store('SimpleDocumentStore')
+            # docstore.add_documents(nodes)
+            # doc_path = os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/database/doc.json'))
+            # docstore.persist(doc_path)
+            # print('doc saved')
 
-        # return index
-        
+        return index
+    
+    def _load_index()
 
 if __name__ == '__main__':
     d = Database(config_path='./code/llamaIndex/config.yaml')

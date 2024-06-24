@@ -19,9 +19,9 @@ document_preprocessing:
         #  - type: "QAExtractor"
         #    llm: "vicuna:13b"
         #    questions: 5
-      # embedding_model:
-      #   name: "Linq-AI-Research/Linq-Embed-Mistral"
-      #   cache: "/workspace/.hf_cache"
+      embedding_model:
+        name: "Linq-AI-Research/Linq-Embed-Mistral"
+        cache: "/workspace/.hf_cache"
       pipeline:
         is_cache: False # True
         cache_path: ""
