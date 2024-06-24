@@ -1,20 +1,8 @@
 document_preprocessing:
   data_dir_path: "./data/13C_Magnetic_Resonance_Spectroscopy_in_N"
   indexes:
-    "test":
-      type: "VectorStoreIndex"
-      parser:
-        "HierarchicalNodeParser"
-      extractors:
-        - "QuestionsAnsweredExtractor"
-      embedding_model:
-        "Linq-AI-Research/Linq-Embed-Mistral"
-      pipeline:
-        is_cache: False # True
-        cache_path: ""
-        num_workers: 1
-      storage_context:
-        "simple.json"        
+    - "test"
+    
 rag:
   storage_context:
     "simple.json" 
@@ -54,3 +42,18 @@ prefix_config:
       vector_store: SimpleVectorStore
       index_store: SimpleIndexStore
       property_graph_store: None
+  indexes:
+    "test":
+      type: "VectorStoreIndex"
+      parser:
+        "HierarchicalNodeParser"
+      extractors:
+        - "QuestionsAnsweredExtractor"
+      embedding_model:
+        "Linq-AI-Research/Linq-Embed-Mistral"
+      pipeline:
+        is_cache: False # True
+        cache_path: ""
+        num_workers: 1
+      storage_context:
+        "simple.json"

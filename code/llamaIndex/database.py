@@ -22,7 +22,6 @@ from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from llama_index.llms.huggingface import HuggingFaceLLM
-from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI
 from llama_index.core.ingestion import IngestionPipeline
 from extractor.qa_extractor import QAExtractor
@@ -171,7 +170,8 @@ class Database():
         return nodes
 
     def create_or_update_indexes(self):
-        for index_id, index_config in self.config['document_preprocessing']['indexes'].items():
+        for index_id in self.config['document_preprocessing']['indexes']:
+            index_config = self.config['prefix_config']['indexes'][index_id]
             print('[update_database] Updating index: {}'.format(index_id))
             pipeline = self._init_nodes_generation_pipeline(index_config)
             documents = self._load_documents()

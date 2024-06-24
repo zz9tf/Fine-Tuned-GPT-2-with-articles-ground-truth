@@ -2,8 +2,7 @@ from database import Database
 
 help_menu = """
 /help                  Show this help message
-/create [index_id]     Create a new index with the specified ID
-/update [index_id]     Update the specified index or create one if it doesn't exist
+/update                Update indexes as config or create them if they don't exist
 /show                  Show all index IDs
 /use [index_id]        Use the specified index
 /stop [index_id]       Stop using the specified index
@@ -22,11 +21,8 @@ class SystemInterface():
             print("Invaild command. Too many parameters.")
             print(help_menu)
 
-    def create_index(self, index_id):
-        pass
-
-    def update_index(self, index_id):
-        pass
+    def create_or_update_index_as_config(self):
+        self.database.create_or_update_indexes()
 
     def show_index(self):
         pass
@@ -55,13 +51,8 @@ class SystemInterface():
             if user_input == "/help":
                 print(help_menu)
 
-            elif user_input.split()[0] == "/create":
-                self.check_input(user_input)
+            elif user_input == "/update":
                 self.create_index(user_input.split()[1])
-
-            elif user_input.split()[0] == "/update":
-                self.check_input(user_input)
-                self.update_index(user_input.split()[1])
 
             elif user_input == "/show":
                 self.show_index()
