@@ -4,8 +4,7 @@ document_preprocessing:
     - "test"
     
 rag:
-  storage_context:
-    "simple.json" 
+  indexes: "test"
 prefix_config:
   parser:
     "SimpleFileNodeParser":

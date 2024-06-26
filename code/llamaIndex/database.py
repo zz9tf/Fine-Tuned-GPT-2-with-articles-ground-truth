@@ -24,8 +24,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.llms.openai import OpenAI
 from llama_index.core.ingestion import IngestionPipeline
-from extractor.qa_extractor import QAExtractor
 from llama_index.core.extractors import QuestionsAnsweredExtractor
+from utils.custom_extractor import QAExtractor
 
 class Database():
     def __init__(self, config_path):
@@ -44,7 +44,7 @@ class Database():
             return OpenAI(model="gpt-4o")
         elif repo_config['name'] in VALID_MODELS:
             tokenizer = AutoTokenizer.from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True)
-            model = AutoModelForCausalLM .from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True)
+            model = AutoModelForCausalLM .from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True, device_map='auto')
             return HuggingFaceLLM(model_name=repo_config['name'], model=model, tokenizer=tokenizer)
         else:
             raise Exception("Invalid embedding model name. Please provide LLM model {}".format(VALID_MODELS))
@@ -52,7 +52,7 @@ class Database():
     def _get_embedding_model(self, repo_config):
         VALID_EMBED_MODEL = ['Linq-AI-Research/Linq-Embed-Mistral']
         if repo_config['name'] in VALID_EMBED_MODEL:
-            return HuggingFaceEmbedding(
+            return CustomHuggingFaceEmbedding(
                 model_name=repo_config['name'],
                 cache_folder=repo_config['cache']
             )
@@ -92,10 +92,13 @@ class Database():
     def _get_a_store(self, store_type):
         if store_type == 'SimpleDocumentStore':
             return SimpleDocumentStore()
-        if store_type == 'SimpleIndexStore':
+        elif store_type == 'SimpleIndexStore':
             return SimpleIndexStore()
-        if store_type == 'SimpleVectorStore':
+        elif store_type == 'SimpleVectorStore':
             return SimpleVectorStore()
+        
+    def show_indexes(self):
+        pass
 
     def get_an_index(self, index_config):
         if index_config['type'] == 'VectorStoreIndex':
@@ -103,7 +106,7 @@ class Database():
         elif index_config['type'] == '':
             return None
         else:
-            raise Exception("Invalid embedding model name. Please provide embedding models {}".format(VALID_EMBED_MODEL))
+            raise Exception("Invalid embedding model name. Please provide embedding models {}".format())
 
     def _init_nodes_generation_pipeline(self, index_config):
         transformations = []
@@ -186,7 +189,7 @@ class Database():
                 print("[update_database] Creating a new one...")
 
             # Generate index for nodes
-            indexGenerator = self._get_an_index(index_config['index'])
+            indexGenerator = self.get_an_index(index_config['index'])
             index = indexGenerator.from_documents(
                 documents=nodes,
                 storage_context=StorageContext.from_defaults(

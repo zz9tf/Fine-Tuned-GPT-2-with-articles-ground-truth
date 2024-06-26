@@ -25,7 +25,7 @@ class SystemInterface():
         self.database.create_or_update_indexes()
 
     def show_index(self):
-        pass
+        self.database.show_index()
 
     def use_index(self, index_id):
         pass
