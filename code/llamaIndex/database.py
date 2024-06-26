@@ -26,6 +26,7 @@ from llama_index.llms.openai import OpenAI
 from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.extractors import QuestionsAnsweredExtractor
 from utils.custom_extractor import QAExtractor
+from utils.custom_embedding import CustomEmbeddings
 
 class Database():
     def __init__(self, config_path):
@@ -44,7 +45,7 @@ class Database():
             return OpenAI(model="gpt-4o")
         elif repo_config['name'] in VALID_MODELS:
             tokenizer = AutoTokenizer.from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True)
-            model = AutoModelForCausalLM .from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True, device_map='auto')
+            model = AutoModelForCausalLM .from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True, device_map='auto', offload_buffers=True)
             return HuggingFaceLLM(model_name=repo_config['name'], model=model, tokenizer=tokenizer)
         else:
             raise Exception("Invalid embedding model name. Please provide LLM model {}".format(VALID_MODELS))
@@ -52,9 +53,10 @@ class Database():
     def _get_embedding_model(self, repo_config):
         VALID_EMBED_MODEL = ['Linq-AI-Research/Linq-Embed-Mistral']
         if repo_config['name'] in VALID_EMBED_MODEL:
-            return CustomHuggingFaceEmbedding(
+            return CustomEmbeddings(
                 model_name=repo_config['name'],
-                cache_folder=repo_config['cache']
+                cache_dir=repo_config['cache'],
+                embed_batch_size=4
             )
         elif repo_config['name'] == '[finetune]Linq-Embed-Mistral':
             return None
@@ -162,7 +164,7 @@ class Database():
         nodes = pipeline.run(
             show_progress=True,
             documents=documents,
-            num_workers=index_config['pipeline'].get('num_workers', 1)
+            num_workers=index_config['pipeline'].get('num_workers', 10)
         )
         print('done')
 

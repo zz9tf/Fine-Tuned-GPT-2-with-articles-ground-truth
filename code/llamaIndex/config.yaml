@@ -1,5 +1,5 @@
 document_preprocessing:
-  data_dir_path: "./data/13C_Magnetic_Resonance_Spectroscopy_in_N"
+  data_dir_path: "./data"
   indexes:
     - "test"
     
@@ -21,18 +21,18 @@ prefix_config:
       name: "QuestionsAnsweredExtractor"
       llm:
         name: "lmsys/vicuna-13b-v1.5-16k" 
-        cache: "/scratch0/zhengzheng/.hf_cache"
+        cache: "/workspace/.hf_cache"
       questions: 5
     "QAExtractor":
       name: "QAExtractor"
       llm:
         name: "lmsys/vicuna-13b-v1.5-16k" 
-        cache: "/scratch0/zhengzheng/.hf_cache"
+        cache: "/workspace/.hf_cache"
       questions: 5
   embedding_model:
     "Linq-AI-Research/Linq-Embed-Mistral":
       name: "Linq-AI-Research/Linq-Embed-Mistral"
-      cache: "/scratch0/zhengzheng/.hf_cache"
+      cache: "/workspace/.hf_cache"
   storage_context:
     "simple.json":
       name: "simple.json"
