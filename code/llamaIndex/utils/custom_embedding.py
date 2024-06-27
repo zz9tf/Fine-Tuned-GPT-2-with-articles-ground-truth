@@ -2,7 +2,7 @@ import torch
 from torch import Tensor
 import torch.nn.functional as F
 from typing import Any, List
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModel
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.callbacks import CallbackManager
 from typing import List, Optional
@@ -39,7 +39,7 @@ class CustomEmbeddings(BaseEmbedding):
         normalize: bool = True,
         callback_manager: Optional[CallbackManager] = None,
     ) -> None:
-        self._model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir=cache_dir, device_map='auto', offload_buffers=True)
+        self._model = AutoModel.from_pretrained(model_name, cache_dir=cache_dir, device_map='auto')
         self._tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir)
         super().__init__(
             embed_batch_size=embed_batch_size,
@@ -51,7 +51,7 @@ class CustomEmbeddings(BaseEmbedding):
             text_instruction=text_instruction,
         )
 
-    def _last_token_pool(last_hidden_states: Tensor, attention_mask: Tensor) -> Tensor:
+    def _last_token_pool(self, last_hidden_states: Tensor, attention_mask: Tensor) -> Tensor:
         left_padding = (attention_mask[:, -1].sum() == attention_mask.shape[0])
         if left_padding:
             return last_hidden_states[:, -1]
@@ -71,14 +71,14 @@ class CustomEmbeddings(BaseEmbedding):
         
         # Normalize embeddings
         embeddings = F.normalize(embeddings, p=2, dim=1)
-        print(embeddings)
-        exit()
-        return embeddings
+        return embeddings.tolist()
 
     def _get_query_embedding(self, query: str) -> List[float]:
         detailed_instruct = f'Instruct: {self.query_instruction}\nQuery: {query}'
         embeddings = self._embed([detailed_instruct])
-        return embeddings
+        print(embeddings)
+        print(embeddings.shape)
+        return embeddings[0]
     
     async def _aget_query_embedding(self, query: str) -> List[float]:
         """Get query embedding async."""
@@ -87,7 +87,7 @@ class CustomEmbeddings(BaseEmbedding):
     def _get_text_embedding(self, text: str) -> List[float]:
         detailed_instruct = f'Instruct: {self.text_instruction}\nQuery: {text}'
         embeddings = self._embed([detailed_instruct])
-        return embeddings
+        return embeddings[0]
     
     async def _aget_text_embedding(self, text: str) -> List[float]:
         """Get text embedding async."""

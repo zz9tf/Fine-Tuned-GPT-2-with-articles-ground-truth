@@ -17,16 +17,16 @@ prefix_config:
       name: "HierarchicalNodeParser"
       chunk_size: [2048, 512, 128]
   extractor:
-    "QuestionsAnsweredExtractor":
-      name: "QuestionsAnsweredExtractor"
+    "vicuna-13b-Questions-Answered":
+      extractor_type: "QuestionsAnsweredExtractor"
       llm:
-        name: "lmsys/vicuna-13b-v1.5-16k" 
+        name: "lmsys/vicuna-13b-v1.3" 
         cache: "/workspace/.hf_cache"
       questions: 5
     "QAExtractor":
-      name: "QAExtractor"
+      extractor_type: "QAExtractor"
       llm:
-        name: "lmsys/vicuna-13b-v1.5-16k" 
+        name: "lmsys/vicuna-13b-v1.3" 
         cache: "/workspace/.hf_cache"
       questions: 5
   embedding_model:
@@ -34,8 +34,9 @@ prefix_config:
       name: "Linq-AI-Research/Linq-Embed-Mistral"
       cache: "/workspace/.hf_cache"
   storage_context:
-    "simple.json":
-      name: "simple.json"
+    "simple":
+      index_generator: VectorStoreIndex
+      name: "simple"
       store_dir_path: "./code/llamaIndex/database"
       docstore: SimpleDocumentStore
       vector_store: SimpleVectorStore
@@ -45,9 +46,9 @@ prefix_config:
     "test":
       type: "VectorStoreIndex"
       parser:
-        "HierarchicalNodeParser"
+        "SimpleFileNodeParser"
       extractors:
-        - "QuestionsAnsweredExtractor"
+        - "vicuna-13b-Questions-Answered"
       embedding_model:
         "Linq-AI-Research/Linq-Embed-Mistral"
       pipeline:
@@ -55,4 +56,4 @@ prefix_config:
         cache_path: ""
         num_workers: 1
       storage_context:
-        "simple.json"
+        "simple"
