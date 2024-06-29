@@ -1,12 +1,12 @@
-from typing import Any, Dict, List, Sequence
-from llama_index.core.llms.llm import LLM
-from llama_index.core.schema import BaseNode, TextNode
-from llama_index.core.extractors import BaseExtractor
-from llama_index.core.prompts import PromptTemplate
-from llama_index.core.async_utils import run_jobs
+from typing import Dict, List
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
+from accelerate import infer_auto_device_map, init_empty_weights
+from llama_index.core.schema import BaseNode, MetadataMode
+from llama_index.llms.ollama import Ollama
+from tqdm import tqdm
 
-
-TMPL = """\
+DEFAULT_QUESTION_GEN_TMPL="""\
 Here is the context:
 {context_str}
 
@@ -19,65 +19,85 @@ as well. Try using these summaries to generate better questions \
 that this context can answer.
 
 """
-
-
-class QAExtractor(BaseExtractor):
-    """
-    Questions answered extractor. Node-level extractor.
-    Extracts `questions_this_excerpt_can_answer` metadata field.
-
-    Args:
-        llm (Optional[LLM]): LLM
-        questions (int): number of questions to extract
-        prompt_template (str): template for question extraction,
-        embedding_only (bool): whether to use embedding only
-    """
-
+# [TODO] Need to accelarate the model
+class QAExtractor():
     def __init__(
         self,
-        llm: LLM,
-        questions: int = 5,
-        embedding_only: bool = True,
-        num_workers: int = 5,
-        **kwargs: Any,
+        model_name,
+        no_split_modules: str = None,
+        cache_dir: str = None,
+        num_questions: int = 5,
+        prompt_template: str = DEFAULT_QUESTION_GEN_TMPL,
+        embedding_only: bool = True
     ) -> None:
         """Init params."""
-        if questions < 1:
+        if num_questions < 1:
             raise ValueError("questions must be >= 1")
+        config = AutoConfig.from_pretrained(model_name)
+        with init_empty_weights():
+            model = AutoModelForCausalLM.from_config(config)
 
-        super().__init__(
-            llm=llm,
-            questions=questions,
-            prompt_template=TMPL,
-            embedding_only=embedding_only,
-            num_workers=num_workers,
-            **kwargs,
+        max_memory = {i: '20000MB' for i in range(torch.cuda.device_count())}
+        max_memory[0] = '18000MB'
+        max_memory['cpu'] = '120GiB'
+        device_map = infer_auto_device_map(model, max_memory=max_memory, no_split_module_classes = [no_split_modules])
+        print(device_map)
+        self._model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir=cache_dir, device_map=device_map, offload_folder="/workspace")
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir)
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.num_questions = num_questions
+        self._prompt_template = prompt_template
+
+    def _extract_metadata_from_node(self, node: BaseNode) -> Dict[str, str]:
+        """Extract metadata from a node and return it's metadata dict."""
+
+        context_str = node.get_content(metadata_mode=MetadataMode.ALL)
+        input_text = self._prompt_template.format(context_str=context_str, num_questions=self.num_questions)
+        inputs = self._tokenizer(input_text, return_tensors='pt').to(self._device)
+        outputs = self._model.generate(
+            inputs.input_ids,
+            max_length=2048,
+            num_return_sequences=1,
+            no_repeat_ngram_size=2,
+            early_stopping=True
         )
+        
+        generated_text = self._tokenizer.decode(outputs[0], skip_special_tokens=True)
+        # generated_text = self._model.complete(input_text)
 
-    @classmethod
-    def class_name(cls) -> str:
-        return "QAExtractor"
+        return {"questions_this_excerpt_can_answer_and_corresponding_answers_": str(generated_text).strip()}
+    
+    def extract(self, nodes):
+        for node in tqdm(nodes):
+            metadata = self._extract_metadata_from_node(node)
+            for k, v in metadata.items():
+                node.metadata[k] = v
 
-    async def _aextract_questions_from_node(self, node: BaseNode) -> Dict[str, str]:
-        """Extract questions from a node and return it's metadata dict."""
-        if self.is_text_node_only and not isinstance(node, TextNode):
-            return {}
+class OllamaBasedExtractor():
+    def __init__(
+        self,
+        model_name: str,
+        prompt_template: str,
+        embedding_only: bool = True
+    ) -> None:
+        """Init params."""
+        self._model = Ollama(model=model_name, request_timeout=60.0)
+        self._prompt_template = prompt_template
+        self.embedding_only = embedding_only
 
-        context_str = node.get_content(metadata_mode=self.metadata_mode)
-        prompt = PromptTemplate(template=self.prompt_template)
-        questions = await self.llm.apredict(
-            prompt, num_questions=self.questions, context_str=context_str
-        )
+    def _extract_metadata_from_node(self, node: BaseNode) -> Dict[str, str]:
+        """Extract metadata from a node and return it's metadata dict."""
 
-        return {"questions_this_excerpt_can_answer": questions.strip()}
+        context_str = node.get_content(metadata_mode=MetadataMode.ALL)
+        input_text = self._prompt_template.format(context_str=context_str)
+        generated_text = self._model.complete(input_text)
 
-    async def aextract(self, nodes: Sequence[BaseNode]) -> List[Dict]:
-        questions_jobs = []
-        for node in nodes:
-            questions_jobs.append(self._aextract_questions_from_node(node))
+        node.metadata["questions_this_excerpt_can_answer_and_corresponding_answers"] = str(generated_text).strip()
+        if "questions_this_excerpt_can_answer_and_corresponding_answers" not in node.excluded_llm_metadata_keys:
+            node.excluded_llm_metadata_keys.append("questions_this_excerpt_can_answer_and_corresponding_answers")
 
-        metadata_list: List[Dict] = await run_jobs(
-            questions_jobs, show_progress=self.show_progress, workers=self.num_workers
-        )
-
-        return metadata_list
+    
+    def extract(self, nodes: List[BaseNode]):
+        for node in tqdm(nodes):
+            self._extract_metadata_from_node(node)
+                

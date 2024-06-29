@@ -1,8 +1,8 @@
+index_dir_path: "./code/llamaIndex/database"
 document_preprocessing:
   data_dir_path: "./data"
   indexes:
     - "test"
-    
 rag:
   indexes: "test"
 prefix_config:
@@ -17,18 +17,25 @@ prefix_config:
       name: "HierarchicalNodeParser"
       chunk_size: [2048, 512, 128]
   extractor:
-    "vicuna-13b-Questions-Answered":
-      extractor_type: "QuestionsAnsweredExtractor"
-      llm:
-        name: "lmsys/vicuna-13b-v1.3" 
-        cache: "/workspace/.hf_cache"
-      questions: 5
-    "QAExtractor":
+    "vicuna-13b-QAExtractor":
       extractor_type: "QAExtractor"
-      llm:
-        name: "lmsys/vicuna-13b-v1.3" 
-        cache: "/workspace/.hf_cache"
-      questions: 5
+      model_name: "lmsys/vicuna-13b-v1.3"
+      no_split_modules: "LlamaDecoderLayer"
+      cache: "/workspace/.hf_cache"
+      num_questions: 5
+    "vicuna:13b-QAExtractor":
+      extractor_type: "OllamaBasedExtractor"
+      model_name: "vicuna:13b"
+      prompt_template: "Here is the context:
+{context_str}
+
+Given the contextual information, \
+generate 5 questions this context can provide \
+specific answers to which are unlikely to be found elsewhere.
+
+Higher-level summaries of surrounding context may be provided \
+as well. Try using these summaries to generate better questions \
+that this context can answer."
   embedding_model:
     "Linq-AI-Research/Linq-Embed-Mistral":
       name: "Linq-AI-Research/Linq-Embed-Mistral"
@@ -37,23 +44,23 @@ prefix_config:
     "simple":
       index_generator: VectorStoreIndex
       name: "simple"
-      store_dir_path: "./code/llamaIndex/database"
       docstore: SimpleDocumentStore
       vector_store: SimpleVectorStore
       index_store: SimpleIndexStore
       property_graph_store: None
-  indexes:
-    "test":
-      type: "VectorStoreIndex"
-      parser:
-        "SimpleFileNodeParser"
-      extractors:
-        - "vicuna-13b-Questions-Answered"
-      embedding_model:
-        "Linq-AI-Research/Linq-Embed-Mistral"
-      pipeline:
-        is_cache: False # True
-        cache_path: ""
-        num_workers: 1
-      storage_context:
-        "simple"
+prefix_indexes:
+  "test":
+    type: "VectorStoreIndex"
+    parser:
+      "HierarchicalNodeParser"
+    extractors:
+      - "vicuna:13b-QAExtractor"
+      # - "vicuna-13b-QAExtractor"
+    embedding_model:
+      "Linq-AI-Research/Linq-Embed-Mistral"
+    pipeline:
+      is_cache: False # True
+      cache_path: ""
+      num_workers: 1
+    storage_context:
+      "simple"

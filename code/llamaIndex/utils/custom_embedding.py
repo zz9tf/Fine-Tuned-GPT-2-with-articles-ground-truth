@@ -3,6 +3,7 @@ from torch import Tensor
 import torch.nn.functional as F
 from typing import Any, List
 from transformers import AutoTokenizer, AutoModel
+from accelerate import infer_auto_device_map, init_empty_weights
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.callbacks import CallbackManager
 from typing import List, Optional
@@ -39,7 +40,8 @@ class CustomEmbeddings(BaseEmbedding):
         normalize: bool = True,
         callback_manager: Optional[CallbackManager] = None,
     ) -> None:
-        self._model = AutoModel.from_pretrained(model_name, cache_dir=cache_dir, device_map='auto')
+        with init_empty_weights():
+            self._model = AutoModel.from_pretrained(model_name, cache_dir=cache_dir, device_map='auto')
         self._tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir)
         super().__init__(
             embed_batch_size=embed_batch_size,

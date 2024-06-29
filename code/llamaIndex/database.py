@@ -20,13 +20,12 @@ from llama_index.core.node_parser import (
 )
 from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 from llama_index.core import Settings
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.llms.openai import OpenAI
 from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.extractors import QuestionsAnsweredExtractor
-from utils.custom_extractor import QAExtractor
+from utils.custom_extractor import QAExtractor, OllamaBasedExtractor
 from utils.custom_embedding import CustomEmbeddings
 
 class Database():
@@ -37,36 +36,6 @@ class Database():
         with open(config_path, 'r') as config:
             self.config = yaml.safe_load(config)
         print("done")
-
-    def _get_llm_model(self, repo_config):
-        VALID_MODELS = ['lmsys/vicuna-13b-v1.3', 'lmsys/vicuna-13b-v1.5-16k', 'lmsys/vicuna-33b-v1.3', 'gpt-4o']
-        if repo_config['name'] == 'gpt-4o':
-            # os.environ["OPENAI_API_KEY"] = "sk-..."
-            openai.api_key = os.environ["OPENAI_API_KEY"]
-            return OpenAI(model="gpt-4o")
-        elif repo_config['name'] in VALID_MODELS:
-            tokenizer = AutoTokenizer.from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True)
-            model = AutoModelForCausalLM .from_pretrained(repo_config['name'], cache_dir=repo_config['cache'], local_files_only=True, device_map='auto')
-            return HuggingFaceLLM(model_name=repo_config['name'], model=model, tokenizer=tokenizer)
-        else:
-            raise Exception("Invalid embedding model name. Please provide LLM model {}".format(VALID_MODELS))
-
-    def _get_embedding_model(self, repo_config):
-        VALID_EMBED_MODEL = ['Linq-AI-Research/Linq-Embed-Mistral']
-        if repo_config['name'] in VALID_EMBED_MODEL:
-            return CustomEmbeddings(
-                model_name=repo_config['name'],
-                cache_dir=repo_config['cache'],
-                embed_batch_size=4
-            )
-            # return HuggingFaceEmbedding(
-            #     model_name=repo_config['name'],
-            #     cache_folder=repo_config['cache']
-            # )
-        elif repo_config['name'] == '[finetune]Linq-Embed-Mistral':
-            return None
-        else:
-            raise Exception("Invalid embedding model name. Please provide embedding models {}".format(VALID_EMBED_MODEL))
 
     def _get_parser(self, parser_config):
         VALID_PARSER = ['SentenceSplitter', 'SimpleFileNodeParser', 'HierarchicalNodeParser']
@@ -83,34 +52,6 @@ class Database():
             )
         else:
             raise Exception("Invalid embedding model name. Please provide parser types {}".format(VALID_PARSER))
-
-    def _get_extractors(self, extractor_config):
-        if extractor_config['extractor_type'] == 'QAExtractor':
-            return QAExtractor(
-                llm=self._get_llm_model(repo_config=extractor_config['llm']),
-                questions=extractor_config['questions']
-            )
-        elif extractor_config['extractor_type'] == 'QuestionsAnsweredExtractor':
-            return QuestionsAnsweredExtractor(
-                llm=self._get_llm_model(repo_config=extractor_config['llm']),
-                questions=extractor_config['questions']
-            )
-
-    def _get_a_store(self, store_type):
-        if store_type == 'SimpleDocumentStore':
-            return SimpleDocumentStore()
-        elif store_type == 'SimpleIndexStore':
-            return SimpleIndexStore()
-        elif store_type == 'SimpleVectorStore':
-            return SimpleVectorStore()
-        
-    def _get_an_indexGenerator(self, index_type):
-        if index_type == 'VectorStoreIndex':
-            return VectorStoreIndex
-        elif index_type == '':
-            return None
-        else:
-            raise Exception("Invalid embedding model name. Please provide embedding models {}".format())
 
     def _load_documents(self):
         print("[update_database] Loading documents ...", end=' ') 
@@ -151,32 +92,71 @@ class Database():
 
         return nodes
 
-    def _generate_metadata_to_nodes(self):
-        pass
-        # if 'extractors' in index_config:
-        # # print('[update_database] Extracting metadata ...')
-        # for extractor_name in index_config['extractors']:
-        #     # print('[update_database] Doing {}...'.format(extractor_name))
-        #     extractor = self._get_extractors(self.config['prefix_config']['extractor'][extractor_name])
-        #     transformations.append(extractor)
+    def _get_extractors(self, extractor_config):
+        if extractor_config['extractor_type'] == 'QAExtractor':
+            return QAExtractor(
+                model_name=extractor_config['model_name'],
+                no_split_modules=extractor_config['no_split_modules'],
+                cache_dir=extractor_config['cache'],
+                num_questions=extractor_config['num_questions']
+            )
+        if extractor_config['extractor_type'] == 'OllamaBasedExtractor':
+            return OllamaBasedExtractor(
+                model_name=extractor_config['model_name'],
+                prompt_template=extractor_config['prompt_template']
+            )
+
+    def _generate_metadata_to_nodes(self, index_config, nodes):
+        print('[update_database] Extracting metadata ...')
+        for extractor_name in index_config['extractors']:
+            print('[update_database] Doing {}...'.format(extractor_name))
+            extractor = self._get_extractors(self.config['prefix_config']['extractor'][extractor_name])
+            extractor.extract(nodes)
+        print("done")
+        return nodes
+
+    
+    def _get_an_indexGenerator(self, index_type):
+        if index_type == 'VectorStoreIndex':
+            return VectorStoreIndex
+        elif index_type == '':
+            return None
+        else:
+            raise Exception("Invalid embedding model name. Please provide embedding models {}".format())
+
+    def _get_a_store(self, store_type):
+        if store_type == 'SimpleDocumentStore':
+            return SimpleDocumentStore()
+        elif store_type == 'SimpleIndexStore':
+            return SimpleIndexStore()
+        elif store_type == 'SimpleVectorStore':
+            return SimpleVectorStore()
 
     def create_or_update_indexes(self):
         for index_id in self.config['document_preprocessing']['indexes']:
-            index_config = self.config['prefix_config']['indexes'][index_id]
+            index_config = self.config['prefix_indexes'][index_id]
             print('[update_database] Updating index: {}'.format(index_id))
             
             storage_context_config = self.config['prefix_config']['storage_context'][index_config['storage_context']]
-            store_path = os.path.abspath(os.path.join(self.root_path, storage_context_config['store_dir_path'], storage_context_config['name']))
+            index_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['index_dir_path']))
             
-            if not os.path.exists(store_path):
-                print("[update_database] Storage does not find with path: {}".format(store_path))
+            if not os.path.exists(index_dir_path):
+                print("[update_database] Storage does not find with path: {}".format(index_dir_path))
                 print("[update_database] Creating a new one...")
 
             documents = self._load_documents()
             nodes = self._generate_nodes_from_documents(index_config, documents)
+            nodes = self._generate_metadata_to_nodes(index_config, nodes)
+            
+            #Load embedding model
+            embedding_config = self.config['prefix_config']['embedding_model'][index_config['embedding_model']]
+            Settings.embed_model = CustomEmbeddings(
+                model_name=embedding_config['name'],
+                cache_dir=embedding_config['cache'],
+                embed_batch_size=4
+            )
 
             # Generate index for nodes
-            Settings.embed_model = self._get_embedding_model(self.config['prefix_config']['embedding_model'][index_config['embedding_model']])
             indexGenerator = self._get_an_indexGenerator(storage_context_config['index_generator'])
             index = indexGenerator(
                 nodes=nodes,
@@ -186,18 +166,19 @@ class Database():
                     index_store=self._get_a_store(storage_context_config['index_store']),
                     # property_graph_store=self._get_a_store(storage_context_config['property_graph_store'])
                 ),
-                persist_dir=store_path if os.path.exists(store_path) else None,
+                persist_dir=index_dir_path if os.path.exists(index_dir_path) else None,
                 show_progress=True
             )
 
-            if not os.path.exists(store_path):
+            if not os.path.exists(index_dir_path):
                 index.set_index_id(index_id)
-                index.storage_context.persist(store_path)
+                index.storage_context.persist(index_dir_path)
 
         return index
 
-    def show_indexes(self):
-        pass
+    def get_all_index_ids(self):
+        index_dir_path = self.config['index_dir_path']
+        return [d for d in os.listdir(index_dir_path) if os.path.isdir(os.path.join(index_dir_path, d))]
 
 
 if __name__ == '__main__':
