@@ -5,6 +5,7 @@ from accelerate import infer_auto_device_map, init_empty_weights
 from llama_index.core.schema import BaseNode, MetadataMode
 from llama_index.llms.ollama import Ollama
 from tqdm import tqdm
+from openai import OpenAI
 
 DEFAULT_QUESTION_GEN_TMPL="""\
 Here is the context:
@@ -77,10 +78,17 @@ prompt_template_ollama = """\
 "Here is the context:
 {context_str}
 
-Given the contextual information, \
-generate 5 questions this context can provide and answer them based on the context offered \
-specific answers to which are unlikely to be found elsewhere.
+Here is the format of question, answer, and reason(QAR) template:
+----------------------------------------------------------------------------------
+<Pair number, representing which QAR you are at, like 1, 2, 3>
+Question:<Question content, you should place a specific question which is unlikely to be found elsewhere and is unique comparing with other questions>
 
+Answer:<Answer content, you should place a specific answer combining with the offered context>
+
+Reason:<Reason content, you should explain why this question and answer are unlikely to be found elsewhere and are unique comparing with each other>
+----------------------------------------------------------------------------------
+
+Following by this template, given the contextual information, generate 5 QAR.\
 Higher-level summaries of surrounding context may be provided \
 as well. Try using these summaries to generate better questions \
 that this context can answer.
@@ -113,4 +121,26 @@ class OllamaBasedExtractor():
     def extract(self, nodes: List[BaseNode]):
         for node in tqdm(nodes):
             self._extract_metadata_from_node(node)
-                
+
+
+class OpenAIBasedExtractor():
+    def __init__(self):
+        self.client = OpenAI()
+    
+        batch_input_file = self.client.files.create(
+        file=open("batchinput.jsonl", "rb"),
+        purpose="batch"
+        )
+
+        batch_input_file_id = batch_input_file.id
+
+        self.client.batches.create(
+            input_file_id=batch_input_file_id,
+            endpoint="/v1/chat/completions",
+            completion_window="24h",
+            metadata={
+            "description": "nightly eval job"
+            }
+        )
+        
+        content = self.client.files.content("file-xyz123")

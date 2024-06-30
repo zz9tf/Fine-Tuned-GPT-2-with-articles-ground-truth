@@ -24,15 +24,18 @@ from utils.custom_embedding import OllamaCustomEmbeddings
 from datetime import datetime
 from llama_index.llms.ollama import Ollama
 from llama_index.llms.huggingface import HuggingFaceLLM
+from llama_index.llms.openai import OpenAI
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.core import get_response_synthesizer
+from dotenv import load_dotenv
 
 class Database():
     def __init__(self, config_dir_path):
         self.root_path = "../.."
         self.config_dir_path = config_dir_path
+        self._load_configs()
 
     def _load_configs(self):
         config_path = os.path.abspath(os.path.join(self.root_path, self.config_dir_path, 'config.yaml'))
@@ -41,6 +44,8 @@ class Database():
             self.config = yaml.safe_load(config)
         with open(prefix_config_path, 'r') as prefix_config:
             self.prefix_config = yaml.safe_load(prefix_config)
+        print(os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/.env')))
+        load_dotenv(dotenv_path=os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/.env')))
 
     def _get_parser(self, parser_config):
         VALID_PARSER = self.prefix_config['parser'].keys()
@@ -219,6 +224,10 @@ class Database():
         elif llm_name == "lmsys/vicuna-13b-v1.3":
             # TODO test huggingfacellm
             llm = HuggingFaceLLM(model_name=llm_name)
+        elif llm_name == 'gpt-4o':
+            print(os.getenv('OPENAI_API_KEY'))
+            openai.api_key(os.getenv('OPENAI_API_KEY'))
+            llm = OpenAI(model='gpt-4o')
         
         Settings.llm = llm
         

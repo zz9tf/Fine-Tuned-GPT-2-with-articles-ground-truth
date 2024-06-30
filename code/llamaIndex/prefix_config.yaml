@@ -21,6 +21,7 @@ llm:
     no_split_modules: "LlamaDecoderLayer"
     cache: "/workspace/.hf_cache"
   "vicuna:13b": null
+  "gpt-4o": null
 embedding_model:
   "Linq-AI-Research/Linq-Embed-Mistral":
     name: "Linq-AI-Research/Linq-Embed-Mistral"
