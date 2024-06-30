@@ -24,7 +24,10 @@ from utils.custom_embedding import OllamaCustomEmbeddings
 from datetime import datetime
 from llama_index.llms.ollama import Ollama
 from llama_index.llms.huggingface import HuggingFaceLLM
-from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.postprocessor import LLMRerank
+from llama_index.core.response_synthesizers import ResponseMode
+from llama_index.core import get_response_synthesizer
 
 class Database():
     def __init__(self, config_dir_path):
@@ -191,7 +194,7 @@ class Database():
                 indexes.append({'id': d, 'size': size, 'modified_date': modified_date})
         return indexes
 
-    def load_index(self, index_id, llm_name):
+    def load_index(self, index_id, llm_name, isReRank):
         self._load_configs()
         # Load index config
         index_config = self.prefix_config['indexes'][index_id]
@@ -216,9 +219,19 @@ class Database():
         elif llm_name == "lmsys/vicuna-13b-v1.3":
             # TODO test huggingfacellm
             llm = HuggingFaceLLM(model_name=llm_name)
+        
+        Settings.llm = llm
+        
+        if isReRank:
+            engine = RetrieverQueryEngine.from_args(
+                retriever=index.as_retriever(),
+                response_synthesizer=get_response_synthesizer(response_mode=ResponseMode.GENERATION, streaming=True),
+                node_postprocessors=[LLMRerank(top_n=5)],
+            )
+        else:
+            engine = index.as_query_engine(streaming=True)
 
-        return index.as_query_engine(llm=llm, streaming=True)
+        return engine
 if __name__ == '__main__':
     d = Database(config_dir_path='./code/llamaIndex')
     index = d.create_or_update_indexes()
-

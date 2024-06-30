@@ -6,5 +6,7 @@ document_preprocessing:
     - "ollama-based"
 rag:
   default_index: "test-ollama-based"
-  llm: "vicuna:13b"
   # llm: "lmsys/vicuna-13b-v1.3"
+  llm: "vicuna:13b"
+  isReRank: True
+  

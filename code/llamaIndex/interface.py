@@ -10,13 +10,14 @@ help_menu = """
 /delete [index_id]     Delete the specified index
 /clear                 Delete the entire database
 /bye                   Exit the application
+Enter                  Enter without input to reset config
 """
 
 input_query = """\
 
 ------------------------------------------
 [Interface] Type a command or '/help' to see the menu:
-You are using indexes: {}
+You are using indexes: {}   llm: {}   ReRank: {}
 >>> """
 
 class SystemInterface():
@@ -25,10 +26,10 @@ class SystemInterface():
         self.root_path = '../..'
         self.config_dir_path = config_dir_path
         self._load_configs()
-        self.current_index_ids = self.config['rag']['default_index']
+        self.current_index_id = self.config['rag']['default_index']
         if self.config['rag']['default_index'] != 'None':
-            self.indexes = self.database.load_index(self.current_index_ids, llm_name=self.config['rag']['llm'])
-            print("Using default index: {}".format(self.current_index_ids))
+            self.engine = self.database.load_index(self.current_index_id, llm_name=self.config['rag']['llm'], isReRank=self.config['rag']['isReRank'])
+            print("Using default index: {}".format(self.current_index_id))
     
     def _load_configs(self):
         config_path = os.path.abspath(os.path.join(self.root_path, self.config_dir_path, 'config.yaml'))
@@ -43,36 +44,30 @@ class SystemInterface():
         return True
 
     def create_or_update_index_as_config(self):
-        self._load_configs()
         self.database.create_or_update_indexes()
 
     def show_index(self):
-        self._load_configs()
         print(f"{'NAME':<20} {'SIZE':<15} {'MODIFIED':<20}")
         for index in self.database.get_all_index_ids():
             print(f"{index['id']:<20} {f'{index["size"]:.2f}MB':<15} {index['modified_date']:<20}")
 
-    def use_index(self, index_id):
+    def use_engine(self, index_id):
         # TODO Multiple indexes loading
-        self._load_configs()
-        self.current_index_ids.append(index_id)
-        self.indexes.append(self.database.load_index(index_id=self.current_index_ids, llm_name=self.config['rag']['llm']))
+        self.current_index_id = index_id
+        self.engine = self.database.load_index(index_id=self.current_index_id, llm_name=self.config['rag']['llm'], isReRank=self.config['rag']['isReRank'])
         print("[Interface] Index {} loaded".format(index_id))
 
-    def stop_index(self, index_id):
+    def stop_engine(self, index_id):
         # TODO stop_index
-        self._load_configs()
         pass
 
-    def delete_index(self, index_id):
-        self._load_configs()
+    def delete_engine(self, index_id):
         indexes_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path'], index_id))
         if os.path.exists(indexes_dir_path):
             shutil.rmtree(indexes_dir_path)
         print('[Interface] Deleted {}'.format(index_id))
 
     def clear_database(self):
-        self._load_configs()
         indexes_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path']))
         if os.path.exists(indexes_dir_path):
             # Iterate through all the files and directories within the specified directory
@@ -90,9 +85,11 @@ class SystemInterface():
         print('[Interface] Cleared')
         
     def query(self, user_input):
-        response = self.indexes.query(user_input)
-        print("[Interface response]", end="")
+        self.engine = self.database.load_index(index_id=self.current_index_id, llm_name=self.config['rag']['llm'], isReRank=self.config['rag']['isReRank'])
+        response = self.engine.query(user_input)
+        print("[Interface response] ", end="")
         response.print_response_stream()
+        
         print("\n")
 
         print("[Source]")
@@ -111,9 +108,12 @@ class SystemInterface():
         print(help_menu)
 
         while True:
-            index_config = [f"[{id} | llm: {self.config['rag']['llm']}]" for id in self.current_index_ids]
-            user_input = input(input_query.format(index_config))
-            if user_input == "/help":
+            user_input = input(input_query.format(self.current_index_id, self.config['rag']['llm'], self.config['rag']['isReRank']))
+            if user_input == "":
+                self._load_configs()
+                self.database._load_configs()
+                continue
+            elif user_input == "/help":
                 if self.check_input(user_input, 0):
                     print(help_menu)
 
@@ -127,19 +127,19 @@ class SystemInterface():
             
             elif user_input == "/current":
                 if self.check_input(user_input, 0):
-                    print("Currently using index: {}".format(self.current_index_ids))
+                    print("Currently using index: {}".format(self.current_index_id))
 
             elif user_input.split()[0] == "/use":
                 if self.check_input(user_input, 1):
-                    self.use_index(user_input.split()[1])
+                    self.use_engine(user_input.split()[1])
 
             elif user_input.split()[0] == "/stop":
                 if self.check_input(user_input, 1):
-                    self.stop_index(user_input.split()[1])
+                    self.stop_engine(user_input.split()[1])
 
             elif user_input.split()[0] == "/delete":
                 if self.check_input(user_input, 1):
-                    self.delete_index(user_input.split()[1])
+                    self.delete_engine(user_input.split()[1])
 
             elif user_input == "/clear":
                 if self.check_input(user_input, 0):
