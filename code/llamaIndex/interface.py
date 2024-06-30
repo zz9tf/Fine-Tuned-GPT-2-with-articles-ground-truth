@@ -1,3 +1,4 @@
+import os, shutil, yaml, time
 from database import Database
 
 help_menu = """
@@ -11,35 +12,98 @@ help_menu = """
 /bye                   Exit the application
 """
 
+input_query = """\
+
+------------------------------------------
+[Interface] Type a command or '/help' to see the menu:
+You are using indexes: {}
+>>> """
+
 class SystemInterface():
-    def __init__(self, config_path='./code/llamaIndex/config.yaml'):
-        self.database = Database(config_path)
-        self.indexes = [self.database.load_index()]
+    def __init__(self, config_dir_path):
+        self.database = Database(config_dir_path)
+        self.root_path = '../..'
+        self.config_dir_path = config_dir_path
+        self._load_configs()
+        self.current_index_ids = self.config['rag']['default_index']
+        if self.config['rag']['default_index'] != 'None':
+            self.indexes = self.database.load_index(self.current_index_ids, llm_name=self.config['rag']['llm'])
+            print("Using default index: {}".format(self.current_index_ids))
     
-    def check_input(self, user_input):
-        if len(user_input.split()) != 2:
-            print("Invaild command. Too many parameters.")
+    def _load_configs(self):
+        config_path = os.path.abspath(os.path.join(self.root_path, self.config_dir_path, 'config.yaml'))
+        with open(config_path, 'r') as config:
+            self.config = yaml.safe_load(config)
+
+    def check_input(self, user_input, parameter_num):
+        if len(user_input.split()) != parameter_num+1:
+            print("Invaild command. Require {} parameters".format(parameter_num))
             print(help_menu)
+            return False
+        return True
 
     def create_or_update_index_as_config(self):
+        self._load_configs()
         self.database.create_or_update_indexes()
 
     def show_index(self):
-        self.database.show_index()
+        self._load_configs()
+        print(f"{'NAME':<20} {'SIZE':<15} {'MODIFIED':<20}")
+        for index in self.database.get_all_index_ids():
+            print(f"{index['id']:<20} {f'{index["size"]:.2f}MB':<15} {index['modified_date']:<20}")
 
     def use_index(self, index_id):
-        pass
+        # TODO Multiple indexes loading
+        self._load_configs()
+        self.current_index_ids.append(index_id)
+        self.indexes.append(self.database.load_index(index_id=self.current_index_ids, llm_name=self.config['rag']['llm']))
+        print("[Interface] Index {} loaded".format(index_id))
 
     def stop_index(self, index_id):
+        # TODO stop_index
+        self._load_configs()
         pass
 
     def delete_index(self, index_id):
-        pass
+        self._load_configs()
+        indexes_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path'], index_id))
+        if os.path.exists(indexes_dir_path):
+            shutil.rmtree(indexes_dir_path)
+        print('[Interface] Deleted {}'.format(index_id))
 
     def clear_database(self):
-        pass
+        self._load_configs()
+        indexes_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path']))
+        if os.path.exists(indexes_dir_path):
+            # Iterate through all the files and directories within the specified directory
+            for filename in os.listdir(indexes_dir_path):
+                file_path = os.path.join(indexes_dir_path, filename)
+                try:
+                    # Check if it is a file and remove it
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)
+                    # Check if it is a directory and remove it
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
+                except Exception as e:
+                    print(f'Failed to delete {file_path}. Reason: {e}')
+        print('[Interface] Cleared')
         
     def query(self, user_input):
+        response = self.indexes.query(user_input)
+        print("[Interface response]", end="")
+        response.print_response_stream()
+        print("\n")
+
+        print("[Source]")
+        for i, node in enumerate(response.source_nodes):
+            metadata = "file_name: {} | file_path: {} | page_label: {}".format(node.metadata['file_name'], node.metadata['file_path'], node.metadata['page_label'])
+            for char in "{}. {}\n[content (length {})] {}...\n".format(i+1, metadata, len(node.text), node.text[:500]):
+                print(char, end='', flush=True)
+                time.sleep(0.005)
+
+    def get_source(self):
+        # TODO get_source
         pass
 
     def run(self):
@@ -47,37 +111,46 @@ class SystemInterface():
         print(help_menu)
 
         while True:
-            user_input = input("------------------------------------------\nType a command or '/help' to see the menu:\n>>> ")
+            index_config = [f"[{id} | llm: {self.config['rag']['llm']}]" for id in self.current_index_ids]
+            user_input = input(input_query.format(index_config))
             if user_input == "/help":
-                print(help_menu)
+                if self.check_input(user_input, 0):
+                    print(help_menu)
 
             elif user_input == "/update":
-                self.create_index(user_input.split()[1])
+                if self.check_input(user_input, 0):
+                    self.create_or_update_index_as_config()
 
             elif user_input == "/show":
-                self.show_index()
+                if self.check_input(user_input, 0):
+                    self.show_index()
+            
+            elif user_input == "/current":
+                if self.check_input(user_input, 0):
+                    print("Currently using index: {}".format(self.current_index_ids))
 
             elif user_input.split()[0] == "/use":
-                self.check_input(user_input)
-                self.use_index(user_input.split()[1])
+                if self.check_input(user_input, 1):
+                    self.use_index(user_input.split()[1])
 
             elif user_input.split()[0] == "/stop":
-                self.check_input(user_input)
-                self.stop_index(user_input.split()[1])
+                if self.check_input(user_input, 1):
+                    self.stop_index(user_input.split()[1])
 
             elif user_input.split()[0] == "/delete":
-                self.check_input(user_input)
-                self.delete_index(user_input.split()[1])
+                if self.check_input(user_input, 1):
+                    self.delete_index(user_input.split()[1])
 
             elif user_input == "/clear":
-                self.clear_database()
+                if self.check_input(user_input, 0):
+                    self.clear_database()
 
             elif user_input == "/bye":
-                print("Goodbye!")
-                break
-
+                if self.check_input(user_input, 0):
+                    print("Goodbye!")
+                    exit()
             else:
                 self.query(user_input)
 
 if __name__ == "__main__":
-    SystemInterface(config_path='./code/llamaIndex/config.yaml').run()
+    SystemInterface(config_dir_path='./code/llamaIndex').run()

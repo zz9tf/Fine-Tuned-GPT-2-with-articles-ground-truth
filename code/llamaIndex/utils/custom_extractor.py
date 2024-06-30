@@ -42,7 +42,7 @@ class QAExtractor():
         max_memory['cpu'] = '120GiB'
         device_map = infer_auto_device_map(model, max_memory=max_memory, no_split_module_classes = [no_split_modules])
         print(device_map)
-        self._model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir=cache_dir, device_map=device_map, offload_folder="/workspace")
+        self._model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir=cache_dir, device_map=device_map, offload_folder="/workspace/.cache")
         self._tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.num_questions = num_questions
@@ -73,11 +73,24 @@ class QAExtractor():
             for k, v in metadata.items():
                 node.metadata[k] = v
 
+prompt_template_ollama = """\
+"Here is the context:
+{context_str}
+
+Given the contextual information, \
+generate 5 questions this context can provide and answer them based on the context offered \
+specific answers to which are unlikely to be found elsewhere.
+
+Higher-level summaries of surrounding context may be provided \
+as well. Try using these summaries to generate better questions \
+that this context can answer.
+"""
+
 class OllamaBasedExtractor():
     def __init__(
         self,
         model_name: str,
-        prompt_template: str,
+        prompt_template: str = prompt_template_ollama,
         embedding_only: bool = True
     ) -> None:
         """Init params."""

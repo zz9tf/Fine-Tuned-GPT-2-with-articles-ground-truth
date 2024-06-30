@@ -1,66 +1,10 @@
-index_dir_path: "./code/llamaIndex/database"
+indexes_dir_path: "./code/llamaIndex/database"
 document_preprocessing:
   data_dir_path: "./data"
   indexes:
-    - "test"
+    - "test-ollama-based"
+    - "ollama-based"
 rag:
-  indexes: "test"
-prefix_config:
-  parser:
-    "SimpleFileNodeParser":
-      name: "SimpleFileNodeParser"
-    "SentenceSplitter":
-      name: "SentenceSplitter"
-      chunk_size: 1024
-      chunk_overlap: 20
-    "HierarchicalNodeParser":
-      name: "HierarchicalNodeParser"
-      chunk_size: [2048, 512, 128]
-  extractor:
-    "vicuna-13b-QAExtractor":
-      extractor_type: "QAExtractor"
-      model_name: "lmsys/vicuna-13b-v1.3"
-      no_split_modules: "LlamaDecoderLayer"
-      cache: "/workspace/.hf_cache"
-      num_questions: 5
-    "vicuna:13b-QAExtractor":
-      extractor_type: "OllamaBasedExtractor"
-      model_name: "vicuna:13b"
-      prompt_template: "Here is the context:
-{context_str}
-
-Given the contextual information, \
-generate 5 questions this context can provide \
-specific answers to which are unlikely to be found elsewhere.
-
-Higher-level summaries of surrounding context may be provided \
-as well. Try using these summaries to generate better questions \
-that this context can answer."
-  embedding_model:
-    "Linq-AI-Research/Linq-Embed-Mistral":
-      name: "Linq-AI-Research/Linq-Embed-Mistral"
-      cache: "/workspace/.hf_cache"
-  storage_context:
-    "simple":
-      index_generator: VectorStoreIndex
-      name: "simple"
-      docstore: SimpleDocumentStore
-      vector_store: SimpleVectorStore
-      index_store: SimpleIndexStore
-      property_graph_store: None
-prefix_indexes:
-  "test":
-    type: "VectorStoreIndex"
-    parser:
-      "HierarchicalNodeParser"
-    extractors:
-      - "vicuna:13b-QAExtractor"
-      # - "vicuna-13b-QAExtractor"
-    embedding_model:
-      "Linq-AI-Research/Linq-Embed-Mistral"
-    pipeline:
-      is_cache: False # True
-      cache_path: ""
-      num_workers: 1
-    storage_context:
-      "simple"
+  default_index: "test-ollama-based"
+  llm: "vicuna:13b"
+  # llm: "lmsys/vicuna-13b-v1.3"

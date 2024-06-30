@@ -7,8 +7,6 @@ from llama_index.core import (
     PropertyGraphIndex,
     StorageContext,
     load_index_from_storage,
-    load_indices_from_storage,
-    load_graph_from_storage
 )
 from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.core.storage.index_store import SimpleIndexStore
@@ -20,25 +18,29 @@ from llama_index.core.node_parser import (
 )
 from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 from llama_index.core import Settings
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from llama_index.llms.huggingface import HuggingFaceLLM
-from llama_index.llms.openai import OpenAI
 from llama_index.core.ingestion import IngestionPipeline
-from llama_index.core.extractors import QuestionsAnsweredExtractor
 from utils.custom_extractor import QAExtractor, OllamaBasedExtractor
-from utils.custom_embedding import CustomEmbeddings
+from utils.custom_embedding import OllamaCustomEmbeddings
+from datetime import datetime
+from llama_index.llms.ollama import Ollama
+from llama_index.llms.huggingface import HuggingFaceLLM
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
 
 class Database():
-    def __init__(self, config_path):
+    def __init__(self, config_dir_path):
         self.root_path = "../.."
-        print("[init] Loading configuration ...", end=' ')
-        config_path = os.path.abspath(os.path.join(self.root_path, config_path))
+        self.config_dir_path = config_dir_path
+
+    def _load_configs(self):
+        config_path = os.path.abspath(os.path.join(self.root_path, self.config_dir_path, 'config.yaml'))
+        prefix_config_path = os.path.abspath(os.path.join(self.root_path, self.config_dir_path, 'prefix_config.yaml'))
         with open(config_path, 'r') as config:
             self.config = yaml.safe_load(config)
-        print("done")
+        with open(prefix_config_path, 'r') as prefix_config:
+            self.prefix_config = yaml.safe_load(prefix_config)
 
     def _get_parser(self, parser_config):
-        VALID_PARSER = ['SentenceSplitter', 'SimpleFileNodeParser', 'HierarchicalNodeParser']
+        VALID_PARSER = self.prefix_config['parser'].keys()
         if parser_config['name'] == 'SentenceSplitter':
             return SentenceSplitter(
                 chunk_size=parser_config.get('chunk_size', 1024), 
@@ -71,7 +73,7 @@ class Database():
         transformations = []
         # Get parser
         if 'parser' in index_config:
-            parser_config = self.config['prefix_config']['parser'][index_config['parser']]
+            parser_config = self.prefix_config['parser'][index_config['parser']]
             transformations.append(self._get_parser(parser_config))
 
         # Initialize pipeline
@@ -85,37 +87,31 @@ class Database():
             num_workers=index_config['pipeline'].get('num_workers', 10)
         )
         print('done')
-
-        if index_config['pipeline']['is_cache']:
-            cache_path = os.path.abspath(os.path.join(self.root_path, index_config['pipeline']['cache_path']))
-            self.pipeline.persist(cache_path)
-
         return nodes
 
     def _get_extractors(self, extractor_config):
+        llm_config = self.prefix_config['llm'][extractor_config['llm']]
         if extractor_config['extractor_type'] == 'QAExtractor':
             return QAExtractor(
-                model_name=extractor_config['model_name'],
-                no_split_modules=extractor_config['no_split_modules'],
-                cache_dir=extractor_config['cache'],
+                model_name=extractor_config['llm'],
+                no_split_modules=llm_config['no_split_modules'],
+                cache_dir=llm_config['cache'],
                 num_questions=extractor_config['num_questions']
             )
         if extractor_config['extractor_type'] == 'OllamaBasedExtractor':
             return OllamaBasedExtractor(
-                model_name=extractor_config['model_name'],
-                prompt_template=extractor_config['prompt_template']
+                model_name=extractor_config['llm']
             )
 
     def _generate_metadata_to_nodes(self, index_config, nodes):
         print('[update_database] Extracting metadata ...')
         for extractor_name in index_config['extractors']:
             print('[update_database] Doing {}...'.format(extractor_name))
-            extractor = self._get_extractors(self.config['prefix_config']['extractor'][extractor_name])
+            extractor = self._get_extractors(self.prefix_config['extractor'][extractor_name])
             extractor.extract(nodes)
         print("done")
         return nodes
 
-    
     def _get_an_indexGenerator(self, index_type):
         if index_type == 'VectorStoreIndex':
             return VectorStoreIndex
@@ -133,12 +129,14 @@ class Database():
             return SimpleVectorStore()
 
     def create_or_update_indexes(self):
+        self._load_configs()
         for index_id in self.config['document_preprocessing']['indexes']:
-            index_config = self.config['prefix_indexes'][index_id]
+            # Load index config
+            index_config = self.prefix_config['indexes'][index_id]
             print('[update_database] Updating index: {}'.format(index_id))
             
-            storage_context_config = self.config['prefix_config']['storage_context'][index_config['storage_context']]
-            index_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['index_dir_path']))
+            storage_context_config = self.prefix_config['storage_context'][index_config['storage_context']]
+            index_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path'], index_id))
             
             if not os.path.exists(index_dir_path):
                 print("[update_database] Storage does not find with path: {}".format(index_dir_path))
@@ -148,12 +146,10 @@ class Database():
             nodes = self._generate_nodes_from_documents(index_config, documents)
             nodes = self._generate_metadata_to_nodes(index_config, nodes)
             
-            #Load embedding model
-            embedding_config = self.config['prefix_config']['embedding_model'][index_config['embedding_model']]
-            Settings.embed_model = CustomEmbeddings(
+            # Load embedding model
+            embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
+            Settings.embed_model = OllamaCustomEmbeddings(
                 model_name=embedding_config['name'],
-                cache_dir=embedding_config['cache'],
-                embed_batch_size=4
             )
 
             # Generate index for nodes
@@ -164,24 +160,65 @@ class Database():
                     docstore=self._get_a_store(storage_context_config['docstore']),
                     vector_store=self._get_a_store(storage_context_config['vector_store']),
                     index_store=self._get_a_store(storage_context_config['index_store']),
-                    # property_graph_store=self._get_a_store(storage_context_config['property_graph_store'])
+                    property_graph_store=self._get_a_store(storage_context_config['property_graph_store'])
                 ),
                 persist_dir=index_dir_path if os.path.exists(index_dir_path) else None,
                 show_progress=True
             )
 
-            if not os.path.exists(index_dir_path):
-                index.set_index_id(index_id)
-                index.storage_context.persist(index_dir_path)
-
-        return index
+            index.set_index_id(index_id)
+            index.storage_context.persist(index_dir_path)
+            print("[update_database] Index: {} has been saved".format(index_id))
 
     def get_all_index_ids(self):
-        index_dir_path = self.config['index_dir_path']
-        return [d for d in os.listdir(index_dir_path) if os.path.isdir(os.path.join(index_dir_path, d))]
+        self._load_configs()
+        def get_directory_size(directory):
+            total_size = 0
+            for dirpath, _, filenames in os.walk(directory):
+                for f in filenames:
+                    fp = os.path.join(dirpath, f)
+                    total_size += os.path.getsize(fp)
+            return total_size / (1024 * 1024)
+        
+        indexes_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path']))
+        indexes = []
+        for d in os.listdir(indexes_dir_path):
+            folderpath = os.path.join(indexes_dir_path, d)
+            if os.path.isdir(folderpath):
+                size = get_directory_size(folderpath)
+                modified_time = os.path.getmtime(folderpath)
+                modified_date = datetime.fromtimestamp(modified_time).strftime('%Y-%m-%d %H:%M:%S')
+                indexes.append({'id': d, 'size': size, 'modified_date': modified_date})
+        return indexes
 
+    def load_index(self, index_id, llm_name):
+        self._load_configs()
+        # Load index config
+        index_config = self.prefix_config['indexes'][index_id]
+        index_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path'], index_id))
 
+        if not os.path.exists(index_dir_path):
+            print("Id: {} does not exist. Please make sure your database location do have the database".format(index_id))
+            return
+
+        # Load embedding model
+        embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
+        Settings.embed_model = OllamaCustomEmbeddings(
+            model_name=embedding_config['name'],
+        )
+
+        storage_context = StorageContext.from_defaults(persist_dir=index_dir_path)
+        index = load_index_from_storage(storage_context, index_id=index_id)
+
+        llm_config = self.prefix_config['llm'][llm_name]
+        if llm_name == "vicuna:13b":
+            llm = Ollama(model=llm_name, request_timeout=60.0)
+        elif llm_name == "lmsys/vicuna-13b-v1.3":
+            # TODO test huggingfacellm
+            llm = HuggingFaceLLM(model_name=llm_name)
+
+        return index.as_query_engine(llm=llm, streaming=True)
 if __name__ == '__main__':
-    d = Database(config_path='./code/llamaIndex/config.yaml')
+    d = Database(config_dir_path='./code/llamaIndex')
     index = d.create_or_update_indexes()
 
