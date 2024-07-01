@@ -150,6 +150,8 @@ class SystemInterface():
             elif user_input == "/clear":
                 if self.check_input(user_input, 0):
                     self.clear_database()
+            elif user_input == "/gpt4-output":
+                pass
 
             elif user_input == "/bye":
                 if self.check_input(user_input, 0):

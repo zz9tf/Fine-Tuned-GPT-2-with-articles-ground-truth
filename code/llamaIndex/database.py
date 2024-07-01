@@ -121,18 +121,19 @@ class Database():
                 # If not, create nodes cache
                 extractor = self._get_extractors(extractor_config)
                 extractor.extract(nodes)
+                # save nodes
+                docstore = SimpleDocumentStore()
+                docstore.add_documents(nodes)
+                docstore.persist(persist_path=nodes_cache_path)
+                print(f"[update_database] Nodes saved to {cache_path}")
                 if extractor_config['need_interrupt']:
-                    # save nodes
-                    docstore = SimpleDocumentStore()
-                    docstore.add_documents(nodes)
-                    docstore.persist(persist_path=nodes_cache_path)
-                    print(f"Nodes saved to {cache_path}")
                     # Break for the rest step
                     exit()
                     
             else:
                 extractor = self._get_extractors(extractor_config)
                 extractor.extract(nodes)
+
         print("done")
         return nodes
 
@@ -166,23 +167,29 @@ class Database():
                 print("[update_database] Creating a new one...")
 
             nodes = None
-            for extractor_name in reversed(index_config['extractors']):
+            extractors = index_config['extractors']
+            for extractor_name in index_config['extractors']:
                 extractor_config = self.prefix_config['extractor'][extractor_name]
                 cache_path = os.path.abspath(os.path.join(self.root_path, extractor_config['cache']))
                 nodes_cache_path = os.path.abspath(os.path.join(cache_path, extractor_name+'.json'))
 
                 if os.path.exists(nodes_cache_path) and not extractor_config['force_extract']:
+                    print(f"[update_database] Cache {extractor_name} is detected. Now at {extractor_name} ...")
+                    extractors.pop()
                     # Directly use nodes have been generated
                     docstore = SimpleDocumentStore().from_persist_path(persist_path=nodes_cache_path)
                     nodes = [node for _, node in docstore.docs.items()]
-                    print("Latest nodes have been loaded from cache: %s" % nodes_cache_path)
+                else:
+                    index_config['extractors'] = extractors
                     break
                 
             if nodes is None:
                 documents = self._load_documents()
                 nodes = self._generate_nodes_from_documents(index_config, documents)
-                nodes = self._generate_metadata_to_nodes(index_config, [nodes[0]])
-            
+                nodes = self._generate_metadata_to_nodes(index_config, nodes)
+            elif len(index_config['extractors']) > 0:
+                nodes = self._generate_metadata_to_nodes(index_config, nodes)
+                
             # Load embedding model
             embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
             Settings.embed_model = OllamaCustomEmbeddings(
