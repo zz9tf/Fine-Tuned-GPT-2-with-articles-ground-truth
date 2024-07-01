@@ -1,6 +1,5 @@
 import os
 import yaml
-import openai
 from llama_index.core import (
     SimpleDirectoryReader, 
     VectorStoreIndex,
@@ -11,6 +10,7 @@ from llama_index.core import (
 from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.core.storage.index_store import SimpleIndexStore
 from llama_index.core.vector_stores import SimpleVectorStore
+from llama_index.core.graph_stores.simple import SimpleGraphStore
 from llama_index.core.node_parser import (
     SentenceSplitter, 
     SimpleFileNodeParser, 
@@ -18,12 +18,11 @@ from llama_index.core.node_parser import (
 )
 from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 from llama_index.core import Settings
-from llama_index.core.ingestion import IngestionPipeline
-from utils.custom_extractor import QAExtractor, OllamaBasedExtractor
+from utils.custom_extractor import HuggingfaceBasedExtractor, OllamaBasedExtractor, OpenAIBasedExtractor
 from utils.custom_embedding import OllamaCustomEmbeddings
 from datetime import datetime
 from llama_index.llms.ollama import Ollama
-from llama_index.llms.openai import OpenAI
+from llama_index.llms.openai import OpenAI as llama_index_openai
 from utils.custom_llm import HuggingFace
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.postprocessor import LLMRerank
@@ -77,53 +76,69 @@ class Database():
     
     def _generate_nodes_from_documents(self, index_config, documents):
         print("[update_database] Generating nodes from documents...", end=' ')
-        transformations = []
-        # Get parser
-        if 'parser' in index_config:
-            parser_config = self.prefix_config['parser'][index_config['parser']]
-            transformations.append(self._get_parser(parser_config))
-
-        # Initialize pipeline
-        pipeline = IngestionPipeline(
-            transformations=transformations,
-        )
-
-        nodes = pipeline.run(
-            show_progress=True,
-            documents=documents,
-            num_workers=index_config['pipeline'].get('num_workers', 10)
+        
+        parser_config = self.prefix_config['parser'][index_config['parser']]
+        parser = self._get_parser(parser_config)
+        nodes = parser.get_nodes_from_documents(
+            documents, show_progress=True
         )
         print('done')
+
         return nodes
 
     def _get_extractors(self, extractor_config):
         llm_config = self.prefix_config['llm'][extractor_config['llm']]
         if extractor_config['extractor_type'] == 'QAExtractor':
-            return QAExtractor(
+            return HuggingfaceBasedExtractor(
                 model_name=extractor_config['llm'],
                 no_split_modules=llm_config['no_split_modules'],
                 cache_dir=llm_config['cache'],
                 num_questions=extractor_config['num_questions']
             )
-        if extractor_config['extractor_type'] == 'OllamaBasedExtractor':
+        elif extractor_config['extractor_type'] == 'OllamaBasedExtractor':
             return OllamaBasedExtractor(
                 model_name=extractor_config['llm']
+            )
+        elif extractor_config['extractor_type'] == 'OpenAIBasedExtractor':
+            return OpenAIBasedExtractor(
+                model_name=extractor_config['llm'],
+                cache_dir=extractor_config['cache'],
+                mode=extractor_config['mode']
             )
 
     def _generate_metadata_to_nodes(self, index_config, nodes):
         print('[update_database] Extracting metadata ...')
         for extractor_name in index_config['extractors']:
             print('[update_database] Doing {}...'.format(extractor_name))
-            extractor = self._get_extractors(self.prefix_config['extractor'][extractor_name])
-            extractor.extract(nodes)
+            extractor_config = self.prefix_config['extractor'][extractor_name]
+            if extractor_config['llm'] == 'gpt-4o':
+                # Create a cache for gpt-4o results
+                cache_path = os.path.abspath(os.path.join(self.root_path, extractor_config['cache']))
+                os.makedirs(cache_path, exist_ok=True)
+
+                # Check if the nodes cache exists
+                nodes_cache_path = os.path.abspath(os.path.join(cache_path, extractor_name+'.json'))
+                # If not, create nodes cache
+                extractor = self._get_extractors(extractor_config)
+                extractor.extract(nodes)
+                if extractor_config['need_interrupt']:
+                    # save nodes
+                    docstore = SimpleDocumentStore()
+                    docstore.add_documents(nodes)
+                    docstore.persist(persist_path=nodes_cache_path)
+                    print(f"Nodes saved to {cache_path}")
+                    # Break for the rest step
+                    exit()
+                    
+            else:
+                extractor = self._get_extractors(extractor_config)
+                extractor.extract(nodes)
         print("done")
         return nodes
 
-    def _get_an_indexGenerator(self, index_type):
+    def _get_an_index_generator(self, index_type):
         if index_type == 'VectorStoreIndex':
             return VectorStoreIndex
-        elif index_type == '':
-            return None
         else:
             raise Exception("Invalid embedding model name. Please provide embedding models {}".format())
 
@@ -134,6 +149,8 @@ class Database():
             return SimpleIndexStore()
         elif store_type == 'SimpleVectorStore':
             return SimpleVectorStore()
+        elif store_type == 'SimpleGraphStore':
+            return SimpleGraphStore()
 
     def create_or_update_indexes(self):
         self._load_configs()
@@ -142,16 +159,29 @@ class Database():
             index_config = self.prefix_config['indexes'][index_id]
             print('[update_database] Updating index: {}'.format(index_id))
             
-            storage_context_config = self.prefix_config['storage_context'][index_config['storage_context']]
             index_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path'], index_id))
             
             if not os.path.exists(index_dir_path):
                 print("[update_database] Storage does not find with path: {}".format(index_dir_path))
                 print("[update_database] Creating a new one...")
 
-            documents = self._load_documents()
-            nodes = self._generate_nodes_from_documents(index_config, documents)
-            nodes = self._generate_metadata_to_nodes(index_config, nodes)
+            nodes = None
+            for extractor_name in reversed(index_config['extractors']):
+                extractor_config = self.prefix_config['extractor'][extractor_name]
+                cache_path = os.path.abspath(os.path.join(self.root_path, extractor_config['cache']))
+                nodes_cache_path = os.path.abspath(os.path.join(cache_path, extractor_name+'.json'))
+
+                if os.path.exists(nodes_cache_path) and not extractor_config['force_extract']:
+                    # Directly use nodes have been generated
+                    docstore = SimpleDocumentStore().from_persist_path(persist_path=nodes_cache_path)
+                    nodes = [node for _, node in docstore.docs.items()]
+                    print("Latest nodes have been loaded from cache: %s" % nodes_cache_path)
+                    break
+                
+            if nodes is None:
+                documents = self._load_documents()
+                nodes = self._generate_nodes_from_documents(index_config, documents)
+                nodes = self._generate_metadata_to_nodes(index_config, [nodes[0]])
             
             # Load embedding model
             embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
@@ -160,8 +190,9 @@ class Database():
             )
 
             # Generate index for nodes
-            indexGenerator = self._get_an_indexGenerator(storage_context_config['index_generator'])
-            index = indexGenerator(
+            storage_context_config = self.prefix_config['storage_context'][index_config['storage_context']]
+            index_generator = self._get_an_index_generator(storage_context_config['index_generator'])
+            index = index_generator(
                 nodes=nodes,
                 storage_context=StorageContext.from_defaults(
                     docstore=self._get_a_store(storage_context_config['docstore']),
@@ -199,20 +230,18 @@ class Database():
         return indexes
 
     def set_llm(self, llm_name):
-        llm_config = self.prefix_config['llm'][llm_name]
-
         if llm_name == "vicuna:13b":
             llm = Ollama(model=llm_name, request_timeout=240.0)
         elif llm_name == "lmsys/vicuna-13b-v1.3":
             # TODO Custom Huggingface model
+            llm_config = self.prefix_config['llm'][llm_name]
             llm = HuggingFace(model=llm_name)
         elif llm_name == 'gpt-4o':
-            openai.api_key = os.getenv('OPENAI_API_KEY')
-            llm = OpenAI(model='gpt-4o')
+            llm = llama_index_openai(model='gpt-4o', api_key=os.getenv('OPENAI_API_KEY'))
         
         Settings.llm = llm
 
-    def load_index(self, index_id, llm_name, isReRank):
+    def load_index(self, index_id, llm_name, is_rerank):
         self._load_configs()
         # Load index config
         index_config = self.prefix_config['indexes'][index_id]
@@ -233,7 +262,7 @@ class Database():
         
         self.set_llm(llm_name)
         
-        if isReRank:
+        if is_rerank:
             engine = RetrieverQueryEngine.from_args(
                 retriever=index.as_retriever(),
                 response_synthesizer=get_response_synthesizer(response_mode=ResponseMode.GENERATION, streaming=True),
@@ -243,6 +272,8 @@ class Database():
             engine = index.as_query_engine(streaming=True)
 
         return engine
+
+
 if __name__ == '__main__':
     d = Database(config_dir_path='./code/llamaIndex')
     index = d.create_or_update_indexes()

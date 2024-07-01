@@ -28,7 +28,7 @@ class SystemInterface():
         self._load_configs()
         self.current_index_id = self.config['rag']['default_index']
         if self.config['rag']['default_index'] != 'None':
-            self.engine = self.database.load_index(self.current_index_id, llm_name=self.config['rag']['llm'], isReRank=self.config['rag']['isReRank'])
+            self.engine = self.database.load_index(self.current_index_id, llm_name=self.config['rag']['llm'], is_rerank=self.config['rag']['isReRank'])
             print("Using default index: {}".format(self.current_index_id))
     
     def _load_configs(self):
@@ -60,7 +60,7 @@ class SystemInterface():
             print("[Interface] LLM {} using".format(index_id_or_llm_name))
         else:
             self.current_index_id = index_id_or_llm_name
-            self.engine = self.database.load_index(index_id=self.current_index_id, llm_name=self.config['rag']['llm'], isReRank=self.config['rag']['isReRank'])
+            self.engine = self.database.load_index(index_id=self.current_index_id, llm_name=self.config['rag']['llm'], is_rerank=self.config['rag']['isReRank'])
             print("[Interface] Index {} loaded".format(index_id_or_llm_name))
 
     def stop_engine(self, index_id):
@@ -91,7 +91,7 @@ class SystemInterface():
         print('[Interface] Cleared')
         
     def query(self, user_input):
-        self.engine = self.database.load_index(index_id=self.current_index_id, llm_name=self.config['rag']['llm'], isReRank=self.config['rag']['isReRank'])
+        self.engine = self.database.load_index(index_id=self.current_index_id, llm_name=self.config['rag']['llm'], is_rerank=self.config['rag']['isReRank'])
         response = self.engine.query(user_input)
         print("[Interface response] ", end="")
         response.print_response_stream()

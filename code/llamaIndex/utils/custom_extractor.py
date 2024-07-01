@@ -1,4 +1,5 @@
 from typing import Dict, List
+import os
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
 from accelerate import infer_auto_device_map, init_empty_weights
@@ -6,6 +7,7 @@ from llama_index.core.schema import BaseNode, MetadataMode
 from llama_index.llms.ollama import Ollama
 from tqdm import tqdm
 from openai import OpenAI
+from llama_index.llms.openai import OpenAI as llama_index_openai
 
 DEFAULT_QUESTION_GEN_TMPL="""\
 Here is the context:
@@ -21,7 +23,7 @@ that this context can answer.
 
 """
 # [TODO] Need to accelarate the model
-class QAExtractor():
+class HuggingfaceBasedExtractor():
     def __init__(
         self,
         model_name,
@@ -113,9 +115,9 @@ class OllamaBasedExtractor():
         input_text = self._prompt_template.format(context_str=context_str)
         generated_text = self._model.complete(input_text)
 
-        node.metadata["questions_this_excerpt_can_answer_and_corresponding_answers"] = str(generated_text).strip()
-        if "questions_this_excerpt_can_answer_and_corresponding_answers" not in node.excluded_llm_metadata_keys:
-            node.excluded_llm_metadata_keys.append("questions_this_excerpt_can_answer_and_corresponding_answers")
+        node.metadata["questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons"] = str(generated_text).strip()
+        if "questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons" not in node.excluded_llm_metadata_keys and self.embedding_only:
+            node.excluded_llm_metadata_keys.append("questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons")
 
     
     def extract(self, nodes: List[BaseNode]):
@@ -123,15 +125,53 @@ class OllamaBasedExtractor():
             self._extract_metadata_from_node(node)
 
 
-class OpenAIBasedExtractor():
-    def __init__(self):
-        self.client = OpenAI()
-    
-        batch_input_file = self.client.files.create(
-        file=open("batchinput.jsonl", "rb"),
-        purpose="batch"
-        )
+prompt_template_openai="""\
+Here is the context:
+{context_str}
 
+Given the contextual information, \
+generate {num_questions} questions this context can provide \
+specific answers to which are unlikely to be found elsewhere.
+
+Higher-level summaries of surrounding context may be provided \
+as well. Try using these summaries to generate better questions \
+that this context can answer.
+
+"""
+
+class OpenAIBasedExtractor():
+    def __init__(
+        self,
+        model_name: str,
+        cache_dir: str,
+        mode: str = 'immediately',
+        prompt_template: str = prompt_template_ollama,
+        embedding_only: bool = True
+    ) -> None:
+        self._model = llama_index_openai(model_name=model_name, api_key=os.environ.get('OPENAI_API_KEY'))
+        self.client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+        self.mode = mode
+        self.cache_dir = cache_dir
+        self._prompt_template = prompt_template
+        self.embedding_only = embedding_only
+        
+
+    def _extract_metadata_from_node_immediately(self, node: BaseNode) -> Dict[str, str]:
+        """Extract metadata from a node and return it's metadata dict."""
+        context_str = node.get_content(metadata_mode=MetadataMode.ALL)
+        input_text = self._prompt_template.format(context_str=context_str)
+        generated_text = self._model.complete(input_text)
+
+        node.metadata["questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons"] = str(generated_text).strip()
+        if "questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons" not in node.excluded_llm_metadata_keys and self.embedding_only:
+            node.excluded_llm_metadata_keys.append("questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons")
+
+    def _extract_metadata_from_nodes_batch(self, nodes: List[BaseNode]) -> Dict[str, str]:
+        batch_input_file = self._model.files.create(
+            file=open("batchinput.jsonl", "rb"),
+            purpose="batch"
+        )
+            
         batch_input_file_id = batch_input_file.id
 
         self.client.batches.create(
@@ -144,3 +184,13 @@ class OpenAIBasedExtractor():
         )
         
         content = self.client.files.content("file-xyz123")
+    
+    def extract(self, nodes: List[BaseNode]):
+        if self.mode == 'immediately':
+            for node in tqdm(nodes):
+                self._extract_metadata_from_node_immediately(node)
+        elif self.mode == 'batch':
+            self._extract_metadata_from_nodes_batch(nodes)
+        
+
+        
