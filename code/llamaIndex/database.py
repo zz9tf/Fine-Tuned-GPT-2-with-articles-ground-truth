@@ -23,8 +23,8 @@ from utils.custom_extractor import QAExtractor, OllamaBasedExtractor
 from utils.custom_embedding import OllamaCustomEmbeddings
 from datetime import datetime
 from llama_index.llms.ollama import Ollama
-from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.llms.openai import OpenAI
+from utils.custom_llm import HuggingFace
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.response_synthesizers import ResponseMode
@@ -44,7 +44,6 @@ class Database():
             self.config = yaml.safe_load(config)
         with open(prefix_config_path, 'r') as prefix_config:
             self.prefix_config = yaml.safe_load(prefix_config)
-        print(os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/.env')))
         load_dotenv(dotenv_path=os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/.env')))
 
     def _get_parser(self, parser_config):
@@ -199,6 +198,20 @@ class Database():
                 indexes.append({'id': d, 'size': size, 'modified_date': modified_date})
         return indexes
 
+    def set_llm(self, llm_name):
+        llm_config = self.prefix_config['llm'][llm_name]
+
+        if llm_name == "vicuna:13b":
+            llm = Ollama(model=llm_name, request_timeout=240.0)
+        elif llm_name == "lmsys/vicuna-13b-v1.3":
+            # TODO Custom Huggingface model
+            llm = HuggingFace(model=llm_name)
+        elif llm_name == 'gpt-4o':
+            openai.api_key = os.getenv('OPENAI_API_KEY')
+            llm = OpenAI(model='gpt-4o')
+        
+        Settings.llm = llm
+
     def load_index(self, index_id, llm_name, isReRank):
         self._load_configs()
         # Load index config
@@ -217,25 +230,14 @@ class Database():
 
         storage_context = StorageContext.from_defaults(persist_dir=index_dir_path)
         index = load_index_from_storage(storage_context, index_id=index_id)
-
-        llm_config = self.prefix_config['llm'][llm_name]
-        if llm_name == "vicuna:13b":
-            llm = Ollama(model=llm_name, request_timeout=60.0)
-        elif llm_name == "lmsys/vicuna-13b-v1.3":
-            # TODO test huggingfacellm
-            llm = HuggingFaceLLM(model_name=llm_name)
-        elif llm_name == 'gpt-4o':
-            print(os.getenv('OPENAI_API_KEY'))
-            openai.api_key(os.getenv('OPENAI_API_KEY'))
-            llm = OpenAI(model='gpt-4o')
         
-        Settings.llm = llm
+        self.set_llm(llm_name)
         
         if isReRank:
             engine = RetrieverQueryEngine.from_args(
                 retriever=index.as_retriever(),
                 response_synthesizer=get_response_synthesizer(response_mode=ResponseMode.GENERATION, streaming=True),
-                node_postprocessors=[LLMRerank(top_n=5)],
+                node_postprocessors=[LLMRerank(top_n=5)]
             )
         else:
             engine = index.as_query_engine(streaming=True)

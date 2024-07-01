@@ -2,15 +2,15 @@ import os, shutil, yaml, time
 from database import Database
 
 help_menu = """
-/help                  Show this help message
-/update                Update indexes as config or create them if they don't exist
-/show                  Show all index IDs
-/use [index_id]        Use the specified index
-/stop [index_id]       Stop using the specified index
-/delete [index_id]     Delete the specified index
-/clear                 Delete the entire database
-/bye                   Exit the application
-Enter                  Enter without input to reset config
+/help                              Show this help message
+/update                            Update indexes as config or create them if they don't exist
+/show                              Show all index IDs
+/use [index_id or llm_name]        Use the specified index or llm
+/stop [index_id]                   Stop using the specified index
+/delete [index_id]                 Delete the specified index
+/clear                             Delete the entire database
+/bye                               Exit the application
+Enter                              Enter without input to reset config
 """
 
 input_query = """\
@@ -35,7 +35,9 @@ class SystemInterface():
         config_path = os.path.abspath(os.path.join(self.root_path, self.config_dir_path, 'config.yaml'))
         with open(config_path, 'r') as config:
             self.config = yaml.safe_load(config)
-
+        prefix_config_path = os.path.abspath(os.path.join(self.root_path, self.config_dir_path, 'prefix_config.yaml'))
+        with open(prefix_config_path, 'r') as prefix_config:
+            self.prefix_config = yaml.safe_load(prefix_config)
     def check_input(self, user_input, parameter_num):
         if len(user_input.split()) != parameter_num+1:
             print("Invaild command. Require {} parameters".format(parameter_num))
@@ -49,13 +51,17 @@ class SystemInterface():
     def show_index(self):
         print(f"{'NAME':<20} {'SIZE':<15} {'MODIFIED':<20}")
         for index in self.database.get_all_index_ids():
-            print(f"{index['id']:<20} {f'{index["size"]:.2f}MB':<15} {index['modified_date']:<20}")
+            print(f"{index['id']:<20} {index['size']:.2f}MB{'':<8} {index['modified_date']:<20}")
 
-    def use_engine(self, index_id):
+    def use_engine(self, index_id_or_llm_name):
         # TODO Multiple indexes loading
-        self.current_index_id = index_id
-        self.engine = self.database.load_index(index_id=self.current_index_id, llm_name=self.config['rag']['llm'], isReRank=self.config['rag']['isReRank'])
-        print("[Interface] Index {} loaded".format(index_id))
+        if index_id_or_llm_name in self.prefix_config['llm']:
+            self.database.set_llm(index_id_or_llm_name)
+            print("[Interface] LLM {} using".format(index_id_or_llm_name))
+        else:
+            self.current_index_id = index_id_or_llm_name
+            self.engine = self.database.load_index(index_id=self.current_index_id, llm_name=self.config['rag']['llm'], isReRank=self.config['rag']['isReRank'])
+            print("[Interface] Index {} loaded".format(index_id_or_llm_name))
 
     def stop_engine(self, index_id):
         # TODO stop_index
