@@ -1,0 +1,66 @@
+[
+    {
+        "id": "batch_req_OKJtZbijGJQuMDUWVQ18wQHf",
+        "custom_id": "7a3b30e2-0459-438f-a6ee-548a526beedc",
+        "response": {
+            "status_code": 200,
+            "request_id": "c18eaa281ec06dd7543e4970e8c847ef",
+            "body": {
+                "id": "chatcmpl-9gO1A2VCxDoUQbNzhmiZGeMJVPmTc",
+                "object": "chat.completion",
+                "created": 1719889128,
+                "model": "gpt-4o-2024-05-13",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": "----------------------------------------------------------------------------------\n1\nQuestion: What was the primary source of heparin before the late 1980s and why was it replaced?\n\nAnswer: Before the late 1980s, bovine lung was the primary source of heparin. It was replaced by porcine mucosa due to concerns arising from the spike in cases of bovine spongiform encephalopathy (BSE) in the United Kingdom and the potential contamination of the heparin supply.\n\nReason: This question and answer are unique because they address a specific historical shift in the source material for heparin production that is closely tied to a particular health concern (BSE). It is not common general knowledge and requires the specific context provided in the original research to answer accurately.\n----------------------------------------------------------------------------------\n2\nQuestion: What are the limitations of using only 1D-NMR to analyze heparin, and what alternative method is suggested?\n\nAnswer: The limitations of using only 1D-NMR to analyze heparin include insufficient detail regarding the composition of heparin batches, which affects the determination of the product's quality. The alternative method suggested is a higher resolution quantitative 2D-HSQC method.\n\nReason: This question and answer are unique because they delve into the specific analytical techniques used in heparin evaluation, detailing both the limitations of one method and the advantages of another, which are not typically covered in general discussions about heparin or NMR spectroscopy.\n----------------------------------------------------------------------------------\n3\nQuestion: How does the 2D-HSQC method contribute to the evaluation of heparin compared to 1D-NMR?\n\nAnswer: The 2D-HSQC method contributes to the evaluation of heparin by providing detailed information on the percentage of mono- and disaccharides, distinguishing the origin of heparin, and assessing the heparin composition. This method offers a comprehensive evaluation of the quality of the industrial processes used to produce the drug substance.\n\nReason: This question and answer are unique because they highlight the specific benefits of the 2D-HSQC method over the 1D-NMR in evaluating heparin, focusing on quality and industrial production aspects that are specific to this research context.\n----------------------------------------------------------------------------------\n4\nQuestion: Why has the US Food and Drug Administration encouraged the reintroduction of bovine heparin drug products to the US market?\n\nAnswer: The US Food and Drug Administration has encouraged the reintroduction of bovine heparin drug products to mitigate the risks of heparin shortages and potential adulteration or contamination of the primary source, which is currently porcine heparin.\n\nReason: This question and answer are unique because they address current regulatory actions and motivations specific to the heparin market, which are driven by concerns over supply chain vulnerabilities and product safety. These details are contextual and not widely known outside of this specific research and regulatory domain.\n----------------------------------------------------------------------------------\n5\nQuestion: What unique role does NMR signal intensity ratios play in the analysis of heparin's origin?\n\nAnswer: NMR signal intensity ratios among diagnostic signals of the proton spectra in 1D-NMR uniquely identify the origin of heparin and can be used to ensure correct sample labeling.\n\nReason: This question and answer are unique as they focus on the specific application of an analytical technique (NMR) in determining the origin of heparin, which is a specialized detail not commonly found in general discussions about NMR or heparin analysis.\n----------------------------------------------------------------------------------"
+                        },
+                        "logprobs": null,
+                        "finish_reason": "stop"
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 1278,
+                    "completion_tokens": 699,
+                    "total_tokens": 1977
+                },
+                "system_fingerprint": "fp_ce0793330f"
+            }
+        },
+        "error": null
+    },
+    {
+        "id": "batch_req_CQFSr8M9se9CbndlxXoY1KmN",
+        "custom_id": "2fc2f01e-b330-495d-908f-9c93dec19f42",
+        "response": {
+            "status_code": 200,
+            "request_id": "62deeaa6cbfe0b17732803d554c4225c",
+            "body": {
+                "id": "chatcmpl-9gO1TigsLOJaB4KdLqSuLwxWReF3r",
+                "object": "chat.completion",
+                "created": 1719889147,
+                "model": "gpt-4o-2024-05-13",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": "----------------------------------------------------------------------------------\n1\nQuestion: What specific structural differences between porcine mucosa heparin (PMH) and bovine mucosa heparin (BMH) were highlighted in the context provided?\n\nAnswer: The context highlights the specific structural differences where porcine mucosa heparin (PMH) is characterized by higher 6-O-sulfation compared to bovine mucosa heparin (BMH). Specifically, the total amount of GlcNx,6S is 80% in PMH versus 55% in BMH, and the amount of GlcNS,6S linked to IdoA2S is 68% in PMH versus 48% in BMH.\n\nReason: This question focuses on detailed molecular distinctions between PMH and BMH that are precisely given in the context. Such specificity is critical for understanding the biochemical and clinical distinctions between heparin sources, and the answer provides exact figures on the degrees of sulfation and their related structures. These detailed, quantifiable differences are not readily available through general knowledge and are unique to this paper's context.\n----------------------------------------------------------------------------------\n2\nQuestion: How did regulatory authorities respond to the heparin crisis of 2007-2008 in terms of testing standards?\n\nAnswer: Following the heparin crisis of 2007-2008, the FDA and EMA initiated a rapid revision of the existing pharmacopeia monographs. This included adding tests regarding potency and more restrictive limits for impurities, and introducing proton nuclear magnetic resonance (1H-NMR) as an identity test to define the similarity of the test sample relative to a porcine heparin reference standard and to examine non-heparin signals possibly associated with impurities or contaminants.\n\nReason: This question and its answer highlight specific actions taken by regulatory bodies in response to a significant pharmaceutical crisis. These details are specific to the timeline and context of the heparin crisis and the regulatory response, making them unique and less likely to be found in general knowledge sources.\n----------------------------------------------------------------------------------\n3\nQuestion: What is the new method proposed in the study for distinguishing between different heparin sources?\n\nAnswer: The study proposes an alternative method based on the measurements of the ratio between the intensity of diagnostic signals in the 1H-NMR spectrum. This method can distinguish BMH, PMH, OMH, and BLH samples from one another, unlike the ANVISA approach which is specific for distinguishing BMH from PMH.\n\nReason: This question and answer focus on a novel analytical technique described in the study, providing context-specific technical details that contribute to advances in heparin source identification. This level of detail regarding a new scientific method is unique to this study and not easily found elsewhere.\n----------------------------------------------------------------------------------\n4\nQuestion: What are the unique spectral characteristics included in the 2017 Brazilian monograph for bovine mucosa heparin (BMH)?\n\nAnswer: The 2017 Brazilian monograph for bovine mucosa heparin includes an acceptance criterion for BMH corresponding to the ratio among the integral values of anomeric signals of glucosamine 6-O-sulfated and 6-O-desulfated, which is not satisfied by PMH spectra.\n\nReason: This question targets the specific regulatory criteria set by Brazilian authorities for BMH, particularly focusing on the unique spectral characteristics in the NMR test. Such regulatory details are highly specific and tailored to this study's context, making them unique and specialized information.\n----------------------------------------------------------------------------------\n5\nQuestion: What preparation steps were taken for the phosphate buffer solution used in the NMR analysis of heparin samples?\n\nAnswer: The phosphate buffer solution was prepared by dissolving 49.7 mg of sodium dihydrogen phosphate hydrate, 202.9 mg of disodium hydrogen phosphate dihydrate, and 0.92 mg of deuterated EDTA d-16 in 10 mL of water. The pH was checked at 7.1, and the solution was distributed into 5 mL aliquots and lyophilized. Each aliquot was then dissolved in about 1 mL of D2O and lyophilized again. Finally, the buffer was dissolved in 5 mL of deuterium oxide with 0.002% TSP.\n\nReason: This question and answer delve into the specific preparation protocol for the buffer solution used in the NMR analysis, encompassing details of chemical quantities, processes, and conditions. Such procedural specifics are unique to the experimental setup outlined in this study and are not part of common knowledge.\n----------------------------------------------------------------------------------"
+                        },
+                        "logprobs": null,
+                        "finish_reason": "stop"
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 1910,
+                    "completion_tokens": 920,
+                    "total_tokens": 2830
+                },
+                "system_fingerprint": "fp_d576307f90"
+            }
+        },
+        "error": null
+    }
+]

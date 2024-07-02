@@ -16,13 +16,16 @@ extractor:
   "vicuna:13b-QAExtractor":
     extractor_type: "OllamaBasedExtractor"
     llm: "vicuna:13b"
-  "gpt-4o-QAExtractor-interrupted":
+  "gpt-4o-QAExtractor-immediately":
     extractor_type: "OpenAIBasedExtractor"
     llm: "gpt-4o"
     cache: "./code/llamaIndex/.cache"
     mode: "immediately"
-    need_interrupt: True
-    force_extract: False
+  "gpt-4o-QAExtractor-batch":
+    extractor_type: "OpenAIBasedExtractor"
+    llm: "gpt-4o"
+    cache: "./code/llamaIndex/.cache"
+    mode: "batch"
 llm:
   "lmsys/vicuna-13b-v1.3":
     no_split_modules: "LlamaDecoderLayer"
@@ -84,7 +87,23 @@ indexes:
     parser:
       "SimpleFileNodeParser"
     extractors:
-      - "gpt-4o-QAExtractor-interrupted"
+      - "gpt-4o-QAExtractor-immediately":
+        need_interrupt: True
+        force_extract: False
+    embedding_model:
+      "Linq-AI-Research/Linq-Embed-Mistral"
+    pipeline:
+      num_workers: 4
+    storage_context:
+      "simple"
+  "test-gpt-4o-batch":
+    type: "VectorStoreIndex"
+    parser:
+      "SimpleFileNodeParser"
+    extractors:
+      - "gpt-4o-QAExtractor-batch":
+          need_interrupt: True
+          force_extract: True
     embedding_model:
       "Linq-AI-Research/Linq-Embed-Mistral"
     pipeline:

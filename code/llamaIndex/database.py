@@ -29,10 +29,11 @@ from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.core import get_response_synthesizer
 from dotenv import load_dotenv
+from utils.gpt_4o_json_reader import easy_reader
 
 class Database():
     def __init__(self, config_dir_path):
-        self.root_path = "../.."
+        self.root_path = "D:\Projects(D)\Fine-Tuned-GPT-2-with-articles-ground-truth" # "../.."
         self.config_dir_path = config_dir_path
         self._load_configs()
 
@@ -102,13 +103,14 @@ class Database():
         elif extractor_config['extractor_type'] == 'OpenAIBasedExtractor':
             return OpenAIBasedExtractor(
                 model_name=extractor_config['llm'],
-                cache_dir=extractor_config['cache'],
+                cache_dir=os.path.abspath(os.path.join(self.root_path, extractor_config['cache'])),
                 mode=extractor_config['mode']
             )
 
     def _generate_metadata_to_nodes(self, index_config, nodes):
         print('[update_database] Extracting metadata ...')
-        for extractor_name in index_config['extractors']:
+        for extractor_index_config in index_config['extractors']:
+            extractor_name, extractor_index_config = next(iter(extractor_index_config.items()))
             print('[update_database] Doing {}...'.format(extractor_name))
             extractor_config = self.prefix_config['extractor'][extractor_name]
             if extractor_config['llm'] == 'gpt-4o':
@@ -126,7 +128,8 @@ class Database():
                 docstore.add_documents(nodes)
                 docstore.persist(persist_path=nodes_cache_path)
                 print(f"[update_database] Nodes saved to {cache_path}")
-                if extractor_config['need_interrupt']:
+                easy_reader(cache_path, extractor_name+'.json')
+                if 'need_interrupt' in extractor_index_config and extractor_index_config['need_interrupt']:
                     # Break for the rest step
                     exit()
                     
@@ -167,13 +170,15 @@ class Database():
                 print("[update_database] Creating a new one...")
 
             nodes = None
-            extractors = index_config['extractors']
-            for extractor_name in index_config['extractors']:
+            extractors = index_config['extractors'].copy()
+            # Try to find the latest available nodes
+            for extractor_index_config in index_config['extractors']:
+                extractor_name, extractor_index_config = next(iter(extractor_index_config.items()))
                 extractor_config = self.prefix_config['extractor'][extractor_name]
                 cache_path = os.path.abspath(os.path.join(self.root_path, extractor_config['cache']))
                 nodes_cache_path = os.path.abspath(os.path.join(cache_path, extractor_name+'.json'))
 
-                if os.path.exists(nodes_cache_path) and not extractor_config['force_extract']:
+                if os.path.exists(nodes_cache_path) and 'force_extract' in extractor_index_config and not extractor_index_config['force_extract']:
                     print(f"[update_database] Cache {extractor_name} is detected. Now at {extractor_name} ...")
                     extractors.pop()
                     # Directly use nodes have been generated
@@ -189,7 +194,10 @@ class Database():
                 nodes = self._generate_metadata_to_nodes(index_config, nodes)
             elif len(index_config['extractors']) > 0:
                 nodes = self._generate_metadata_to_nodes(index_config, nodes)
-                
+
+            print("I shouldn't be here")
+            exit()
+
             # Load embedding model
             embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
             Settings.embed_model = OllamaCustomEmbeddings(
