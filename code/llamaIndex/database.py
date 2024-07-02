@@ -128,7 +128,7 @@ class Database():
                 docstore.add_documents(nodes)
                 docstore.persist(persist_path=nodes_cache_path)
                 print(f"[update_database] Nodes saved to {cache_path}")
-                easy_reader(cache_path, extractor_name+'.json')
+                easy_reader(cache_path, extractor_name)
                 if 'need_interrupt' in extractor_index_config and extractor_index_config['need_interrupt']:
                     # Break for the rest step
                     exit()
