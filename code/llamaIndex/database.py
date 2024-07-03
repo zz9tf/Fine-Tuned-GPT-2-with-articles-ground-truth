@@ -33,7 +33,7 @@ from utils.gpt_4o_json_reader import easy_reader
 
 class Database():
     def __init__(self, config_dir_path):
-        self.root_path = "D:\Projects(D)\Fine-Tuned-GPT-2-with-articles-ground-truth" # "../.."
+        self.root_path = "../.."
         self.config_dir_path = config_dir_path
         self._load_configs()
 
