@@ -1,0 +1,112 @@
+parser:
+  "SimpleFileNodeParser":
+    name: "SimpleFileNodeParser"
+  "SentenceSplitter":
+    name: "SentenceSplitter"
+    chunk_size: 1024
+    chunk_overlap: 20
+  "HierarchicalNodeParser":
+    name: "HierarchicalNodeParser"
+    chunk_size: [2048, 512, 128]
+extractor:
+  "vicuna-13b-QAExtractor":
+    extractor_type: "QAExtractor"
+    llm: "lmsys/vicuna-13b-v1.3"
+    num_questions: 5
+  "vicuna:13b-QAExtractor":
+    extractor_type: "OllamaBasedExtractor"
+    llm: "vicuna:13b"
+  "gpt-4o-QAExtractor-immediately":
+    extractor_type: "OpenAIBasedExtractor"
+    llm: "gpt-4o"
+    cache: "./code/llamaIndex/.cache"
+    mode: "immediately"
+  "gpt-4o-QAExtractor-batch":
+    extractor_type: "OpenAIBasedExtractor"
+    llm: "gpt-4o"
+    cache: "./code/llamaIndex/.cache"
+    mode: "batch"
+llm:
+  "lmsys/vicuna-13b-v1.3":
+    no_split_modules: "LlamaDecoderLayer"
+    cache: "./.hf_cache"
+  "vicuna:13b": null
+  "gpt-4o": null
+embedding_model:
+  "Linq-AI-Research/Linq-Embed-Mistral":
+    name: "Linq-AI-Research/Linq-Embed-Mistral"
+    cache: "./.hf_cache"
+  "ollama-sfr-embedding-mistral":
+    name: "sammcj/sfr-embedding-mistral:Q4_K_M"
+storage_context:
+  "simple":
+    index_generator: VectorStoreIndex
+    docstore: SimpleDocumentStore
+    vector_store: SimpleVectorStore
+    index_store: SimpleIndexStore
+    property_graph_store: null
+indexes:
+  "test-ollama-based":
+    type: "VectorStoreIndex"
+    parser:
+      "SimpleFileNodeParser"
+    extractors:
+      - "vicuna:13b-QAExtractor"
+    embedding_model:
+      "ollama-sfr-embedding-mistral"
+    pipeline:
+      num_workers: 4
+    storage_context:
+      "simple"
+  "ollama-based":
+    type: "VectorStoreIndex"
+    parser:
+      "HierarchicalNodeParser"
+    extractors:
+      - "vicuna:13b-QAExtractor"
+    embedding_model:
+      "ollama-sfr-embedding-mistral"
+    pipeline:
+      num_workers: 4
+    storage_context:
+      "simple"
+  "test-hf":
+    type: "VectorStoreIndex"
+    parser:
+      "SimpleFileNodeParser"
+    extractors:
+      - "vicuna-13b-QAExtractor"
+    embedding_model:
+      "Linq-AI-Research/Linq-Embed-Mistral"
+    pipeline:
+      num_workers: 4
+    storage_context:
+      "simple"
+  "test-gpt-4o":
+    type: "VectorStoreIndex"
+    parser:
+      "SimpleFileNodeParser"
+    extractors:
+      - "gpt-4o-QAExtractor-immediately":
+        need_interrupt: True
+        force_extract: False
+    embedding_model:
+      "Linq-AI-Research/Linq-Embed-Mistral"
+    pipeline:
+      num_workers: 4
+    storage_context:
+      "simple"
+  "test-gpt-4o-batch":
+    type: "VectorStoreIndex"
+    parser:
+      "SimpleFileNodeParser"
+    extractors:
+      - "gpt-4o-QAExtractor-batch":
+          need_interrupt: True
+          force_extract: True
+    embedding_model:
+      "Linq-AI-Research/Linq-Embed-Mistral"
+    pipeline:
+      num_workers: 4
+    storage_context:
+      "simple"

@@ -1,59 +1,12 @@
+indexes_dir_path: "./code/llamaIndex/database"
 document_preprocessing:
-  data_dir_path: "./data/13C_Magnetic_Resonance_Spectroscopy_in_N"
+  data_dir_path: "./data"
   indexes:
-    - "test"
-    
+    - "test-gpt-4o-batch"
 rag:
-  storage_context:
-    "simple.json" 
-prefix_config:
-  parser:
-    "SimpleFileNodeParser":
-      name: "SimpleFileNodeParser"
-    "SentenceSplitter":
-      name: "SentenceSplitter"
-      chunk_size: 1024
-      chunk_overlap: 20
-    "HierarchicalNodeParser":
-      name: "HierarchicalNodeParser"
-      chunk_size: [2048, 512, 128]
-  extractor:
-    "QuestionsAnsweredExtractor":
-      name: "QuestionsAnsweredExtractor"
-      llm:
-        name: "lmsys/vicuna-13b-v1.5-16k" 
-        cache: "/scratch0/zhengzheng/.hf_cache"
-      questions: 5
-    "QAExtractor":
-      name: "QAExtractor"
-      llm:
-        name: "lmsys/vicuna-13b-v1.5-16k" 
-        cache: "/scratch0/zhengzheng/.hf_cache"
-      questions: 5
-  embedding_model:
-    "Linq-AI-Research/Linq-Embed-Mistral":
-      name: "Linq-AI-Research/Linq-Embed-Mistral"
-      cache: "/scratch0/zhengzheng/.hf_cache"
-  storage_context:
-    "simple.json":
-      name: "simple.json"
-      store_dir_path: "./code/llamaIndex/database"
-      docstore: SimpleDocumentStore
-      vector_store: SimpleVectorStore
-      index_store: SimpleIndexStore
-      property_graph_store: None
-  indexes:
-    "test":
-      type: "VectorStoreIndex"
-      parser:
-        "HierarchicalNodeParser"
-      extractors:
-        - "QuestionsAnsweredExtractor"
-      embedding_model:
-        "Linq-AI-Research/Linq-Embed-Mistral"
-      pipeline:
-        is_cache: False # True
-        cache_path: ""
-        num_workers: 1
-      storage_context:
-        "simple.json"
+  default_index: "test-ollama-based"
+  # llm: "lmsys/vicuna-13b-v1.3"
+  llm: "vicuna:13b"
+  # llm: "gpt-4o"
+  isReRank: True
+  

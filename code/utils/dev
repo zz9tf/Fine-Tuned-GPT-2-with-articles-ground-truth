@@ -30,28 +30,28 @@ if [ "$1" == "init" ] ; then
     # bash -c 'apt-get update && apt-get install vim -y && cp /workspace/.bashrc ~/.bashrc && source ~/.bashrc && /start.sh'
 
     # Install miniconda3
-    mkdir -p $2/miniconda3 &&
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O $2/miniconda3/miniconda.sh &&
-    bash $2/miniconda3/miniconda.sh -b -u -p $2/miniconda3 &&
-    rm -rf $2/miniconda3/miniconda.sh &&
-    $2/miniconda3/bin/conda init bash &&
+    mkdir -p /workspace/miniconda3 &&
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /workspace/miniconda3/miniconda.sh &&
+    bash /workspace/miniconda3/miniconda.sh -b -u -p /workspace/miniconda3 &&
+    rm -rf /workspace/miniconda3/miniconda.sh &&
+    /workspace/miniconda3/bin/conda init bash &&
     
     # Install packages
     cd ../llamaIndex &&
-    $2/miniconda3/bin/pip install -r requirements.txt
+    /workspace/miniconda3/bin/pip install -r requirements.txt
 
     # Set up dev
-    echo "export PATH=$PATH:${2}/Fine-Tuned-GPT-2-with-articles-ground-truth/code/utils" >> ~/.bashrc
-    cp ~/.bashrc $2
+    # echo "export PATH=$PATH:${2}/Fine-Tuned-GPT-2-with-articles-ground-truth/code/utils" >> ~/.bashrc
+    echo "export PATH=$PATH:/workspace/Fine-Tuned-GPT-2-with-articles-ground-truth/code/utils" >> ~/.bashrc
+    echo "git config --global user.email \"zhengzheng@brandeis.edu\"" >> ~/.bashrc
+    echo "git config --global user.name \"Zheng\"" >> ~/.bashrc
+    echo "git config --global credential.helper store" >> ~/.bashrc
+    cp ~/.bashrc /workspace
     source ~/.bashrc
 
     # Install gh
-    $2/miniconda3/bin/conda install gh --channel conda-forge -y
-
-    # Set up git
-    git config --global user.email "zhengzheng@brandeis.edu"
-    git config --global user.name "Zheng"
-    git config --global credential.helper store
+    /workspace/miniconda3/bin/conda install gh --channel conda-forge -y
+    
     
 elif [ "$1" == "gpu" ]; then
     echo "Executing: nvidia-smi"
