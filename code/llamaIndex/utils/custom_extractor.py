@@ -142,7 +142,7 @@ Using this context, generate 5 specific questions that this context can uniquely
 2. Highlight unique information or insights from the context.
 3. Cannot be easily answered by general knowledge.
 ----------------------------------------------------------------------------------
-<Pair number, representing which QAR you are at, like 1, 2, 3>
+Pair Number of Question, such as 1, 2, or 3.
 Question:<Question content, you should place a specific question which is unlikely to be found elsewhere and is unique comparing with other questions>
 
 Answer:<Answer content, you should place a specific answer combining with the offered context>

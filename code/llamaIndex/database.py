@@ -195,9 +195,6 @@ class Database():
             elif len(index_config['extractors']) > 0:
                 nodes = self._generate_metadata_to_nodes(index_config, nodes)
 
-            print("I shouldn't be here")
-            exit()
-
             # Load embedding model
             embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
             Settings.embed_model = OllamaCustomEmbeddings(
