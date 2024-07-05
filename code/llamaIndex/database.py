@@ -19,11 +19,11 @@ from llama_index.core.node_parser import (
 from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 from llama_index.core import Settings
 from utils.custom_extractor import HuggingfaceBasedExtractor, OllamaBasedExtractor, OpenAIBasedExtractor
-from utils.custom_embedding import OllamaCustomEmbeddings
+from utils.custom_embedding import HuggingfaceBasedEmbedding, OllamaBasedEmbedding
 from datetime import datetime
 from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI as llama_index_openai
-from utils.custom_llm import HuggingFace
+from utils.custom_llm import HuggingFaceLLM
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.response_synthesizers import ResponseMode
@@ -197,7 +197,7 @@ class Database():
 
             # Load embedding model
             embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
-            Settings.embed_model = OllamaCustomEmbeddings(
+            Settings.embed_model = HuggingfaceBasedEmbedding(
                 model_name=embedding_config['name'],
             )
 
@@ -247,7 +247,7 @@ class Database():
         elif llm_name == "lmsys/vicuna-13b-v1.3":
             # TODO Custom Huggingface model
             llm_config = self.prefix_config['llm'][llm_name]
-            llm = HuggingFace(model=llm_name)
+            llm = HuggingFaceLLM(model=llm_name)
         elif llm_name == 'gpt-4o':
             llm = llama_index_openai(model='gpt-4o', api_key=os.getenv('OPENAI_API_KEY'))
         
@@ -265,7 +265,7 @@ class Database():
 
         # Load embedding model
         embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
-        Settings.embed_model = OllamaCustomEmbeddings(
+        Settings.embed_model = HuggingfaceBasedEmbedding(
             model_name=embedding_config['name'],
         )
 
