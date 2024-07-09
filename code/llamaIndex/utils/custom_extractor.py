@@ -40,17 +40,9 @@ class HuggingfaceBasedExtractor():
         """Init params."""
         if num_questions < 1:
             raise ValueError("questions must be >= 1")
-        config = AutoConfig.from_pretrained(model_name)
-        with init_empty_weights():
-            model = AutoModelForCausalLM.from_config(config)
-
-        max_memory = {i: '20000MB' for i in range(torch.cuda.device_count())}
-        max_memory[0] = '18000MB'
-        max_memory['cpu'] = '120GiB'
-        device_map = infer_auto_device_map(model, max_memory=max_memory, no_split_module_classes = [no_split_modules])
-        print(device_map)
-        self._model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir=cache_dir, device_map=device_map, offload_folder="/workspace/.cache")
         self._tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir)
+        self._model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir=cache_dir, device_map='auto', load_in_4bit=True)
+        print(self._model.get_memory_footprint())
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.num_questions = num_questions
         self._prompt_template = prompt_template
@@ -108,7 +100,7 @@ class OllamaBasedExtractor():
         embedding_only: bool = True
     ) -> None:
         """Init params."""
-        self._model = Ollama(model=model_name, request_timeout=60.0)
+        self._model = Ollama(model=model_name, request_timeout=120.0)
         self._prompt_template = prompt_template
         self.embedding_only = embedding_only
 

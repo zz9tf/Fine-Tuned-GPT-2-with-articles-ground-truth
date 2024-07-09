@@ -2,7 +2,8 @@ indexes_dir_path: "./code/llamaIndex/database"
 document_preprocessing:
   data_dir_path: "./data"
   indexes:
-    - "test-gpt-4o-batch"
+    # - "test-gpt-4o-batch"
+    - "test-ollama-based"
 rag:
   default_index: "test-ollama-based"
   # llm: "lmsys/vicuna-13b-v1.3"
