@@ -100,12 +100,13 @@ class CustomHierarchicalNodeParser(NodeParser):
     ) -> List[BaseNode]:
         all_nodes: List[BaseNode] = []
         
-        print(section_node.get_content())
-        exit()
+        splits = section_node.get_content().split('\n')
 
-        # TODO update split method
-        splits = self.split_text()
-
+        for i, text in enumerate(splits):
+            if i == 0:
+                continue
+            splits[i] = f"One Paragraph of {splits[0]}: {text}"
+            
         all_nodes.extend(
             build_nodes_from_splits(splits, section_node, id_func=self.id_func)
         )
@@ -225,7 +226,7 @@ class CustomHierarchicalNodeParser(NodeParser):
             sub_nodes.extend(cur_sub_nodes)
 
         # now for each sub-node, recursively split into sub-sub-nodes, and add
-        if level < len(self.chunk_levels) - 1:
+        if level < len(self.chunk_levels) - 2: # 1
             sub_sub_nodes = self._recursively_get_nodes_from_nodes(
                 sub_nodes,
                 level + 1,
