@@ -27,7 +27,7 @@ class SystemInterface():
         self.config_dir_path = config_dir_path
         self._load_configs()
         self.current_index_id = self.config['rag']['default_index']
-        if self.config['rag']['default_index'] != 'None':
+        if self.config['rag']['default_index'] != None:
             self.engine = self.database.load_index(self.current_index_id, llm_name=self.config['rag']['llm'], is_rerank=self.config['rag']['isReRank'])
             print("Using default index: {}".format(self.current_index_id))
     

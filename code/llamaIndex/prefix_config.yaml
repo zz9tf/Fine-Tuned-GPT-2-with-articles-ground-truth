@@ -1,13 +1,26 @@
+reader:
+  "CustomDocumentReader":
+    type: "CustomDocumentReader"
+    cache: "./code/llamaIndex/.cache"
+    config_file_path: "./code/llamaIndex/utils/config.json"
+  "SimpleDirectoryReader":
+    type: "SimpleDirectoryReader"
 parser:
   "SimpleFileNodeParser":
     name: "SimpleFileNodeParser"
+    retriever: "BaseRetriever"
   "SentenceSplitter":
     name: "SentenceSplitter"
     chunk_size: 1024
     chunk_overlap: 20
+    retriever: "BaseRetriever"
   "HierarchicalNodeParser":
     name: "HierarchicalNodeParser"
     chunk_size: [2048, 512, 128]
+    retriever: "AutoMergingRetriever"
+  "CustomHierarchicalNodeParser":
+    name: "CustomHierarchicalNodeParser"
+    retriever: "AutoMergingRetriever"
 extractor:
   "vicuna-13b-QAExtractor":
     extractor_type: "QAExtractor"
@@ -26,6 +39,11 @@ extractor:
     llm: "gpt-4o"
     cache: "./code/llamaIndex/.cache"
     mode: "batch"
+  "section_QAExtracotr":
+    extractor_type: "OllamaBasedExtractor"
+    llm: "vicuna:13b"
+    focusMeta:
+      - "level" : "section"
 llm:
   "lmsys/vicuna-13b-v1.3":
     no_split_modules: "LlamaDecoderLayer"
@@ -34,9 +52,11 @@ llm:
   "gpt-4o": null
 embedding_model:
   "Linq-AI-Research/Linq-Embed-Mistral":
+    basedOn: "huggingface"
     name: "Linq-AI-Research/Linq-Embed-Mistral"
     cache: "./.hf_cache"
   "ollama-sfr-embedding-mistral":
+    basedOn: "ollama"
     name: "sammcj/sfr-embedding-mistral:Q4_K_M"
 storage_context:
   "simple":
@@ -48,8 +68,9 @@ storage_context:
 indexes:
   "test-ollama-based":
     type: "VectorStoreIndex"
+    reader: "CustomDocumentReader"
     parser:
-      "SimpleFileNodeParser"
+      "CustomHierarchicalNodeParser"
     extractors:
       - "vicuna:13b-QAExtractor"
     embedding_model:
@@ -60,6 +81,7 @@ indexes:
       "simple"
   "ollama-based":
     type: "VectorStoreIndex"
+    reader: "CustomDocumentReader"
     parser:
       "HierarchicalNodeParser"
     extractors:
@@ -72,6 +94,7 @@ indexes:
       "simple"
   "test-hf":
     type: "VectorStoreIndex"
+    reader: "CustomDocumentReader"
     parser:
       "SimpleFileNodeParser"
     extractors:
@@ -84,6 +107,7 @@ indexes:
       "simple"
   "test-gpt-4o":
     type: "VectorStoreIndex"
+    reader: "CustomDocumentReader"
     parser:
       "SimpleFileNodeParser"
     extractors:
@@ -98,6 +122,7 @@ indexes:
       "simple"
   "test-gpt-4o-batch":
     type: "VectorStoreIndex"
+    reader: "CustomDocumentReader"
     parser:
       "SimpleFileNodeParser"
     extractors:

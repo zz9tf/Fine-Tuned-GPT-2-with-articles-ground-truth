@@ -11,11 +11,11 @@ from llama_index.core.llms import (
 from llama_index.core.llms.callbacks import llm_completion_callback
 from llama_index.core import Settings
 
-class HuggingFace(CustomLLM):
-    context_window: int = 3900
-    num_output: int = 256
-    model_name: str = "custom"
-    dummy_response: str = "My response"
+class HuggingFaceLLM(CustomLLM):
+    context_window: int = 8192
+    num_output: int = 8192
+    model_name: str
+    dummy_response: str = "Dummy response"
 
     @property
     def metadata(self) -> LLMMetadata:
