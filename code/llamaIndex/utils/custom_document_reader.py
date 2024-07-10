@@ -6,14 +6,22 @@ import xml.etree.ElementTree as ET
 from llama_index.core import Document
 
 class CustomDocumentReader:
-    def __init__(self, input_dir, cache_dir, config_path='./config.json'):
+    def __init__(
+            self, 
+            input_dir, 
+            cache_dir, 
+            config_path='./config.json', 
+            remove_cache=True
+    ) -> None:
         # convert pdf to xml file
         self.input_dir = input_dir
         self.cache_dir = cache_dir
-        self.client = GrobidClient(config_path=config_path)
+        self.config_path = config_path
+        self.remove_cache = remove_cache
 
     def _convert_pdf_to_xml(self):
-        self.client.process(
+        client = GrobidClient(config_path=self.config_path)
+        client.process(
             "processFulltextDocument", 
             input_path=self.input_dir, 
             output=self.cache_dir,
@@ -70,23 +78,27 @@ class CustomDocumentReader:
 
         return file_dict
 
-    def load_data(self) -> List[Document]:
-        self._convert_pdf_to_xml()
-
+    def _load_data(self):
         file_documents = []
         filenames = [filename for filename in os.listdir(self.cache_dir) if filename.endswith('tei.xml')]
 
         for filename in filenames:
             file_path = os.path.join(self.cache_dir, filename)
             file_dict = self._read_file(file_path)
+            file_dict['sections'] = []
             paper_content = "Title: {}\n\n".format(file_dict['title'])
             i = 1
-            for k, v in file_dict.items():
-                if k in ['title', 'authors']:
+            copy_dict = file_dict.copy()
+            for title, section in copy_dict.items():
+                if title in ['title', 'authors', 'sections']:
                     continue
-                paper_content += f'[{i}. {k}]\n{v}\n\n'
+                start = len(paper_content)
+                paper_content += f'[{i}. {title}]\n{section}\n\n'
+                end = len(paper_content)
+                file_dict['sections'].append([start, end-2])
+                del file_dict[title]
                 i += 1
-            file_dict['file_name'] = filename
+            file_dict['file_name'] = filename.replace('grobid.tei.xml', 'pdf')
 
             file_document = Document(
                 text=paper_content,
@@ -94,9 +106,15 @@ class CustomDocumentReader:
             )
 
             file_documents.append(file_document)
-            os.remove(file_path)
+            if self.remove_cache:
+                os.remove(file_path)
 
         return file_documents
+
+    def load_data(self) -> List[Document]:
+        self._convert_pdf_to_xml()
+        return self._load_data()
+        
 
 if __name__ == '__main__':
     root_path = '../../..'

@@ -18,6 +18,9 @@ parser:
     name: "HierarchicalNodeParser"
     chunk_size: [2048, 512, 128]
     retriever: "AutoMergingRetriever"
+  "CustomHierarchicalNodeParser":
+    name: "CustomHierarchicalNodeParser"
+    retriever: "AutoMergingRetriever"
 extractor:
   "vicuna-13b-QAExtractor":
     extractor_type: "QAExtractor"
@@ -62,7 +65,7 @@ indexes:
     type: "VectorStoreIndex"
     reader: "CustomDocumentReader"
     parser:
-      "SimpleFileNodeParser"
+      "CustomHierarchicalNodeParser"
     extractors:
       - "vicuna:13b-QAExtractor"
     embedding_model:

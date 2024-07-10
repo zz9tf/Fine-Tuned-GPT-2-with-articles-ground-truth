@@ -16,6 +16,7 @@ from llama_index.core.node_parser import (
     SimpleFileNodeParser, 
     HierarchicalNodeParser
 )
+from utils.custom_parser import CustomHierarchicalNodeParser
 from llama_index.core.retrievers import AutoMergingRetriever
 from llama_index.core.node_parser import get_leaf_nodes
 from llama_index.core import Settings
@@ -85,6 +86,9 @@ class Database():
             return HierarchicalNodeParser.from_defaults(
                 chunk_sizes=parser_config.get('chunk_size', [2048, 512, 128])
             )
+        elif parser_config['name'] == 'CustomHierarchicalNodeParser':
+            # TODO: Use customParser
+            return CustomHierarchicalNodeParser
         else:
             raise Exception("Invalid embedding model name. Please provide parser types {}".format(VALID_PARSER))
 
@@ -318,21 +322,20 @@ class Database():
             retriever = index.as_retriever()
         elif parser_config['retriever'] == 'AutoMergingRetriever':
             nodes = [node for _, node in index._docstore.docs.items()]
-            
             leaf_nodes = get_leaf_nodes(nodes)
-            print(1)
+            # leaf_nodes = evaluate_time(lambda : get_leaf_nodes(nodes))
+            
             base_retriever = VectorStoreIndex(
                 leaf_nodes,
                 storage_context=storage_context
             )
-            print(2)
-            retriever = AutoMergingRetriever(base_retriever, storage_context, verbose=True)
-            print(f'Index: {index}')
-            print(f'retriever: {retriever}')
-            print(3)
+            # base_retriever = evaluate_time(lambda : VectorStoreIndex(
+            #     leaf_nodes,
+            #     storage_context=storage_context
+            # ))
+            retriever = evaluate_time(AutoMergingRetriever(base_retriever, storage_context, verbose=True))
+            # retriever = evaluate_time(lambda : AutoMergingRetriever(base_retriever, storage_context, verbose=True))
             exit()
-            pass
-        
 
         # Set llm
         self.set_llm(llm_name)
