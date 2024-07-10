@@ -87,8 +87,8 @@ class Database():
                 chunk_sizes=parser_config.get('chunk_size', [2048, 512, 128])
             )
         elif parser_config['name'] == 'CustomHierarchicalNodeParser':
-            # TODO: Use customParser
-            return CustomHierarchicalNodeParser
+            return CustomHierarchicalNodeParser.from_defaults()
+        
         else:
             raise Exception("Invalid embedding model name. Please provide parser types {}".format(VALID_PARSER))
 
@@ -305,11 +305,10 @@ class Database():
         if embedding_config['basedOn'] == 'huggingface':
             Settings.embed_model = HuggingfaceBasedEmbedding(
                 model_name=embedding_config['name'],
+                cache_dir=embedding_config['cache']
             )
         elif embedding_config["basedOn"] == 'ollama':
-            Settings.embed_model = OllamaBasedEmbedding(
-                model_name=embedding_config['name']
-            )
+            Settings.embed_model = OllamaBasedEmbedding(model_name=embedding_config['name'])
 
         # Load storage_context
         storage_context = StorageContext.from_defaults(persist_dir=index_dir_path)
@@ -333,9 +332,8 @@ class Database():
             #     leaf_nodes,
             #     storage_context=storage_context
             # ))
-            retriever = evaluate_time(AutoMergingRetriever(base_retriever, storage_context, verbose=True))
+            retriever = AutoMergingRetriever(base_retriever, storage_context, verbose=True)
             # retriever = evaluate_time(lambda : AutoMergingRetriever(base_retriever, storage_context, verbose=True))
-            exit()
 
         # Set llm
         self.set_llm(llm_name)

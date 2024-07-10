@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Sequence
 from llama_index.core.node_parser.interface import NodeParser
+from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
 from llama_index.core.callbacks.base import CallbackManager
 from llama_index.core.callbacks.schema import CBEventType, EventPayload
@@ -36,6 +37,8 @@ class CustomHierarchicalNodeParser(NodeParser):
 
     _doc_id_to_document: Dict[str, Document] = PrivateAttr()
 
+    _sentences_splitter: SentenceSplitter = PrivateAttr()
+
     @classmethod
     def from_defaults(
         cls,
@@ -45,6 +48,13 @@ class CustomHierarchicalNodeParser(NodeParser):
     ) -> "CustomHierarchicalNodeParser":
         callback_manager = callback_manager or CallbackManager([])
         chunk_levels = ["document", "section", "paragraph", "multi-sentences"]
+
+        cls._sentences_splitter = SentenceSplitter(
+            chunk_size=128, 
+            chunk_overlap=20, 
+            include_metadata=False, 
+            include_prev_next_rel=False
+        )
 
         return cls(
             chunk_levels=chunk_levels,
@@ -117,16 +127,8 @@ class CustomHierarchicalNodeParser(NodeParser):
         self,
         paragraph_node: BaseNode
     ) -> List[BaseNode]:
-        all_nodes: List[BaseNode] = []
-        
-        # TODO update split method
-        splits = self.split_text(paragraph_node.get_content())
 
-        all_nodes.extend(
-            build_nodes_from_splits(splits, paragraph_node, id_func=self.id_func)
-        )
-
-        return all_nodes
+        return self._sentences_splitter._parse_nodes([paragraph_node])
 
     def _postprocess_parsed_nodes(
         self, 
@@ -150,6 +152,13 @@ class CustomHierarchicalNodeParser(NodeParser):
                 metadata = {k: v for k, v in parent_doc.metadata.items() if k not in ['sections']}
                 metadata['level'] = chunk_level
                 node.metadata.update(metadata)
+
+                exclude_keys = list(metadata.keys())
+                exclude_keys.remove('title')
+                node.excluded_embed_metadata_keys.extend(exclude_keys)
+                node.excluded_llm_metadata_keys.extend(exclude_keys)
+
+                self._doc_id_to_document[node.id_] = parent_doc
                     
             if chunk_level != 'document':
                 # establish prev/next relationships if nodes share the same source_node
@@ -226,7 +235,7 @@ class CustomHierarchicalNodeParser(NodeParser):
             sub_nodes.extend(cur_sub_nodes)
 
         # now for each sub-node, recursively split into sub-sub-nodes, and add
-        if level < len(self.chunk_levels) - 2: # 1
+        if level < len(self.chunk_levels) - 1:
             sub_sub_nodes = self._recursively_get_nodes_from_nodes(
                 sub_nodes,
                 level + 1,

@@ -39,6 +39,11 @@ extractor:
     llm: "gpt-4o"
     cache: "./code/llamaIndex/.cache"
     mode: "batch"
+  "section_QAExtracotr":
+    extractor_type: "OllamaBasedExtractor"
+    llm: "vicuna:13b"
+    focusMeta:
+      - "level" : "section"
 llm:
   "lmsys/vicuna-13b-v1.3":
     no_split_modules: "LlamaDecoderLayer"

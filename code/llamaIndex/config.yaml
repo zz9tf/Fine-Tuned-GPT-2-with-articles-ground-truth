@@ -5,7 +5,8 @@ document_preprocessing:
     # - "test-gpt-4o-batch"
     - "test-ollama-based"
 rag:
-  default_index: "test-ollama-based"
+  # default_index: "test-ollama-based"
+  default_index: null
   # llm: "lmsys/vicuna-13b-v1.3"
   llm: "vicuna:13b"
   # llm: "gpt-4o"
