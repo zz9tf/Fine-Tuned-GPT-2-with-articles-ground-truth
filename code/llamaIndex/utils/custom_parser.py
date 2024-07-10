@@ -82,11 +82,11 @@ class CustomHierarchicalNodeParser(NodeParser):
         parent_document = self._doc_id_to_document.get(document_node.ref_doc_id, None)
         if parent_document is None:
             raise Exception(f"Parent document is not found with id {document_node.ref_doc_id}")
-        print(parent_document.metadata['sections'])
-        exit()
         
-        # TODO update split method
-        splits = self.split_text(document_node.get_content())
+        splits = [
+            document_node.get_content()[start: end] \
+            for start, end in parent_document.metadata['sections']    
+        ]
 
         all_nodes.extend(
             build_nodes_from_splits(splits, document_node, id_func=self.id_func)
@@ -100,6 +100,9 @@ class CustomHierarchicalNodeParser(NodeParser):
     ) -> List[BaseNode]:
         all_nodes: List[BaseNode] = []
         
+        print(section_node.get_content())
+        exit()
+
         # TODO update split method
         splits = self.split_text()
 
@@ -143,9 +146,9 @@ class CustomHierarchicalNodeParser(NodeParser):
                         node.get_content(metadata_mode=MetadataMode.NONE)
                     )
 
-                node.metadata.update(
-                    {k: v for k, v in parent_doc.metadata.items() if k not in ['sections']}
-                )
+                metadata = {k: v for k, v in parent_doc.metadata.items() if k not in ['sections']}
+                metadata['level'] = chunk_level
+                node.metadata.update(metadata)
                     
             if chunk_level != 'document':
                 # establish prev/next relationships if nodes share the same source_node
