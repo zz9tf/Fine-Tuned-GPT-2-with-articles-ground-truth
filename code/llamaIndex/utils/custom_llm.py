@@ -1,5 +1,5 @@
+import os
 from typing import Optional, List, Mapping, Any
-
 from llama_index.core import SimpleDirectoryReader, SummaryIndex
 from llama_index.core.callbacks import CallbackManager
 from llama_index.core.llms import (
@@ -9,9 +9,8 @@ from llama_index.core.llms import (
     LLMMetadata,
 )
 from llama_index.core.llms.callbacks import llm_completion_callback
-from llama_index.core import Settings
 
-class HuggingFaceLLM(CustomLLM):
+class CustomHuggingFaceLLM(CustomLLM):
     context_window: int = 8192
     num_output: int = 8192
     model_name: str

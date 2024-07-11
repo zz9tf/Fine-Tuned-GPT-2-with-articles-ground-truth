@@ -50,3 +50,16 @@ as well. Try using these summaries to generate better questions \
 that this context can answer.
 """
 ]
+    
+    DEFAULT_QUESTION_GEN_TMPL="""\
+Here is the context:
+{context_str}
+
+Given the contextual information, \
+generate {num_questions} questions this context can provide \
+specific answers to which are unlikely to be found elsewhere.
+
+Higher-level summaries of surrounding context may be provided \
+as well. Try using these summaries to generate better questions \
+that this context can answer.
+"""

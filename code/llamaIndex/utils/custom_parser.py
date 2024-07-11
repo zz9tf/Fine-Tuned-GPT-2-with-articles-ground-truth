@@ -7,16 +7,8 @@ from llama_index.core.callbacks.schema import CBEventType, EventPayload
 from llama_index.core.schema import BaseNode, Document, NodeRelationship, MetadataMode
 from llama_index.core.utils import get_tqdm_iterable
 from llama_index.core.node_parser.node_utils import build_nodes_from_splits
-
-def _add_parent_child_relationship(parent_node: BaseNode, child_node: BaseNode) -> None:
-    """Add parent/child relationship between nodes."""
-    child_list = parent_node.relationships.get(NodeRelationship.CHILD, [])
-    child_list.append(child_node.as_related_node_info())
-    parent_node.relationships[NodeRelationship.CHILD] = child_list
-
-    child_node.relationships[
-        NodeRelationship.PARENT
-    ] = parent_node.as_related_node_info()
+from llama_index.core.llms import LLM
+from llama_index.core.node_parser.relational.hierarchical import _add_parent_child_relationship
 
 class CustomHierarchicalNodeParser(NodeParser):
     """Hierarchical node parser.
@@ -35,7 +27,12 @@ class CustomHierarchicalNodeParser(NodeParser):
         ),
     )
 
-    llm: 
+    llm: Optional[LLM] = Field(
+        default=None,
+        description=(
+            "LLM model to be used for generating node summary content of \'document\', \'section\', \'paragraph\' levels"
+        )
+    )
 
     _doc_id_to_document: Dict[str, Document] = PrivateAttr()
 

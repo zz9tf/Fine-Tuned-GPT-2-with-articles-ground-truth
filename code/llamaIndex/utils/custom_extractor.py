@@ -14,19 +14,6 @@ from openai import OpenAI
 from llama_index.llms.openai import OpenAI as llama_index_openai
 from utils.schema import TemplateSchema
 
-DEFAULT_QUESTION_GEN_TMPL="""\
-Here is the context:
-{context_str}
-
-Given the contextual information, \
-generate {num_questions} questions this context can provide \
-specific answers to which are unlikely to be found elsewhere.
-
-Higher-level summaries of surrounding context may be provided \
-as well. Try using these summaries to generate better questions \
-that this context can answer.
-
-"""
 # [TODO] Need to accelarate the model
 class HuggingfaceBasedExtractor():
     def __init__(
@@ -35,7 +22,7 @@ class HuggingfaceBasedExtractor():
         no_split_modules: str = None,
         cache_dir: str = None,
         num_questions: int = 5,
-        prompt_template: str = DEFAULT_QUESTION_GEN_TMPL,
+        prompt_template: str = TemplateSchema.DEFAULT_QUESTION_GEN_TMPL,
         embedding_only: bool = True
     ) -> None:
         """Init params."""

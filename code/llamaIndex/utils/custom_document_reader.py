@@ -1,9 +1,32 @@
 import os
-from tqdm import tqdm
 from typing import List
 from grobid_client.grobid_client import GrobidClient
 import xml.etree.ElementTree as ET
 from llama_index.core import Document
+from llama_index.core import SimpleDirectoryReader
+
+def load_documents(self, reader_config):
+    print("[update_database] Loading documents ...", end=' ') 
+    file_path = self.config['document_preprocessing']['data_dir_path']
+    data_path = os.path.abspath(os.path.join(self.root_path, file_path))
+
+    if reader_config['type'] == 'SimpleDirectoryReader':
+        documents = SimpleDirectoryReader(
+            input_dir=data_path, 
+            exclude=[],
+            file_metadata=lambda file_path : {"file_path": file_path},
+            filename_as_id=True
+        ).load_data()
+    elif reader_config['type'] == 'CustomDocumentReader':
+        cache_path = os.path.abspath(os.path.join(self.root_path, reader_config['cache']))
+        config_path = os.path.abspath(os.path.join(self.root_path, reader_config['config_file_path']))
+        documents = CustomDocumentReader(
+            input_dir=data_path,
+            cache_dir=cache_path,
+            config_path=config_path
+        ).load_data()
+    print("done")
+    return documents
 
 class CustomDocumentReader:
     def __init__(
