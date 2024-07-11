@@ -1,5 +1,7 @@
 import os
 import yaml
+from llama_index.llms.ollama import Ollama
+from llama_index.llms.openai import OpenAI as llama_index_openai
 from llama_index.core import (
     SimpleDirectoryReader, 
     VectorStoreIndex,
@@ -20,13 +22,11 @@ from utils.custom_parser import CustomHierarchicalNodeParser
 from llama_index.core.retrievers import AutoMergingRetriever
 from llama_index.core.node_parser import get_leaf_nodes
 from llama_index.core import Settings
-from utils.custom_extractor import HuggingfaceBasedExtractor, OllamaBasedExtractor, OpenAIBasedExtractor
-from utils.custom_embedding import HuggingfaceBasedEmbedding, OllamaBasedEmbedding
 from utils.custom_document_reader import CustomDocumentReader
-from datetime import datetime
-from llama_index.llms.ollama import Ollama
-from llama_index.llms.openai import OpenAI as llama_index_openai
+from utils.custom_extractor import HuggingfaceBasedExtractor, OllamaBasedExtractor, OpenAIBasedExtractor
+from utils.custom_embedding import CustomHuggingfaceBasedEmbedding, CustomOllamaBasedEmbedding
 from utils.custom_llm import HuggingFaceLLM
+from datetime import datetime
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.response_synthesizers import ResponseMode
@@ -49,7 +49,28 @@ class Database():
         with open(prefix_config_path, 'r') as prefix_config:
             self.prefix_config = yaml.safe_load(prefix_config)
         load_dotenv(dotenv_path=os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/.env')))
+
+    def _get_embedding_model(self, embedding_config):
+        if embedding_config['basedOn'] == 'huggingface':
+            return CustomHuggingfaceBasedEmbedding(
+                model_name=embedding_config['name'],
+                cache_dir=embedding_config['cache']
+            )
+        elif embedding_config["basedOn"] == 'ollama':
+            return CustomOllamaBasedEmbedding(model_name=embedding_config['name'])
+
+    def _get_llm(self, llm_name):
+        if llm_name == "vicuna:13b":
+            llm = Ollama(model=llm_name, request_timeout=240.0)
+        elif llm_name == "lmsys/vicuna-13b-v1.3":
+            # TODO Custom Huggingface model
+            llm_config = self.prefix_config['llm'][llm_name]
+            llm = HuggingFaceLLM(model=llm_name)
+        elif llm_name == 'gpt-4o':
+            llm = llama_index_openai(model='gpt-4o', api_key=os.getenv('OPENAI_API_KEY'))
         
+        return llm
+    
     def _load_documents(self, reader_config):
         print("[update_database] Loading documents ...", end=' ') 
         file_path = self.config['document_preprocessing']['data_dir_path']
@@ -72,7 +93,7 @@ class Database():
             ).load_data()
         print("done")
         return documents
-    
+
     def _get_parser(self, parser_config):
         VALID_PARSER = self.prefix_config['parser'].keys()
         if parser_config['name'] == 'SentenceSplitter':
@@ -237,11 +258,11 @@ class Database():
             # Load embedding model
             embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
             if embedding_config["basedOn"] == 'huggingface':
-                Settings.embed_model = HuggingfaceBasedEmbedding(
+                Settings.embed_model = CustomHuggingfaceBasedEmbedding(
                     model_name=embedding_config['name'],
                 )
             elif embedding_config["basedOn"] == 'ollama':
-                Settings.embed_model = OllamaBasedEmbedding(
+                Settings.embed_model = CustomOllamaBasedEmbedding(
                     model_name=embedding_config['name']
                 )
 
@@ -283,19 +304,7 @@ class Database():
                 modified_time = os.path.getmtime(folderpath)
                 modified_date = datetime.fromtimestamp(modified_time).strftime('%Y-%m-%d %H:%M:%S')
                 indexes.append({'id': d, 'size': size, 'modified_date': modified_date})
-        return indexes
-
-    def set_llm(self, llm_name):
-        if llm_name == "vicuna:13b":
-            llm = Ollama(model=llm_name, request_timeout=240.0)
-        elif llm_name == "lmsys/vicuna-13b-v1.3":
-            # TODO Custom Huggingface model
-            llm_config = self.prefix_config['llm'][llm_name]
-            llm = HuggingFaceLLM(model=llm_name)
-        elif llm_name == 'gpt-4o':
-            llm = llama_index_openai(model='gpt-4o', api_key=os.getenv('OPENAI_API_KEY'))
-        
-        Settings.llm = llm
+        return indexes        
 
     def load_index(self, index_id, llm_name, is_rerank):
         self._load_configs()
@@ -309,13 +318,7 @@ class Database():
 
         # Load embedding model
         embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
-        if embedding_config['basedOn'] == 'huggingface':
-            Settings.embed_model = HuggingfaceBasedEmbedding(
-                model_name=embedding_config['name'],
-                cache_dir=embedding_config['cache']
-            )
-        elif embedding_config["basedOn"] == 'ollama':
-            Settings.embed_model = OllamaBasedEmbedding(model_name=embedding_config['name'])
+        Settings.embed_model = self._get_embedding_model(embedding_config)
 
         # Load storage_context
         storage_context = StorageContext.from_defaults(persist_dir=index_dir_path)
@@ -337,7 +340,7 @@ class Database():
             retriever = AutoMergingRetriever(index.as_retriever(), storage_context, verbose=True)
 
         # Set llm
-        self.set_llm(llm_name)
+        Settings.llm = self._get_llm(llm_name)
         
         # Set if it's ReRank
         if is_rerank:

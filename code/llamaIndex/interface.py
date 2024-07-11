@@ -56,7 +56,7 @@ class SystemInterface():
     def use_engine(self, index_id_or_llm_name):
         # TODO Multiple indexes loading
         if index_id_or_llm_name in self.prefix_config['llm']:
-            self.database.set_llm(index_id_or_llm_name)
+            self.database._get_llm(index_id_or_llm_name)
             print("[Interface] LLM {} using".format(index_id_or_llm_name))
         else:
             self.current_index_id = index_id_or_llm_name

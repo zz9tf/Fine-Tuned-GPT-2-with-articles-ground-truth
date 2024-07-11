@@ -11,7 +11,7 @@ from llama_index.core.bridge.pydantic import Field, PrivateAttr
 
 DEFAULT_HUGGINGFACE_LENGTH = 4096
 
-class HuggingfaceBasedEmbedding(BaseEmbedding):
+class CustomHuggingfaceBasedEmbedding(BaseEmbedding):
     max_length: int = Field(
         default=DEFAULT_HUGGINGFACE_LENGTH, description="Maximum length of input.", gt=0
     )
@@ -113,7 +113,7 @@ class HuggingfaceBasedEmbedding(BaseEmbedding):
 
 from llama_index.embeddings.ollama import OllamaEmbedding
 
-class OllamaBasedEmbedding(BaseEmbedding):
+class CustomOllamaBasedEmbedding(BaseEmbedding):
     query_instruction: Optional[str] = Field(
         description="Instruction to prepend to query text."
     )
