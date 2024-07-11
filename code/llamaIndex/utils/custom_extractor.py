@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 import os
 import torch
 import json
@@ -12,6 +12,7 @@ from llama_index.llms.ollama import Ollama
 from tqdm import tqdm
 from openai import OpenAI
 from llama_index.llms.openai import OpenAI as llama_index_openai
+from utils.schema import TemplateSchema
 
 DEFAULT_QUESTION_GEN_TMPL="""\
 Here is the context:
@@ -72,79 +73,46 @@ class HuggingfaceBasedExtractor():
             for k, v in metadata.items():
                 node.metadata[k] = v
 
-prompt_template_ollama = """\
-"Here is the context:
-{context_str}
-
-Here is the format of question, answer, and reason(QAR) template:
-----------------------------------------------------------------------------------
-<Pair number, representing which QAR you are at, like 1, 2, 3>
-Question:<Question content, you should place a specific question which is unlikely to be found elsewhere and is unique comparing with other questions>
-
-Answer:<Answer content, you should place a specific answer combining with the offered context>
-
-Reason:<Reason content, you should explain why this question and answer are unlikely to be found elsewhere and are unique comparing with each other>
-----------------------------------------------------------------------------------
-
-Following by this template, given the contextual information, generate 5 QAR.\
-Higher-level summaries of surrounding context may be provided \
-as well. Try using these summaries to generate better questions \
-that this context can answer.
-"""
-
 class OllamaBasedExtractor():
     def __init__(
         self,
         model_name: str,
-        prompt_template: str = prompt_template_ollama,
-        embedding_only: bool = True
+        prompt_template: dict = TemplateSchema.prompt_template_ollama,
+        embedding_only: bool = True,
+        only_meta: Optional[Dict[str, list]] = None
+        
     ) -> None:
         """Init params."""
         self._model = Ollama(model=model_name, request_timeout=120.0)
-        self._prompt_template = prompt_template
+        self._prompt_metadata_key, self._prompt_template = prompt_template
         self.embedding_only = embedding_only
+        self.only_meta = only_meta
 
     def _extract_metadata_from_node(self, node: BaseNode) -> Dict[str, str]:
         """Extract metadata from a node and return it's metadata dict."""
 
         context_str = node.get_content(metadata_mode=MetadataMode.ALL)
+
         input_text = self._prompt_template.format(context_str=context_str)
         generated_text = self._model.complete(input_text)
 
-        node.metadata["questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons"] = str(generated_text).strip()
-        if "questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons" not in node.excluded_llm_metadata_keys and self.embedding_only:
-            node.excluded_llm_metadata_keys.append("questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons")
+        node.metadata[self._prompt_metadata_key] = str(generated_text).strip()
+        if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
+            node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
 
     
+    def _is_target_node(self, node):
+        for k, meta in self.only_meta.items():
+            if node.metadata[k] in meta:
+                return True
+        return False
+
     def extract(self, nodes: List[BaseNode]):
-        for node in tqdm(nodes):
+        target_nodes = []
+        if self.only_meta:
+            target_nodes = [node for node in nodes if self._is_target_node(node)]
+        for node in tqdm(target_nodes):
             self._extract_metadata_from_node(node)
-
-system_prompt = """\
-You are a highly knowledgeable reasearch assistant tasked with generating insightful questions, detailed answers, and \
-thorough reasoning based on the provided parts of papers.\
-"""
-
-prompt_template_openai="""\
-Here is the context:
-{context_str}
-
-Using this context, generate 5 specific questions that this context can uniquely answer. Ensure that these questions:
-1. Are directly related to the provided context.
-2. Highlight unique information or insights from the context.
-3. Cannot be easily answered by general knowledge.
-----------------------------------------------------------------------------------
-Pair Number of Question, such as 1, 2, or 3.
-Question:<Question content, you should place a specific question which is unlikely to be found elsewhere and is unique comparing with other questions>
-
-Answer:<Answer content, you should place a specific answer combining with the offered context>
-
-Reason:<Reason content, you should explain why this question and answer are unlikely to be found elsewhere and are unique comparing with each other>
-----------------------------------------------------------------------------------
-Higher-level summaries of surrounding context may be provided \
-as well. Try using these summaries to generate better questions \
-that this context can answer.
-"""
 
 class OpenAIBasedExtractor():
     def __init__(
@@ -152,16 +120,19 @@ class OpenAIBasedExtractor():
         model_name: str,
         cache_dir: str,
         mode: str = 'immediately',
-        system_prompt: str = system_prompt,
-        prompt_template: str = prompt_template_openai,
-        embedding_only: bool = True
+        system_prompt: str = TemplateSchema.system_prompt,
+        prompt_template: str = TemplateSchema.prompt_template_openai,
+        embedding_only: bool = True,
+        only_meta: Optional[Dict[str, list]] = None
     ) -> None:
         self._model = llama_index_openai(model=model_name, api_key=os.environ.get('OPENAI_API_KEY'))
         self._client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
         self.mode = mode
         self.cache_dir = cache_dir
-        self._prompt_template = prompt_template
+        self._system_prompt = system_prompt
+        self._prompt_metadata_key, self._prompt_template = prompt_template
         self.embedding_only = embedding_only
+        self.only_meta = only_meta
 
     def _extract_metadata_from_node_immediately(self, node: BaseNode) -> Dict[str, str]:
         """Extract metadata from a node and return it's metadata dict."""
@@ -169,9 +140,9 @@ class OpenAIBasedExtractor():
         input_text = self._prompt_template.format(context_str=context_str)
         generated_text = self._model.complete(input_text)
 
-        node.metadata["questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons"] = str(generated_text).strip()
-        if "questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons" not in node.excluded_llm_metadata_keys and self.embedding_only:
-            node.excluded_llm_metadata_keys.append("questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons")
+        node.metadata[self._prompt_metadata_key] = str(generated_text).strip()
+        if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
+            node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
 
     def _create_a_batch(self, now, input_file_path):
         with open(input_file_path, "rb") as input_file:
@@ -201,7 +172,7 @@ class OpenAIBasedExtractor():
             "body": {
                 "model": "gpt-4o",
                 "messages": [
-                        {"role": "system", "content": system_prompt},
+                        {"role": "system", "content": self._system_prompt},
                         {"role": "user", "content": self._prompt_template.format(context_str=node.text)}
                     ],
                 "max_tokens": 4096
@@ -306,19 +277,33 @@ class OpenAIBasedExtractor():
         with tqdm(total=total_nodes, desc="Updating nodes", unit="nodes") as pbar:
             for output_file_path, batch_content in finished_batches.items():
                 for request in batch_content:
-                    content = request['response']['body']['choices'][0]['message']['content']
-                    node_dict[request['custom_id']].metadata["questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons"] = content
+                    content = request['response']['body']['choices'][0]['message']['content'].strip()
+                    node = node_dict[request['custom_id']]
+                    node.metadata[self._prompt_metadata_key] = content
+                    if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
+                        node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
+                    
                     # pbar.n is updated nodes number, which should add 1 each time
                     pbar.n += 1
                     pbar.refresh()
                 os.remove(output_file_path)
             
+    def _is_target_node(self, node):
+        for k, meta in self.only_meta.items():
+            if node.metadata[k] in meta:
+                return True
+        return False
+
     def extract(self, nodes: List[BaseNode]):
+        target_nodes = []
+        if self.only_meta:
+            target_nodes = [node for node in nodes if self._is_target_node(node)]
+
         if self.mode == 'immediately':
-            for node in tqdm(nodes):
+            for node in tqdm(target_nodes):
                 self._extract_metadata_from_node_immediately(node)
         elif self.mode == 'batch':
-            self._extract_metadata_from_nodes_batch(nodes)
+            self._extract_metadata_from_nodes_batch(target_nodes)
         
 
         

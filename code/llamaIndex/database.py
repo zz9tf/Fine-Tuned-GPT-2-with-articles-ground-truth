@@ -115,13 +115,17 @@ class Database():
             )
         elif extractor_config['extractor_type'] == 'OllamaBasedExtractor':
             return OllamaBasedExtractor(
-                model_name=extractor_config['llm']
+                model_name=extractor_config['llm'],
+                embedding_only=extractor_config.get('embedding_only', True),
+                only_meta=extractor_config.get('only_meta', None)
             )
         elif extractor_config['extractor_type'] == 'OpenAIBasedExtractor':
             return OpenAIBasedExtractor(
                 model_name=extractor_config['llm'],
                 cache_dir=os.path.abspath(os.path.join(self.root_path, extractor_config['cache'])),
-                mode=extractor_config['mode']
+                mode=extractor_config['mode'],
+                embedding_only=extractor_config.get('embedding_only', True),
+                only_meta=extractor_config.get('only_meta', None)
             )
 
     def _extract_and_add_metadata_to_nodes(self, index_config, nodes):
@@ -135,6 +139,7 @@ class Database():
             else:
                 extractor_name = extractor_index_config
                 extractor_config = self.prefix_config['extractor'][extractor_name]
+            
             print(f"Doing {extractor_name} ...")
             if extractor_config['llm'] == 'gpt-4o':
                 # Create a cache for gpt-4o results
@@ -216,15 +221,17 @@ class Database():
             if not os.path.exists(index_dir_path):
                 print("[update_database] Storage does not find with path: {}".format(index_dir_path))
                 print("[update_database] Creating a new one...")
-            
-            nodes, index_config['extractors'] = self._update_to_latest_extractors(index_config)
+
+            nodes = None            
+            if 'extractors' in index_config:
+                nodes, index_config['extractors'] = self._update_to_latest_extractors(index_config)
 
             if nodes is None:
                 reader_config = self.prefix_config['reader'][index_config['reader']]
                 documents = self._load_documents(reader_config)
                 nodes = self._generate_nodes_from_documents(index_config, documents)
-                nodes = self._extract_and_add_metadata_to_nodes(index_config, nodes)
-            elif len(index_config['extractors']) > 0:
+            
+            if 'extractors' in index_config and len(index_config['extractors']) > 0:
                 nodes = self._extract_and_add_metadata_to_nodes(index_config, nodes)
 
             # Load embedding model
@@ -322,18 +329,12 @@ class Database():
         elif parser_config['retriever'] == 'AutoMergingRetriever':
             nodes = [node for _, node in index._docstore.docs.items()]
             leaf_nodes = get_leaf_nodes(nodes)
-            # leaf_nodes = evaluate_time(lambda : get_leaf_nodes(nodes))
-            
-            base_retriever = VectorStoreIndex(
+            index = VectorStoreIndex(
                 leaf_nodes,
                 storage_context=storage_context
             )
-            # base_retriever = evaluate_time(lambda : VectorStoreIndex(
-            #     leaf_nodes,
-            #     storage_context=storage_context
-            # ))
-            retriever = AutoMergingRetriever(base_retriever, storage_context, verbose=True)
-            # retriever = evaluate_time(lambda : AutoMergingRetriever(base_retriever, storage_context, verbose=True))
+
+            retriever = AutoMergingRetriever(index.as_retriever(), storage_context, verbose=True)
 
         # Set llm
         self.set_llm(llm_name)

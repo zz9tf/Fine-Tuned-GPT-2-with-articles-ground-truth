@@ -167,4 +167,4 @@ data/*
 
 *log
 
-/database/*
+*/database/*

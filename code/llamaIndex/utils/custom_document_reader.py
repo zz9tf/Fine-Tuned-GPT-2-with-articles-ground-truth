@@ -11,7 +11,7 @@ class CustomDocumentReader:
             input_dir, 
             cache_dir, 
             config_path='./config.json', 
-            remove_cache=True
+            remove_cache=False
     ) -> None:
         # convert pdf to xml file
         self.input_dir = input_dir
