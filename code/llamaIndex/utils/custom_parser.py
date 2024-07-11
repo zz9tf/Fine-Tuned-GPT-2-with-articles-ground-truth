@@ -35,6 +35,8 @@ class CustomHierarchicalNodeParser(NodeParser):
         ),
     )
 
+    llm: 
+
     _doc_id_to_document: Dict[str, Document] = PrivateAttr()
 
     _sentences_splitter: SentenceSplitter = PrivateAttr()
