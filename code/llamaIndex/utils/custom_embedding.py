@@ -10,7 +10,7 @@ from typing import List, Optional
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
 
 DEFAULT_HUGGINGFACE_LENGTH = 4096
-
+# TODO: Custom Huggingface embedding
 class CustomHuggingfaceBasedEmbedding(BaseEmbedding):
     max_length: int = Field(
         default=DEFAULT_HUGGINGFACE_LENGTH, description="Maximum length of input.", gt=0

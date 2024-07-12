@@ -7,58 +7,67 @@ reader:
     type: "SimpleDirectoryReader"
 parser:
   "SimpleFileNodeParser":
-    name: "SimpleFileNodeParser"
+    type: "SimpleFileNodeParser"
     retriever: "BaseRetriever"
   "SentenceSplitter":
-    name: "SentenceSplitter"
+    type: "SentenceSplitter"
     chunk_size: 1024
     chunk_overlap: 20
     retriever: "BaseRetriever"
   "HierarchicalNodeParser":
-    name: "HierarchicalNodeParser"
+    type: "HierarchicalNodeParser"
     chunk_size: [2048, 512, 128]
     retriever: "AutoMergingRetriever"
-  "CustomHierarchicalNodeParser":
-    name: "CustomHierarchicalNodeParser"
+  # TODO: update parser name
+  "CustomHierarchicalNodeParser-vicuna:13b":
+    type: "CustomHierarchicalNodeParser"
     retriever: "AutoMergingRetriever"
+    llm: "vicuna:13b"
 extractor:
+  # TODO: pass in llm instead of llm name
   "vicuna-13b-QAExtractor":
-    extractor_type: "QAExtractor"
+    type: "HuggingfaceBasedExtractor"
     llm: "lmsys/vicuna-13b-v1.3"
     num_questions: 5
   "vicuna:13b-QAExtractor":
-    extractor_type: "OllamaBasedExtractor"
+    type: "OllamaBasedExtractor"
     llm: "vicuna:13b"
   "gpt-4o-QAExtractor-immediately":
-    extractor_type: "OpenAIBasedExtractor"
+    type: "OpenAIBasedExtractor"
     llm: "gpt-4o"
     cache: "./code/llamaIndex/.cache"
     mode: "immediately"
   "gpt-4o-QAExtractor-batch":
-    extractor_type: "OpenAIBasedExtractor"
+    type: "OpenAIBasedExtractor"
     llm: "gpt-4o"
     cache: "./code/llamaIndex/.cache"
     mode: "batch"
   "section_QAExtracotr":
-    extractor_type: "OllamaBasedExtractor"
+    type: "OllamaBasedExtractor"
     llm: "vicuna:13b"
     only_meta:
       level: 
         - "section"
-llm:
-  "lmsys/vicuna-13b-v1.3":
-    no_split_modules: "LlamaDecoderLayer"
-    cache: "./.hf_cache"
-  "vicuna:13b": null
-  "gpt-4o": null
 embedding_model:
   "Linq-AI-Research/Linq-Embed-Mistral":
-    basedOn: "huggingface"
+    based_on: "huggingface"
     name: "Linq-AI-Research/Linq-Embed-Mistral"
     cache: "./.hf_cache"
   "ollama-sfr-embedding-mistral":
-    basedOn: "ollama"
+    based_on: "ollama"
     name: "sammcj/sfr-embedding-mistral:Q4_K_M"
+llm:
+  "lmsys/vicuna-13b-v1.3":
+    based_on: "huggingface"
+    model_name: "lmsys/vicuna-13b-v1.3"
+    no_split_modules: "LlamaDecoderLayer"
+    cache: "./.hf_cache"
+  "vicuna:13b":
+    based_on: "ollama"
+    model_name: "vicuna:13b"
+  "gpt-4o":
+    based_on: "openai"
+    model_name: "gpt-4o"
 storage_context:
   "simple":
     index_generator: VectorStoreIndex
@@ -70,7 +79,7 @@ indexes:
   "test-ollama-based":
     type: "VectorStoreIndex"
     reader: "CustomDocumentReader"
-    parser: "CustomHierarchicalNodeParser"
+    parser: "CustomHierarchicalNodeParser-vicuna:13b"
     extractors:
       - "section_QAExtracotr"
     embedding_model: "ollama-sfr-embedding-mistral"

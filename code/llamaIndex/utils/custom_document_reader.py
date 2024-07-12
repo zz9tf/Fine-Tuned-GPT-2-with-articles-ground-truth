@@ -3,30 +3,6 @@ from typing import List
 from grobid_client.grobid_client import GrobidClient
 import xml.etree.ElementTree as ET
 from llama_index.core import Document
-from llama_index.core import SimpleDirectoryReader
-
-def load_documents(self, reader_config):
-    print("[update_database] Loading documents ...", end=' ') 
-    file_path = self.config['document_preprocessing']['data_dir_path']
-    data_path = os.path.abspath(os.path.join(self.root_path, file_path))
-
-    if reader_config['type'] == 'SimpleDirectoryReader':
-        documents = SimpleDirectoryReader(
-            input_dir=data_path, 
-            exclude=[],
-            file_metadata=lambda file_path : {"file_path": file_path},
-            filename_as_id=True
-        ).load_data()
-    elif reader_config['type'] == 'CustomDocumentReader':
-        cache_path = os.path.abspath(os.path.join(self.root_path, reader_config['cache']))
-        config_path = os.path.abspath(os.path.join(self.root_path, reader_config['config_file_path']))
-        documents = CustomDocumentReader(
-            input_dir=data_path,
-            cache_dir=cache_path,
-            config_path=config_path
-        ).load_data()
-    print("done")
-    return documents
 
 class CustomDocumentReader:
     def __init__(
@@ -85,7 +61,7 @@ class CustomDocumentReader:
         
         # abstract
         abstract = root.find('.//tei:teiHeader/tei:profileDesc/tei:abstract/tei:div/tei:p', namespaces=namespace)
-        if abstract:
+        if abstract is not None:
             file_dict['abstract'] = abstract.text
 
         # Body
@@ -97,7 +73,10 @@ class CustomDocumentReader:
                 continue
             head = child.find('.//tei:head', namespaces=namespace).text
             content = '\n'.join([self._get_full_text(p) for p in ps])
-            file_dict[head] = content
+            if head.lower() == 'abstract':
+                file_dict['abstract'] = content
+            else:
+                file_dict[head] = content
 
         return file_dict
 
@@ -108,7 +87,7 @@ class CustomDocumentReader:
         for filename in filenames:
             file_path = os.path.join(self.cache_dir, filename)
             file_dict = self._read_file(file_path)
-            file_dict['sections'] = []
+            file_dict['sections'] = {}
             paper_content = "Title: {}\n\n".format(file_dict['title'])
             i = 1
             copy_dict = file_dict.copy()
@@ -118,7 +97,7 @@ class CustomDocumentReader:
                 start = len(paper_content)
                 paper_content += f'[{i}. {title}]\n{section}\n\n'
                 end = len(paper_content)
-                file_dict['sections'].append([start, end-2])
+                file_dict['sections'][title] = [start, end-2]
                 del file_dict[title]
                 i += 1
             file_dict['file_name'] = filename.replace('grobid.tei.xml', 'pdf')
@@ -137,7 +116,6 @@ class CustomDocumentReader:
     def load_data(self) -> List[Document]:
         self._convert_pdf_to_xml()
         return self._load_data()
-        
 
 if __name__ == '__main__':
     root_path = '../../..'

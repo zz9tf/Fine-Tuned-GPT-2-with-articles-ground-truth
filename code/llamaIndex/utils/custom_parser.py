@@ -9,6 +9,7 @@ from llama_index.core.utils import get_tqdm_iterable
 from llama_index.core.node_parser.node_utils import build_nodes_from_splits
 from llama_index.core.llms import LLM
 from llama_index.core.node_parser.relational.hierarchical import _add_parent_child_relationship
+from utils.schema import TemplateSchema
 
 class CustomHierarchicalNodeParser(NodeParser):
     """Hierarchical node parser.
@@ -19,20 +20,16 @@ class CustomHierarchicalNodeParser(NodeParser):
     overlap between parent nodes (e.g. with a bigger chunk size), and child nodes
     per parent (e.g. with a smaller chunk size).
     """
-
-    chunk_levels: Optional[List[str]] = Field(
+    llm: LLM = Field(
         default=None,
         description=(
-            "The chunk level to use when splitting documents: document, section, paragraph, multi-sentences"
-        ),
-    )
-
-    llm: Optional[LLM] = Field(
-        default=None,
-        description=(
-            "LLM model to be used for generating node summary content of \'document\', \'section\', \'paragraph\' levels"
+            "LLM model to be used for generating node summary content of \'document\' and \'section\' levels"
         )
     )
+    _prompt_template: str = PrivateAttr()
+
+    # The chunk level to use when splitting documents: document, section, paragraph, multi-sentences
+    _chunk_levels: List[str] = PrivateAttr()
 
     _doc_id_to_document: Dict[str, Document] = PrivateAttr()
 
@@ -41,12 +38,15 @@ class CustomHierarchicalNodeParser(NodeParser):
     @classmethod
     def from_defaults(
         cls,
+        llm: LLM,
         include_metadata: bool = True,
         include_prev_next_rel: bool = True,
         callback_manager: Optional[CallbackManager] = None,
     ) -> "CustomHierarchicalNodeParser":
         callback_manager = callback_manager or CallbackManager([])
-        chunk_levels = ["document", "section", "paragraph", "multi-sentences"]
+        cls._chunk_levels = ["document", "section", "paragraph", "multi-sentences"]
+        cls._prompt_template = TemplateSchema.custom_hierarchical_nodeParser_Tmpl
+
 
         cls._sentences_splitter = SentenceSplitter(
             chunk_size=128, 
@@ -56,7 +56,7 @@ class CustomHierarchicalNodeParser(NodeParser):
         )
 
         return cls(
-            chunk_levels=chunk_levels,
+            llm=llm,
             include_metadata=include_metadata,
             include_prev_next_rel=include_prev_next_rel,
             callback_manager=callback_manager,
@@ -66,20 +66,43 @@ class CustomHierarchicalNodeParser(NodeParser):
     def class_name(cls) -> str:
         return "CustomHierarchicalNodeParser"
 
+    def _get_summary_from_content(
+        self,
+        text: str
+    ) -> str:
+        input_text = self._prompt_template.format(context_str=text)
+        response = str(self.llm.complete(input_text)).strip()
+        return response
+
     def _get_document_node_from_document(
         self,
         document: Document,
     ) -> List[BaseNode]:
-        all_nodes: List[BaseNode] = []
+        
+        document_content = document.get_content(metadata_mode=MetadataMode.NONE)
 
-        all_nodes.extend(
-            # build node from document
-            build_nodes_from_splits(
-                [document.get_content(metadata_mode=MetadataMode.NONE)],
-                document,
-                id_func=self.id_func,
-            )
+        abstract_index = None
+        for k in document.metadata['sections']:
+            if k == 'abstract':
+                abstract_index = document.metadata['sections'][k]
+                break
+
+        abstract = None
+        if abstract_index != None and (abstract_index[1] - abstract_index[0]) > 100:
+            abstract = document_content[abstract_index[0]:abstract_index[1]]
+            print(f"abstract: {len(abstract)}")
+        else:
+            abstract = self._get_summary_from_content(document_content)
+            print(f"summary: {len(abstract)}")
+
+        # build node from document
+        all_nodes = build_nodes_from_splits(
+            [abstract],
+            document,
+            id_func=self.id_func,
         )
+
+        all_nodes[0].metadata['original_content'] = document_content
             
         return all_nodes
 
@@ -92,14 +115,29 @@ class CustomHierarchicalNodeParser(NodeParser):
         if parent_document is None:
             raise Exception(f"Parent document is not found with id {document_node.ref_doc_id}")
         
-        splits = [
-            document_node.get_content()[start: end] \
-            for start, end in parent_document.metadata['sections']    
-        ]
+        exit()
+
+        titles = []
+        sections = []
+        summaries = []
+        for title, (start, end) in parent_document.metadata['sections'].items():
+            titles.append(title)
+            
+            section = document_node.get_content()[start: end]
+            sections.append(section)
+
+            summary = self._get_summary_from_content(section)
+            summaries.append(summary)
+            print(f'section summary: {len(summary)}')
+
 
         all_nodes.extend(
-            build_nodes_from_splits(splits, document_node, id_func=self.id_func)
+            build_nodes_from_splits(summaries, document_node, id_func=self.id_func)
         )
+
+        for title, node in zip(titles, all_nodes):
+            node.metadata['section_title'] = title
+            node.metadata['original_content'] = section
 
         return all_nodes
 
@@ -206,19 +244,19 @@ class CustomHierarchicalNodeParser(NodeParser):
         show_progress: bool = False,
     ) -> List[BaseNode]:
         """Recursively get nodes from nodes."""
-        if level >= len(self.chunk_levels):
+        if level >= len(self._chunk_levels):
             raise ValueError(
                 f"Level {level} is greater than number of text "
-                f"splitters ({len(self.chunk_levels)})."
+                f"splitters ({len(self._chunk_levels)})."
             )
 
         # first split current nodes into sub-nodes
         nodes_with_progress = get_tqdm_iterable(
-            nodes, show_progress, f'{self.chunk_levels[level]} level parsing ...'
+            nodes, show_progress, f'{self._chunk_levels[level]} level parsing ...'
         )
         sub_nodes = []
         for node in nodes_with_progress:
-            cur_sub_nodes = self._split_nodes(chunk_level=self.chunk_levels[level], node=node)
+            cur_sub_nodes = self._split_nodes(chunk_level=self._chunk_levels[level], node=node)
 
             # add parent relationship from sub node to parent node
             # add child relationship from parent node to sub node
@@ -234,7 +272,7 @@ class CustomHierarchicalNodeParser(NodeParser):
             sub_nodes.extend(cur_sub_nodes)
 
         # now for each sub-node, recursively split into sub-sub-nodes, and add
-        if level < len(self.chunk_levels) - 1:
+        if level < len(self._chunk_levels) - 1:
             sub_sub_nodes = self._recursively_get_nodes_from_nodes(
                 sub_nodes,
                 level + 1,

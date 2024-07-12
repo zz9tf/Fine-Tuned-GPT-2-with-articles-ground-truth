@@ -18,8 +18,8 @@ from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.core import get_response_synthesizer
 from dotenv import load_dotenv
 from utils.gpt_4o_json_reader import easy_reader
-from utils.custom_document_reader import load_documents
 from utils.get import (
+    load_documents,
     get_parser,
     get_extractors,
     get_embedding_model,
@@ -48,7 +48,7 @@ class Database():
         print("[update_database] Generating nodes from documents...", end=' ')
         
         parser_config = self.prefix_config['parser'][index_config['parser']]
-        parser = get_parser(parser_config)
+        parser = get_parser(self, parser_config)
         nodes = parser.get_nodes_from_documents(
             documents, show_progress=True
         )
@@ -140,7 +140,7 @@ class Database():
 
             if nodes is None:
                 reader_config = self.prefix_config['reader'][index_config['reader']]
-                documents = self._load_documents(reader_config)
+                documents = load_documents(self, reader_config)
                 nodes = self._generate_nodes_from_documents(index_config, documents)
             
             if 'extractors' in index_config and len(index_config['extractors']) > 0:
@@ -148,14 +148,7 @@ class Database():
 
             # Load embedding model
             embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
-            if embedding_config["basedOn"] == 'huggingface':
-                Settings.embed_model = CustomHuggingfaceBasedEmbedding(
-                    model_name=embedding_config['name'],
-                )
-            elif embedding_config["basedOn"] == 'ollama':
-                Settings.embed_model = CustomOllamaBasedEmbedding(
-                    model_name=embedding_config['name']
-                )
+            Settings.embed_model = get_embedding_model(embedding_config)
 
             # Generate index for nodes
             storage_context_config = self.prefix_config['storage_context'][index_config['storage_context']]
@@ -197,7 +190,7 @@ class Database():
                 indexes.append({'id': d, 'size': size, 'modified_date': modified_date})
         return indexes        
 
-    def load_index(self, index_id, llm_name, is_rerank):
+    def load_index(self, index_id, llm, is_rerank):
         self._load_configs()
         # Load index config
         index_config = self.prefix_config['indexes'][index_id]
@@ -231,7 +224,8 @@ class Database():
             retriever = AutoMergingRetriever(index.as_retriever(), storage_context, verbose=True)
 
         # Set llm
-        Settings.llm = get_llm(llm_name)
+        llm_config = self.prefix_config['llm'][llm]
+        Settings.llm = get_llm(llm_config)
         
         # Set if it's ReRank
         if is_rerank:

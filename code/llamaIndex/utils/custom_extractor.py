@@ -4,15 +4,15 @@ import torch
 import json
 import time
 from datetime import datetime
-from llama_index.core.storage.docstore import SimpleDocumentStore
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
-from accelerate import infer_auto_device_map, init_empty_weights
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from llama_index.core.schema import BaseNode, MetadataMode
 from llama_index.llms.ollama import Ollama
 from tqdm import tqdm
 from openai import OpenAI
 from llama_index.llms.openai import OpenAI as llama_index_openai
 from utils.schema import TemplateSchema
+
+# TODO: make a custom extractor accept llm
 
 # [TODO] Need to accelarate the model
 class HuggingfaceBasedExtractor():

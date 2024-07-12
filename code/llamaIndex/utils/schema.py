@@ -63,3 +63,9 @@ Higher-level summaries of surrounding context may be provided \
 as well. Try using these summaries to generate better questions \
 that this context can answer.
 """
+
+    custom_hierarchical_nodeParser_Tmpl="""\
+Summarize the key idea of the section within 200 ~ 500 words 
+Here is the content of the section:
+{context_str}
+Summary: """
