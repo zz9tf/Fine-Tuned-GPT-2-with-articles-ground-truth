@@ -65,7 +65,8 @@ that this context can answer.
 """
 
     custom_hierarchical_nodeParser_Tmpl="""\
-Summarize the key idea of the section within 200 ~ 500 words 
+Summarize the key idea of the section. The length of the summary should be within 200 to 500 words 
+-----------------------------------------------------------------------------------
 Here is the content of the section:
 {context_str}
-Summary: """
+"""

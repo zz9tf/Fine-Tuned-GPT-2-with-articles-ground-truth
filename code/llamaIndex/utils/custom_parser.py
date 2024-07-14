@@ -27,14 +27,14 @@ class CustomHierarchicalNodeParser(NodeParser):
         )
     )
     _prompt_template: str = PrivateAttr()
-
+  
     # The chunk level to use when splitting documents: document, section, paragraph, multi-sentences
     _chunk_levels: List[str] = PrivateAttr()
 
     _doc_id_to_document: Dict[str, Document] = PrivateAttr()
 
     _sentences_splitter: SentenceSplitter = PrivateAttr()
-
+    
     @classmethod
     def from_defaults(
         cls,
@@ -71,7 +71,8 @@ class CustomHierarchicalNodeParser(NodeParser):
         text: str
     ) -> str:
         input_text = self._prompt_template.format(context_str=text)
-        response = str(self.llm.complete(input_text)).strip()
+        response = str(self.llm.complete(input_text, formatted=True)).strip()
+
         return response
 
     def _get_document_node_from_document(
@@ -81,23 +82,9 @@ class CustomHierarchicalNodeParser(NodeParser):
         
         document_content = document.get_content(metadata_mode=MetadataMode.NONE)
 
-        abstract_index = None
-        for k in document.metadata['sections']:
-            if k == 'abstract':
-                abstract_index = document.metadata['sections'][k]
-                break
-
-        abstract = None
-        if abstract_index != None and (abstract_index[1] - abstract_index[0]) > 100:
-            abstract = document_content[abstract_index[0]:abstract_index[1]]
-            print(f"abstract: {len(abstract)}")
-        else:
-            abstract = self._get_summary_from_content(document_content)
-            print(f"summary: {len(abstract)}")
-
         # build node from document
         all_nodes = build_nodes_from_splits(
-            [abstract],
+            [document_content],
             document,
             id_func=self.id_func,
         )
@@ -114,22 +101,34 @@ class CustomHierarchicalNodeParser(NodeParser):
         parent_document = self._doc_id_to_document.get(document_node.ref_doc_id, None)
         if parent_document is None:
             raise Exception(f"Parent document is not found with id {document_node.ref_doc_id}")
-        
-        exit()
 
         titles = []
         sections = []
         summaries = []
+        abstract = None
         for title, (start, end) in parent_document.metadata['sections'].items():
             titles.append(title)
             
             section = document_node.get_content()[start: end]
             sections.append(section)
 
+            if title == 'abstract':
+                abstract = section
+
             summary = self._get_summary_from_content(section)
             summaries.append(summary)
+            
             print(f'section summary: {len(summary)}')
 
+        summary_for_document = None
+        if abstract != None and len(abstract) > 100 and len(abstract) <= 500:
+            summary_for_document = abstract
+        else:
+            summaried_document = '\n'.join(summaries)
+            summary_for_document  = self._get_summary_from_content(summaried_document)
+        print(f"document summary: {len(summary_for_document)}")
+
+        exit()
 
         all_nodes.extend(
             build_nodes_from_splits(summaries, document_node, id_func=self.id_func)
