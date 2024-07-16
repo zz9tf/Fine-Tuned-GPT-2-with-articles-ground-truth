@@ -133,7 +133,7 @@ class CustomHierarchicalNodeParser(NodeParser):
                     num_children=3
                 ).generate_response_hs()
                 summaries.append(summary)
-                print(f'section summary: ({title}){len(section)} (summary){len(summary)}\n{summary}\n')
+                # print(f'section summary: ({title}){len(section)} (summary){len(summary)}\n{summary}\n')
 
                 # # Directly refine
                 # summary = TreeSummarize.from_defaults(

@@ -79,11 +79,6 @@ You are an expert researcher. Generate an abstractive summary of the given resea
 Limit the number of sentences in the summary to a maximum of three.
 """
 
-#     tree_summary_document_q_Tmpl="""\
-# You are an expert researcher. Generate an abstractive summary of the given research paper content. \
-# Limit the number of sentences in the summary to one.
-# """
-
     tree_summary_qa_Tmpl="""\
 {query_str}
 -----------------------------------------------------------------------------------
