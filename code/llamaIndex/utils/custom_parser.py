@@ -118,8 +118,7 @@ class CustomHierarchicalNodeParser(NodeParser):
                 #     llm=self.llm,
                 #     num_children=3
                 # ).refine_response(section)
-                
-            
+
             else:
                 titles.append(title)
                 sections.append(section)
@@ -134,9 +133,9 @@ class CustomHierarchicalNodeParser(NodeParser):
                     num_children=3
                 ).generate_response_hs()
                 summaries.append(summary)
-                print(f'section summary: ({title}){len(section)} (summary){len(summary)}\n\n{summary}')
+                print(f'section summary: ({title}){len(section)} (summary){len(summary)}\n{summary}\n')
 
-                # Directly refine
+                # # Directly refine
                 # summary = TreeSummarize.from_defaults(
                 #     texts=summaries,
                 #     query_str=TemplateSchema.tree_summary_section_q_Tmpl,
@@ -146,13 +145,13 @@ class CustomHierarchicalNodeParser(NodeParser):
                 #     num_children=3
                 # ).refine_response(section)
                 # summaries.append(summary)
-                # print(f'section summary: ({title}){len(section)} (summary){len(summary)}\n\n{summary}')
+                # print(f'section summary: ({title}){len(section)} (summary){len(summary)}\n{summary}\n')
 
-        summaried_document = '\n\n'.join(summaries)
+        # summaried_document = '\n\n'.join(summaries)
         summary_for_document = None
+
         if abstract != None:
             summary_for_document = abstract
-        
         else:
             # Tree summary
             summary_for_document, _ = TreeSummarize.from_defaults(
@@ -164,7 +163,7 @@ class CustomHierarchicalNodeParser(NodeParser):
                 num_children=3
             ).generate_response_hs()
 
-            # Directly refine
+            # # Directly refine
             # summary_for_document = TreeSummarize.from_defaults(
             #     texts=summaries,
             #     query_str=TemplateSchema.tree_summary_section_q_Tmpl,
@@ -174,12 +173,14 @@ class CustomHierarchicalNodeParser(NodeParser):
             #     num_children=3
             # ).refine_response(summaried_document)
 
-        print(f"document summary: {len(summaried_document)}  {len(summary_for_document)}")
+        # print(f"document summary: (document){len(summaried_document)} (summary){len(summary_for_document)}\n{summary}\n")
 
+        # Update document node
         origin_document_text = document_node.text
         document_node.metadata['original_content'] = origin_document_text
         document_node.text = summary_for_document
-        exit()
+
+        # Update section nodes
         all_nodes.extend(
             build_nodes_from_splits(summaries, document_node, id_func=self.id_func)
         )

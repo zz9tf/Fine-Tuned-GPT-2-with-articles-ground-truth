@@ -65,19 +65,24 @@ that this context can answer.
 """
 
     tree_summary_section_q_Tmpl="""\
-You are an expert researcher. Generate an abstractive summary of the given research paper content. \
+You are an expert academic researcher. Generate an abstractive summary of the given research content. \
 Limit the number of sentences in the summary to a maximum of three.
 """
 
     tree_summary_summary_Tmpl="""\
-You are an expert researcher. Generate an abstractive summary of the given research paper. \
-Limit the number of sentences in the summary to a maximum of three.
+You are an expert researcher. Select the two most important sentences from the given text. Start with \
+a numbered list format, like \'1.\' and \'2.\'.\
 """
 
     tree_summary_document_q_Tmpl="""\
 You are an expert researcher. Generate an abstractive summary of the given research paper content. \
 Limit the number of sentences in the summary to a maximum of three.
 """
+
+#     tree_summary_document_q_Tmpl="""\
+# You are an expert researcher. Generate an abstractive summary of the given research paper content. \
+# Limit the number of sentences in the summary to one.
+# """
 
     tree_summary_qa_Tmpl="""\
 {query_str}
