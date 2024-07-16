@@ -116,7 +116,7 @@ from utils.custom_llm import CustomHuggingFaceLLM
 
 def get_llm(self, llm_config):
     if llm_config['based_on'] == "ollama":
-        llm = Ollama(model=llm_config['model_name'], request_timeout=240.0)
+        llm = Ollama(model=llm_config['model_name'], request_timeout=240.0, temperature=0.3)
     elif llm_config['based_on'] == 'openai':
         llm = llama_index_openai(model=llm_config['model_name'], api_key=os.getenv('OPENAI_API_KEY'))
     elif llm_config['based_on'] == "huggingface":

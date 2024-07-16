@@ -11,7 +11,6 @@ from llama_index.core import (
 from llama_index.core.retrievers import AutoMergingRetriever
 from llama_index.core.node_parser import get_leaf_nodes
 from llama_index.core import Settings
-from utils.custom_embedding import CustomHuggingfaceBasedEmbedding, CustomOllamaBasedEmbedding
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.response_synthesizers import ResponseMode

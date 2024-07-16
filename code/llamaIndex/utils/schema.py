@@ -64,9 +64,25 @@ as well. Try using these summaries to generate better questions \
 that this context can answer.
 """
 
-    custom_hierarchical_nodeParser_Tmpl="""\
-Summarize the key idea of the section. The length of the summary should be within 200 to 500 words 
+    tree_summary_section_q_Tmpl="""\
+You are an expert researcher. Generate an abstractive summary of the given research paper content. \
+Limit the number of sentences in the summary to a maximum of three.
+"""
+
+    tree_summary_summary_Tmpl="""\
+You are an expert researcher. Generate an abstractive summary of the given research paper. \
+Limit the number of sentences in the summary to a maximum of three.
+"""
+
+    tree_summary_document_q_Tmpl="""\
+You are an expert researcher. Generate an abstractive summary of the given research paper content. \
+Limit the number of sentences in the summary to a maximum of three.
+"""
+
+    tree_summary_qa_Tmpl="""\
+{query_str}
 -----------------------------------------------------------------------------------
-Here is the content of the section:
+Here is the content:
 {context_str}
+-----------------------------------------------------------------------------------
 """

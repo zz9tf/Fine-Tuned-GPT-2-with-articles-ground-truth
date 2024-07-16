@@ -10,6 +10,7 @@ from llama_index.core.node_parser.node_utils import build_nodes_from_splits
 from llama_index.core.llms import LLM
 from llama_index.core.node_parser.relational.hierarchical import _add_parent_child_relationship
 from utils.schema import TemplateSchema
+from utils.response_synthesis import TreeSummarize
 
 class CustomHierarchicalNodeParser(NodeParser):
     """Hierarchical node parser.
@@ -26,7 +27,6 @@ class CustomHierarchicalNodeParser(NodeParser):
             "LLM model to be used for generating node summary content of \'document\' and \'section\' levels"
         )
     )
-    _prompt_template: str = PrivateAttr()
   
     # The chunk level to use when splitting documents: document, section, paragraph, multi-sentences
     _chunk_levels: List[str] = PrivateAttr()
@@ -45,7 +45,6 @@ class CustomHierarchicalNodeParser(NodeParser):
     ) -> "CustomHierarchicalNodeParser":
         callback_manager = callback_manager or CallbackManager([])
         cls._chunk_levels = ["document", "section", "paragraph", "multi-sentences"]
-        cls._prompt_template = TemplateSchema.custom_hierarchical_nodeParser_Tmpl
 
 
         cls._sentences_splitter = SentenceSplitter(
@@ -66,15 +65,6 @@ class CustomHierarchicalNodeParser(NodeParser):
     def class_name(cls) -> str:
         return "CustomHierarchicalNodeParser"
 
-    def _get_summary_from_content(
-        self,
-        text: str
-    ) -> str:
-        input_text = self._prompt_template.format(context_str=text)
-        response = str(self.llm.complete(input_text, formatted=True)).strip()
-
-        return response
-
     def _get_document_node_from_document(
         self,
         document: Document,
@@ -88,8 +78,6 @@ class CustomHierarchicalNodeParser(NodeParser):
             document,
             id_func=self.id_func,
         )
-
-        all_nodes[0].metadata['original_content'] = document_content
             
         return all_nodes
 
@@ -107,29 +95,91 @@ class CustomHierarchicalNodeParser(NodeParser):
         summaries = []
         abstract = None
         for title, (start, end) in parent_document.metadata['sections'].items():
-            titles.append(title)
-            
             section = document_node.get_content()[start: end]
-            sections.append(section)
 
             if title == 'abstract':
-                abstract = section
+                # Tree summary
+                texts = section.split('\n')
+                abstract, _ = TreeSummarize.from_defaults(
+                    texts=texts,
+                    query_str=TemplateSchema.tree_summary_section_q_Tmpl,
+                    summary_str=TemplateSchema.tree_summary_summary_Tmpl,
+                    qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
+                    llm=self.llm,
+                    num_children=3
+                ).generate_response_hs()
 
-            summary = self._get_summary_from_content(section)
-            summaries.append(summary)
+                # Directly refine
+                # abstract = TreeSummarize.from_defaults(
+                #     texts=summaries,
+                #     query_str=TemplateSchema.tree_summary_section_q_Tmpl,
+                #     summary_str=TemplateSchema.tree_summary_summary_Tmpl,
+                #     qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
+                #     llm=self.llm,
+                #     num_children=3
+                # ).refine_response(section)
+                
             
-            print(f'section summary: {len(summary)}')
+            else:
+                titles.append(title)
+                sections.append(section)
+                # Tree summary
+                texts = section.split('\n')
+                summary, _ = TreeSummarize.from_defaults(
+                    texts=texts,
+                    query_str=TemplateSchema.tree_summary_section_q_Tmpl,
+                    summary_str=TemplateSchema.tree_summary_summary_Tmpl,
+                    qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
+                    llm=self.llm,
+                    num_children=3
+                ).generate_response_hs()
+                summaries.append(summary)
+                print(f'section summary: ({title}){len(section)} (summary){len(summary)}\n\n{summary}')
 
+                # Directly refine
+                # summary = TreeSummarize.from_defaults(
+                #     texts=summaries,
+                #     query_str=TemplateSchema.tree_summary_section_q_Tmpl,
+                #     summary_str=TemplateSchema.tree_summary_summary_Tmpl,
+                #     qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
+                #     llm=self.llm,
+                #     num_children=3
+                # ).refine_response(section)
+                # summaries.append(summary)
+                # print(f'section summary: ({title}){len(section)} (summary){len(summary)}\n\n{summary}')
+
+        summaried_document = '\n\n'.join(summaries)
         summary_for_document = None
-        if abstract != None and len(abstract) > 100 and len(abstract) <= 500:
+        if abstract != None:
             summary_for_document = abstract
+        
         else:
-            summaried_document = '\n'.join(summaries)
-            summary_for_document  = self._get_summary_from_content(summaried_document)
-        print(f"document summary: {len(summary_for_document)}")
+            # Tree summary
+            summary_for_document, _ = TreeSummarize.from_defaults(
+                texts=summaries,
+                query_str=TemplateSchema.tree_summary_section_q_Tmpl,
+                summary_str=TemplateSchema.tree_summary_summary_Tmpl,
+                qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
+                llm=self.llm,
+                num_children=3
+            ).generate_response_hs()
 
+            # Directly refine
+            # summary_for_document = TreeSummarize.from_defaults(
+            #     texts=summaries,
+            #     query_str=TemplateSchema.tree_summary_section_q_Tmpl,
+            #     summary_str=TemplateSchema.tree_summary_summary_Tmpl,
+            #     qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
+            #     llm=self.llm,
+            #     num_children=3
+            # ).refine_response(summaried_document)
+
+        print(f"document summary: {len(summaried_document)}  {len(summary_for_document)}")
+
+        origin_document_text = document_node.text
+        document_node.metadata['original_content'] = origin_document_text
+        document_node.text = summary_for_document
         exit()
-
         all_nodes.extend(
             build_nodes_from_splits(summaries, document_node, id_func=self.id_func)
         )
