@@ -1,32 +1,4 @@
 ##########################################################################
-# Directory Reader
-from llama_index.core import SimpleDirectoryReader
-from utils.custom_document_reader import CustomDocumentReader
-
-def load_documents(self, reader_config):
-    print("[update_database] Loading documents ...", end=' ') 
-    file_path = self.config['document_preprocessing']['data_dir_path']
-    data_path = os.path.abspath(os.path.join(self.root_path, file_path))
-
-    if reader_config['type'] == 'SimpleDirectoryReader':
-        documents = SimpleDirectoryReader(
-            input_dir=data_path, 
-            exclude=[],
-            file_metadata=lambda file_path : {"file_path": file_path},
-            filename_as_id=True
-        ).load_data()
-    elif reader_config['type'] == 'CustomDocumentReader':
-        cache_path = os.path.abspath(os.path.join(self.root_path, reader_config['cache']))
-        config_path = os.path.abspath(os.path.join(self.root_path, reader_config['config_file_path']))
-        documents = CustomDocumentReader(
-            input_dir=data_path,
-            cache_dir=cache_path,
-            config_path=config_path
-        ).load_data()
-    print("done")
-    return documents
-
-##########################################################################
 # parser
 from utils.custom_parser import (
     CustomHierarchicalNodeParser
@@ -37,25 +9,25 @@ from llama_index.core.node_parser import (
     HierarchicalNodeParser
 )
 
-def get_parser(self, parser_config):
+def get_parser(self, config):
     VALID_PARSER = self.prefix_config['parser'].keys()
-    if parser_config['type'] == 'SentenceSplitter':
+    if config['type'] == 'SentenceSplitter':
         return SentenceSplitter(
-            chunk_size=parser_config.get('chunk_size', 1024), 
-            chunk_overlap=parser_config.get('chunk_overlap', 200)
+            chunk_size=config.get('chunk_size', 1024), 
+            chunk_overlap=config.get('chunk_overlap', 200)
         )
-    elif parser_config['type'] == 'SimpleFileNodeParser':
+    elif config['type'] == 'SimpleFileNodeParser':
         return SimpleFileNodeParser()
-    elif parser_config['type'] == 'HierarchicalNodeParser':
+    elif config['type'] == 'HierarchicalNodeParser':
         return HierarchicalNodeParser.from_defaults(
-            chunk_sizes=parser_config.get('chunk_size', [2048, 512, 128])
+            chunk_sizes=config.get('chunk_size', [2048, 512, 128])
         )
-    elif parser_config['type'] == 'CustomHierarchicalNodeParser':
+    elif config['type'] == 'CustomHierarchicalNodeParser':
         return CustomHierarchicalNodeParser.from_defaults(
-            llm=get_llm(self, self.prefix_config['llm'][parser_config['llm']])
+            llm=get_llm(self, self.prefix_config['llm'][config['llm']])
         )
     else:
-        raise Exception("Invalid embedding model name. Please provide parser types {}".format(VALID_PARSER))
+        raise Exception("Invalid parser config. Please provide parser types {}".format(VALID_PARSER))
     
 ##########################################################################
 # Extractor
@@ -72,7 +44,7 @@ def get_extractors(self, extractor_config):
         return HuggingfaceBasedExtractor(
             model_name=extractor_config['llm'],
             no_split_modules=llm_config['no_split_modules'],
-            cache_dir=llm_config['cache'],
+            cache_dir=self.config['cache'],
             num_questions=extractor_config['num_questions']
         )
     elif extractor_config['type'] == 'OllamaBasedExtractor':
@@ -84,7 +56,7 @@ def get_extractors(self, extractor_config):
     elif extractor_config['type'] == 'OpenAIBasedExtractor':
         return OpenAIBasedExtractor(
             model_name=extractor_config['llm'],
-            cache_dir=os.path.abspath(os.path.join(self.root_path, extractor_config['cache'])),
+            cache_dir=os.path.abspath(os.path.join(self.root_path, self.config['cache'])),
             mode=extractor_config['mode'],
             embedding_only=extractor_config.get('embedding_only', True),
             only_meta=extractor_config.get('only_meta', None)
@@ -92,17 +64,13 @@ def get_extractors(self, extractor_config):
 
 ##########################################################################
 # Embedding model method
-from utils.custom_embedding import (
-    CustomHuggingfaceBasedEmbedding,
-    CustomOllamaBasedEmbedding
-)
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from utils.custom_embedding import CustomOllamaBasedEmbedding
 
 def get_embedding_model(embedding_config):
     if embedding_config['based_on'] == 'huggingface':
-        return CustomHuggingfaceBasedEmbedding(
-            model_name=embedding_config['name'],
-            cache_dir=embedding_config['cache']
-        )
+        exit()
+        return HuggingFaceEmbedding
     elif embedding_config["based_on"] == 'ollama':
         return CustomOllamaBasedEmbedding(
             model_name=embedding_config['name']
@@ -110,9 +78,11 @@ def get_embedding_model(embedding_config):
 
 ##########################################################################
 # LLM method
+import torch
+from transformers import BitsAndBytesConfig
 from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI as llama_index_openai
-from utils.custom_llm import CustomHuggingFaceLLM
+from llama_index.llms.huggingface import HuggingFaceLLM
 
 def get_llm(self, llm_config):
     if llm_config['based_on'] == "ollama":
@@ -121,8 +91,29 @@ def get_llm(self, llm_config):
         llm = llama_index_openai(model=llm_config['model_name'], api_key=os.getenv('OPENAI_API_KEY'))
     elif llm_config['based_on'] == "huggingface":
         # TODO Custom Huggingface model
-        llm_config = self.prefix_config['llm'][llm_config]
-        llm = CustomHuggingFaceLLM(llm_config)
+
+        # quantize to save memory
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_quant_type="nf4",
+            # bnb_4bit_use_double_quant=True,
+        )
+
+        llm = HuggingFaceLLM(
+            model_name=llm_config['model_name'],
+            tokenizer_name=llm_config['model_name'],
+            context_window=3900,
+            max_new_tokens=256,
+            model_kwargs={
+                "quantization_config": quantization_config,
+                "cache_dir": llm_config['cache_dir']
+            },
+            generate_kwargs={"temperature": 0.3, "top_k": 50, "top_p": 0.95},
+            token=os.getenv("HUGGING_FACE_TOKEN"),
+            device_map="auto"
+        )
+
     else:
         raise Exception(f"Invalid llm based {llm_config['based_on']}")
     
@@ -130,11 +121,13 @@ def get_llm(self, llm_config):
 
 ##########################################################################
 # Index
-from llama_index.core import VectorStoreIndex
+from llama_index.core import VectorStoreIndex, PropertyGraphIndex
 
 def get_an_index_generator(index_type):
         if index_type == 'VectorStoreIndex':
             return VectorStoreIndex
+        elif index_type == 'PropertyGraphIndex':
+            return PropertyGraphIndex
         else:
             raise Exception("Invalid embedding model name. Please provide embedding models {}".format())
 

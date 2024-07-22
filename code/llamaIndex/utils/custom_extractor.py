@@ -95,9 +95,9 @@ class OllamaBasedExtractor():
         return False
 
     def extract(self, nodes: List[BaseNode]):
-        target_nodes = []
-        if self.only_meta:
-            target_nodes = [node for node in nodes if self._is_target_node(node)]
+        target_nodes = [node for node in nodes if self._is_target_node(node)] \
+            if self.only_meta is not None \
+            else nodes
         for node in tqdm(target_nodes):
             self._extract_metadata_from_node(node)
 
@@ -282,9 +282,9 @@ class OpenAIBasedExtractor():
         return False
 
     def extract(self, nodes: List[BaseNode]):
-        target_nodes = []
-        if self.only_meta:
-            target_nodes = [node for node in nodes if self._is_target_node(node)]
+        target_nodes = [node for node in nodes if self._is_target_node(node)] \
+            if self.only_meta is not None \
+            else nodes
 
         if self.mode == 'immediately':
             for node in tqdm(target_nodes):

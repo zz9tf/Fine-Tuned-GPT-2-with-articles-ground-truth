@@ -1,10 +1,10 @@
 import os
 import yaml
 from datetime import datetime
-
+from llama_index.core import SimpleDirectoryReader
+from utils.custom_document_reader import CustomDocumentReader
 from llama_index.core import (
     VectorStoreIndex,
-    PropertyGraphIndex,
     StorageContext,
     load_index_from_storage,
 )
@@ -18,7 +18,6 @@ from llama_index.core import get_response_synthesizer
 from dotenv import load_dotenv
 from utils.gpt_4o_json_reader import easy_reader
 from utils.get import (
-    load_documents,
     get_parser,
     get_extractors,
     get_embedding_model,
@@ -27,12 +26,18 @@ from utils.get import (
     get_a_store
 )
 from utils.evaluate_execution_time import evaluate_time
+from pipeline import CreateIndexPipeline
+
 
 class Database():
     def __init__(self, config_dir_path):
         self.root_path = "../.."
         self.config_dir_path = config_dir_path
         self._load_configs()
+        database_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path']))
+        os.makedirs(database_path, exist_ok=True)
+        cache_path = os.path.abspath(os.path.join(self.root_path, self.config['cache']))
+        os.makedirs(cache_path, exist_ok=True)
 
     def _load_configs(self):
         config_path = os.path.abspath(os.path.join(self.root_path, self.config_dir_path, 'config.yaml'))
@@ -43,130 +48,92 @@ class Database():
             self.prefix_config = yaml.safe_load(prefix_config)
         load_dotenv(dotenv_path=os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/.env')))
 
-    def _generate_nodes_from_documents(self, index_config, documents):
+    def _load_documents(self, config, **kwargs):
+        print("[update_database] Loading documents ...", end=' ') 
+        file_path = self.config['document_preprocessing']['data_dir_path']
+        data_path = os.path.abspath(os.path.join(self.root_path, file_path))
+
+        if config['type'] == 'SimpleDirectoryReader':
+            documents = SimpleDirectoryReader(
+                input_dir=data_path,
+                exclude=[],
+                file_metadata=lambda file_path : {"file_path": file_path},
+                filename_as_id=True
+            ).load_data()
+        elif config['type'] == 'CustomDocumentReader':
+            cache_path = os.path.abspath(os.path.join(self.root_path, self.config['cache']))
+            config_path = os.path.abspath(os.path.join(self.root_path, config['config_file_path']))
+            documents = CustomDocumentReader(
+                input_dir=data_path,
+                cache_dir=cache_path,
+                config_path=config_path
+            ).load_data()
+        print("done")
+        return documents
+
+    def _generate_nodes_from_documents(self, config, documents, **kwargs):
         print("[update_database] Generating nodes from documents...", end=' ')
-        
-        parser_config = self.prefix_config['parser'][index_config['parser']]
-        parser = get_parser(self, parser_config)
+
+        parser = get_parser(self, config)
         nodes = parser.get_nodes_from_documents(
             documents, show_progress=True
         )
         print('done')
-
-        return nodes
-
-    def _extract_and_add_metadata_to_nodes(self, index_config, nodes):
-        print('[update_database] Extracting metadata ...')
-        for extractor_index_config in index_config['extractors']:
-            extractor_name = None
-
-            if type(extractor_index_config) == dict:
-                extractor_name, extractor_index_config = next(iter(extractor_index_config.items()))
-                extractor_config = self.prefix_config['extractor'][extractor_name]
-            else:
-                extractor_name = extractor_index_config
-                extractor_config = self.prefix_config['extractor'][extractor_name]
-            
-            print(f"Doing {extractor_name} ...")
-            if extractor_config['llm'] == 'gpt-4o':
-                # Create a cache for gpt-4o results
-                cache_path = os.path.abspath(os.path.join(self.root_path, extractor_config['cache']))
-                os.makedirs(cache_path, exist_ok=True)
-
-                # Check if the nodes cache exists
-                nodes_cache_path = os.path.abspath(os.path.join(cache_path, extractor_name+'.json'))
-                # If not, create nodes cache
-                extractor = get_extractors(self, extractor_config)
-                extractor.extract(nodes)
-                # save nodes
-                docstore = get_a_store('SimpleDocumentStore')
-                docstore.add_documents(nodes)
-                docstore.persist(persist_path=nodes_cache_path)
-                print(f"[update_database] Nodes saved to {cache_path}")
-                easy_reader(cache_path, extractor_name)
-                if 'need_interrupt' in extractor_index_config and extractor_index_config['need_interrupt']:
-                    # Break for the rest step
-                    exit()
-                    
-            else:
-                extractor = get_extractors(self, extractor_config)
-                extractor.extract(nodes)
-
-        print("done")
-        return nodes
         
-    def _update_to_latest_extractors(self, index_config):
-        nodes = None
-        unfinished_extractors = []
-        # Try to find the latest available nodes
-        for extractor_index_config in index_config['extractors']:
-            if type(extractor_index_config) == str:
-                unfinished_extractors.append(extractor_index_config)
-                continue
+        return nodes
+    
+    def _extract_metadata(self, config, nodes, **kwargs):
+        print(f'[update_database] Extracting metadata {config['name']} ...')
+        extractor = get_extractors(self, config)
+        extractor.extract(nodes)
+        print("done")
+        
+    def _storage(self, index_id, index_dir_path, config, nodes, **kwargs):
+        # Load embedding model
+        embedding_config = self.prefix_config['embedding_model'][config['embedding_model']]
+        Settings.embed_model = get_embedding_model(embedding_config)
 
-            extractor_name, extractor_index_config = next(iter(extractor_index_config.items()))
-            extractor_config = self.prefix_config['extractor'][extractor_name]
-            cache_path = os.path.abspath(os.path.join(self.root_path, extractor_config['cache']))
-            nodes_cache_path = os.path.abspath(os.path.join(cache_path, extractor_name+'.json'))
+        # Generate index for nodes
+        index_generator = get_an_index_generator(config['index_generator'])
+        index = index_generator(
+            nodes=nodes,
+            storage_context=StorageContext.from_defaults(
+                docstore=get_a_store(config['docstore']),
+                vector_store=get_a_store(config['vector_store']),
+                index_store=get_a_store(config['index_store']),
+                property_graph_store=get_a_store(config['property_graph_store'])
+            ),
+            persist_dir=index_dir_path if os.path.exists(index_dir_path) else None,
+            show_progress=True
+        )
 
-            if os.path.exists(nodes_cache_path) and 'force_extract' in extractor_index_config and not extractor_index_config['force_extract']:
-                print(f"[update_database] Cache {extractor_name} is detected. Now at {extractor_name} ...")
-                unfinished_extractors = []
-                # Directly use nodes have been generated
-                docstore = get_a_store('SimpleDocumentStore').from_persist_path(persist_path=nodes_cache_path)
-                nodes = [node for _, node in docstore.docs.items()]
-            else:
-                unfinished_extractors.append({extractor_name: extractor_index_config})
+        # Save index
+        index.set_index_id(index_id)
+        index.storage_context.persist(index_dir_path)
+        print("[update_database] Index: {} has been saved".format(index_id))
 
-        return nodes, unfinished_extractors
+    def _generate_pipeline(self, index_id, index_dir_path):
+        pipeline = CreateIndexPipeline(
+            index_id=index_id, 
+            index_dir_path=index_dir_path, 
+            database=self,
+            pipeline_config = self.prefix_config['index_pipelines'][index_id]
+        )
+
+        return pipeline
 
     def create_or_update_indexes(self):
         self._load_configs()
-        for index_id in self.config['document_preprocessing']['indexes']:
+        for index_id in self.config['document_preprocessing']['index_pipelines']:
             # Load index config
-            index_config = self.prefix_config['indexes'][index_id]
             print('[update_database] Updating index: {}'.format(index_id))
-            
             index_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path'], index_id))
-            
+
             if not os.path.exists(index_dir_path):
-                print("[update_database] Storage does not find with path: {}".format(index_dir_path))
+                print("[update_database] Index does not find with path: {}".format(index_dir_path))
                 print("[update_database] Creating a new one...")
-
-            nodes = None            
-            if 'extractors' in index_config:
-                nodes, index_config['extractors'] = self._update_to_latest_extractors(index_config)
-
-            if nodes is None:
-                reader_config = self.prefix_config['reader'][index_config['reader']]
-                documents = load_documents(self, reader_config)
-                nodes = self._generate_nodes_from_documents(index_config, documents)
-            
-            if 'extractors' in index_config and len(index_config['extractors']) > 0:
-                nodes = self._extract_and_add_metadata_to_nodes(index_config, nodes)
-
-            # Load embedding model
-            embedding_config = self.prefix_config['embedding_model'][index_config['embedding_model']]
-            Settings.embed_model = get_embedding_model(embedding_config)
-
-            # Generate index for nodes
-            storage_context_config = self.prefix_config['storage_context'][index_config['storage_context']]
-            index_generator = get_an_index_generator(storage_context_config['index_generator'])
-            index = index_generator(
-                nodes=nodes,
-                storage_context=StorageContext.from_defaults(
-                    docstore=get_a_store(storage_context_config['docstore']),
-                    vector_store=get_a_store(storage_context_config['vector_store']),
-                    index_store=get_a_store(storage_context_config['index_store']),
-                    property_graph_store=get_a_store(storage_context_config['property_graph_store'])
-                ),
-                persist_dir=index_dir_path if os.path.exists(index_dir_path) else None,
-                show_progress=True
-            )
-
-            index.set_index_id(index_id)
-            index.storage_context.persist(index_dir_path)
-            print("[update_database] Index: {} has been saved".format(index_id))
+            pipeline = self._generate_pipeline(index_id, index_dir_path)
+            pipeline.run()
 
     def get_all_index_ids(self):
         self._load_configs()
