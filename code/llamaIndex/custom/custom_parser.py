@@ -177,7 +177,6 @@ class CustomHierarchicalNodeParser(NodeParser):
         self,
         paragraph_node: BaseNode
     ) -> List[BaseNode]:
-        exit()
         return self._sentences_splitter._parse_nodes([paragraph_node])
 
     def _postprocess_parsed_nodes(
