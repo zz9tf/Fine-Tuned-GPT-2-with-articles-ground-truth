@@ -10,7 +10,7 @@ from llama_index.llms.ollama import Ollama
 from tqdm import tqdm
 from openai import OpenAI
 from llama_index.llms.openai import OpenAI as llama_index_openai
-from utils.schema import TemplateSchema
+from .schema import TemplateSchema
 
 # TODO: make a custom extractor accept llm
 

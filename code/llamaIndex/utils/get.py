@@ -1,6 +1,6 @@
 ##########################################################################
 # parser
-from utils.custom_parser import (
+from custom.custom_parser import (
     CustomHierarchicalNodeParser
 )
 from llama_index.core.node_parser import (
@@ -32,7 +32,7 @@ def get_parser(self, config):
 ##########################################################################
 # Extractor
 import os
-from utils.custom_extractor import (
+from custom.custom_extractor import (
     HuggingfaceBasedExtractor,
     OllamaBasedExtractor,
     OpenAIBasedExtractor
@@ -65,7 +65,7 @@ def get_extractors(self, extractor_config):
 ##########################################################################
 # Embedding model method
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from utils.custom_embedding import CustomOllamaBasedEmbedding
+from custom.custom_embedding import CustomOllamaBasedEmbedding
 
 def get_embedding_model(embedding_config):
     if embedding_config['based_on'] == 'huggingface':

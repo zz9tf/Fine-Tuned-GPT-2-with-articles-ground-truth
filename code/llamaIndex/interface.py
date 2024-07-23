@@ -1,5 +1,5 @@
 import os, shutil, yaml, time
-from database import Database
+from basic.database import Database
 
 help_menu = """
 /help                              Show this help message
@@ -22,8 +22,8 @@ You are using indexes: {}   llm: {}   ReRank: {}
 
 class SystemInterface():
     def __init__(self, config_dir_path):
-        self.database = Database(config_dir_path)
         self.root_path = '../..'
+        self.database = Database(root_path=self.root_path, config_dir_path=config_dir_path)
         self.config_dir_path = config_dir_path
         self._load_configs()
         self.current_index_id = self.config['rag']['default_index']
@@ -161,4 +161,4 @@ class SystemInterface():
                 self.query(user_input)
 
 if __name__ == "__main__":
-    SystemInterface(config_dir_path='./code/llamaIndex').run()
+    SystemInterface(config_dir_path='./code/llamaIndex/configs').run()

@@ -9,8 +9,8 @@ from llama_index.core.utils import get_tqdm_iterable
 from llama_index.core.node_parser.node_utils import build_nodes_from_splits
 from llama_index.core.llms import LLM
 from llama_index.core.node_parser.relational.hierarchical import _add_parent_child_relationship
-from utils.schema import TemplateSchema
-from utils.response_synthesis import TreeSummarize
+from .schema import TemplateSchema
+from .response_synthesis import TreeSummarize
 
 class CustomHierarchicalNodeParser(NodeParser):
     """Hierarchical node parser.

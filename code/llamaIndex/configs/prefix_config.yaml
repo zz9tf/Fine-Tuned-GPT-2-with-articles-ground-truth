@@ -10,7 +10,7 @@ parser:
     retriever: "BaseRetriever"
   "SentenceSplitter":
     type: "SentenceSplitter"
-    chunk_size: 1024
+    chunk_size: 512
     chunk_overlap: 20
     retriever: "BaseRetriever"
   "HierarchicalNodeParser":
@@ -78,8 +78,11 @@ storage:
 index_pipelines:
   "test":
     - reader: "SimpleDirectoryReader"
-    - parser: "SimpleFileNodeParser"
+    - break: "-"
+    - parser: "SentenceSplitter"
+    - break: "-"
     - extractor: "vicuna:13b-QAExtractor"
+    - break: "-"
     - storage: "simple" 
   "ollama-based":
     - reader: "CustomDocumentReader"
