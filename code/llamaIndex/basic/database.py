@@ -73,11 +73,9 @@ class Database():
             ).load_data()
         elif config['type'] == 'CustomDocumentReader':
             cache_path = os.path.abspath(os.path.join(self.root_path, self.config['cache']))
-            config_path = os.path.abspath(os.path.join(self.root_path, config['config_file_path']))
             nodes = CustomDocumentReader(
                 input_dir=data_path,
                 cache_dir=cache_path,
-                config_path=config_path
             ).load_data()
         print("done")
         return nodes

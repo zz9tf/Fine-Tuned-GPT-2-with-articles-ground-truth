@@ -9,13 +9,13 @@ class CustomDocumentReader:
             self, 
             input_dir, 
             cache_dir, 
-            config_path='./config.json', 
+            config_path=None, 
             remove_cache=False
     ) -> None:
         # convert pdf to xml file
         self.input_dir = input_dir
         self.cache_dir = cache_dir
-        self.config_path = config_path
+        self.config_path = os.path.join(os.path.dirname(__file__), 'config.json') if config_path is None else config_path
         self.remove_cache = remove_cache
 
     def _convert_pdf_to_xml(self):

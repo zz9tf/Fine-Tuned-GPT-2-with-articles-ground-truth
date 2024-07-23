@@ -85,9 +85,8 @@ class CreateIndexPipeline:
         if step_type == 'storage':
             self.kwargs['result'] = result
         elif step_type != 'break':
-            # TODO: remove [:4]
-            self.kwargs['result'] = result[:4]
-            self.kwargs['nodes'] = result[:4]
+            self.kwargs['result'] = result
+            self.kwargs['nodes'] = result
 
     def run(self):
         if hasattr(self, 'nodes_cache_path'):
