@@ -16,4 +16,4 @@ def easy_reader(cache_dir_path, file_name):
 if __name__ == '__main__':
     root_path = '../../..'
     cache_dir_path = os.path.abspath(os.path.join(root_path, "./code/llamaIndex/.cache"))
-    easy_reader(cache_dir_path, "gpt-4o-QAExtractor-batch")
+    easy_reader(cache_dir_path, "test-gpt-4o-batch_3_extractor_gpt-4o-QAExtractor-batch")

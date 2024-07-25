@@ -90,7 +90,7 @@ class Database():
         return nodes
     
     def _extract_metadata(self, config, nodes, **kwargs):
-        print(f'[update_database] Extracting metadata {config['name']} ...')
+        print(f'[update_database] Extracting metadata {config["name"]} ...')
         extractor = get_extractors(self, config)
         extractor.extract(nodes)
         print("done")
@@ -128,7 +128,8 @@ class Database():
             index_id=index_id, 
             index_dir_path=index_dir_path, 
             database=self,
-            index_pipeline = index_pipeline
+            index_pipeline = index_pipeline,
+            delete_cache=False
         )
 
         return pipeline
@@ -174,7 +175,7 @@ class Database():
             if step_type not in action:
                 index_config[step_type] = action
             else:
-                if type(index_config[step_type]) == list:
+                if isinstance(index_config[step_type], list):
                     index_config[step_type].append(action)
                 else:    
                     index_config[step_type] = [index_config[step_type], action]
@@ -237,7 +238,6 @@ class Database():
             engine = index.as_query_engine(streaming=True)
 
         return engine
-
 
 if __name__ == '__main__':
     d = Database(root_path='../../..', config_dir_path='./code/llamaIndex/configs')

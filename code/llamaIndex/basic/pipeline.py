@@ -25,7 +25,6 @@ class CreateIndexPipeline:
         self.delete_cache = delete_cache
         os.makedirs(self.cache_path, exist_ok=True)
         self.index_pipeline = index_pipeline
-        self.isBreak = False
 
         self.add_steps()
     
@@ -49,7 +48,7 @@ class CreateIndexPipeline:
     def _add(self, step_id, step_type, action):
         if step_type == 'break':
             _, prev_kwargs = self.steps[-1][-1]
-            cache_name = f'{self.kwargs['index_id']}_{step_id-1}_{prev_kwargs['step_type']}_{prev_kwargs['action']}.json'
+            cache_name = f'{self.kwargs["index_id"]}_{step_id-1}_{prev_kwargs["step_type"]}_{prev_kwargs["action"]}.json'
             # Rebuild the break point?
             if action == 'force':
                 kwargs = {'step_type': step_type, 'action': action, 'cache_name': cache_name}
@@ -78,8 +77,6 @@ class CreateIndexPipeline:
         for step_id, step in enumerate(self.index_pipeline):
             step_type, action = next(iter(step.items()))
             self._add(step_id, step_type, action)
-            if self.isBreak:
-                break
     
     def update_kwargs_after_func(self, step_type, result):
         if step_type == 'storage':
@@ -93,7 +90,7 @@ class CreateIndexPipeline:
             # Directly use nodes have been generated
             docstore = get_a_store('SimpleDocumentStore').from_persist_path(persist_path=self.nodes_cache_path)
             nodes = [node for _, node in docstore.docs.items()]
-            self.kwargs['nodes'] = nodes
+            self.kwargs['nodes'] = nodes[:4]
             if self.delete_cache:
                 os.remove(self.nodes_cache_path)
 

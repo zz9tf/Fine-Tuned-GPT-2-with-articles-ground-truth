@@ -10,7 +10,9 @@ from llama_index.llms.ollama import Ollama
 from tqdm import tqdm
 from openai import OpenAI
 from llama_index.llms.openai import OpenAI as llama_index_openai
-from .schema import TemplateSchema
+from schema import TemplateSchema
+from llama_index.core.bridge.pydantic import BaseModel
+from llama_index.core.program import FunctionCallingProgram
 
 # TODO: make a custom extractor accept llm
 
@@ -66,6 +68,7 @@ class OllamaBasedExtractor():
         model_name: str,
         prompt_template: dict = TemplateSchema.prompt_template_ollama,
         embedding_only: bool = True,
+        pydantic_cls: BaseModel = None,
         only_meta: Optional[Dict[str, list]] = None
         
     ) -> None:
@@ -73,19 +76,28 @@ class OllamaBasedExtractor():
         self._model = Ollama(model=model_name, request_timeout=120.0)
         self._prompt_metadata_key, self._prompt_template = prompt_template
         self.embedding_only = embedding_only
+        if pydantic_cls is not None:
+            self.program = FunctionCallingProgram.from_defaults(
+                output_cls=self.pydantic_cls,
+                prompt_template_str=self._prompt_template,
+                verbose=True
+            )
         self.only_meta = only_meta
 
     def _extract_metadata_from_node(self, node: BaseNode) -> Dict[str, str]:
         """Extract metadata from a node and return it's metadata dict."""
-
         context_str = node.get_content(metadata_mode=MetadataMode.ALL)
+        if not hasattr(self, 'program'):
+            input_text = self._prompt_template.format(context_str=context_str)
+            generated_text = self._model.complete(input_text)
 
-        input_text = self._prompt_template.format(context_str=context_str)
-        generated_text = self._model.complete(input_text)
-
-        node.metadata[self._prompt_metadata_key] = str(generated_text).strip()
-        if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
-            node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
+            node.metadata[self._prompt_metadata_key] = str(generated_text).strip()
+            if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
+                node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
+        else:
+            output = self.program(context_str=context_str)
+            print(output)
+            exit()
 
     
     def _is_target_node(self, node):
