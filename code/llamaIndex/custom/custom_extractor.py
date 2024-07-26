@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional
 import os
+import csv
 import torch
 import json
 import time
@@ -10,14 +11,22 @@ from llama_index.llms.ollama import Ollama
 from tqdm import tqdm
 from openai import OpenAI
 from llama_index.llms.openai import OpenAI as llama_index_openai
-from schema import TemplateSchema
+from custom.schema import TemplateSchema
+from custom.schema import QAR
 from llama_index.core.bridge.pydantic import BaseModel
-from llama_index.core.program import FunctionCallingProgram
+from custom.custom_pydantic import CustomPydanticOutputParser
+
+def parse_obj_to_str(objs):
+    objs_str = ""
+    for obj in objs:
+        obj_str = '\n'.join([f'{k}={v}' for k, v in obj.dict().items()])
+        objs_str += f"[{obj_str}]\n"
+    return objs_str.strip()
 
 # TODO: make a custom extractor accept llm
 
 # [TODO] Need to accelarate the model
-class HuggingfaceBasedExtractor():
+class HuggingfaceBasedQARExtractor():
     def __init__(
         self,
         model_name,
@@ -62,42 +71,38 @@ class HuggingfaceBasedExtractor():
             for k, v in metadata.items():
                 node.metadata[k] = v
 
-class OllamaBasedExtractor():
+class OllamaBasedQARExtractor():
     def __init__(
         self,
         model_name: str,
         prompt_template: dict = TemplateSchema.prompt_template_ollama,
         embedding_only: bool = True,
-        pydantic_cls: BaseModel = None,
         only_meta: Optional[Dict[str, list]] = None
-        
     ) -> None:
         """Init params."""
         self._model = Ollama(model=model_name, request_timeout=120.0)
         self._prompt_metadata_key, self._prompt_template = prompt_template
         self.embedding_only = embedding_only
-        if pydantic_cls is not None:
-            self.program = FunctionCallingProgram.from_defaults(
-                output_cls=self.pydantic_cls,
-                prompt_template_str=self._prompt_template,
-                verbose=True
-            )
+        self.pydantic_parser = CustomPydanticOutputParser(output_cls=QAR)
         self.only_meta = only_meta
 
     def _extract_metadata_from_node(self, node: BaseNode) -> Dict[str, str]:
         """Extract metadata from a node and return it's metadata dict."""
         context_str = node.get_content(metadata_mode=MetadataMode.ALL)
-        if not hasattr(self, 'program'):
-            input_text = self._prompt_template.format(context_str=context_str)
-            generated_text = self._model.complete(input_text)
+        context_str = self.pydantic_parser.format(context_str)
+        input_text = self._prompt_template.format(context_str=context_str)
+        generated_text = self._model.complete(input_text).text.strip()
 
-            node.metadata[self._prompt_metadata_key] = str(generated_text).strip()
-            if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
-                node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
-        else:
-            output = self.program(context_str=context_str)
-            print(output)
-            exit()
+        outputs = self.pydantic_parser.parse(generated_text)
+        for output in outputs:
+            output_dict = output.dict()
+            output_dict['node_id'] = node.id_
+            self.dataset_writer.writerow(output_dict)
+
+        node.metadata[self._prompt_metadata_key] = parse_obj_to_str(outputs)
+
+        if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
+            node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
 
     
     def _is_target_node(self, node):
@@ -106,14 +111,24 @@ class OllamaBasedExtractor():
                 return True
         return False
 
-    def extract(self, nodes: List[BaseNode]):
+    def extract(
+            self, 
+            nodes: List[BaseNode], 
+            index_id: Optional[str] = 'index_id',
+            action: Optional[str] = 'action',
+            cache_path: Optional[str] = ''
+        ):
+        csv_file = open(os.path.join(cache_path, f"{index_id}-{action}-QAR.cvs"), 'w', newline='')
+        self.dataset_writer = csv.DictWriter(csv_file, fieldnames=['node_id', 'Question', 'Answer', 'Reason'])
+        self.dataset_writer.writeheader()
         target_nodes = [node for node in nodes if self._is_target_node(node)] \
             if self.only_meta is not None \
             else nodes
         for node in tqdm(target_nodes):
             self._extract_metadata_from_node(node)
+        csv_file.close()
 
-class OpenAIBasedExtractor():
+class OpenAIBasedQARExtractor():
     def __init__(
         self,
         model_name: str,
@@ -131,15 +146,24 @@ class OpenAIBasedExtractor():
         self._system_prompt = system_prompt
         self._prompt_metadata_key, self._prompt_template = prompt_template
         self.embedding_only = embedding_only
+        self.pydantic_parser = CustomPydanticOutputParser(output_cls=QAR)
         self.only_meta = only_meta
 
     def _extract_metadata_from_node_immediately(self, node: BaseNode) -> Dict[str, str]:
         """Extract metadata from a node and return it's metadata dict."""
         context_str = node.get_content(metadata_mode=MetadataMode.ALL)
+        context_str = self.pydantic_parser.format(context_str)
+        
         input_text = self._prompt_template.format(context_str=context_str)
-        generated_text = self._model.complete(input_text)
+        generated_text = self._model.complete(input_text).text.strip()
+        outputs = self.pydantic_parser.parse(generated_text)
+        generated_text = parse_obj_to_str(outputs)
+        for output in outputs:
+            output_dict = output.dict()
+            output_dict['node_id'] = node.id_
+            self.dataset_writer.writerow(output_dict)
 
-        node.metadata[self._prompt_metadata_key] = str(generated_text).strip()
+        node.metadata[self._prompt_metadata_key] = generated_text
         if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
             node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
 
@@ -164,6 +188,8 @@ class OpenAIBasedExtractor():
         return batch, batch_info_path
 
     def _generate_an_entry(self, node):
+        context_str = self._prompt_template.format(context_str=node.text)
+        context_str = self.pydantic_parser.format(context_str)
         return {
             "custom_id": node.id_,
             "method": "POST",
@@ -172,7 +198,7 @@ class OpenAIBasedExtractor():
                 "model": "gpt-4o",
                 "messages": [
                         {"role": "system", "content": self._system_prompt},
-                        {"role": "user", "content": self._prompt_template.format(context_str=node.text)}
+                        {"role": "user", "content": context_str}
                     ],
                 "max_tokens": 4096
             }
@@ -278,6 +304,12 @@ class OpenAIBasedExtractor():
                 for request in batch_content:
                     content = request['response']['body']['choices'][0]['message']['content'].strip()
                     node = node_dict[request['custom_id']]
+                    outputs = self.pydantic_parser.parse(content)
+                    content = parse_obj_to_str(outputs)
+                    for output in outputs:
+                        output_dict = output.dict()
+                        output_dict['node_id'] = node.id_
+                        self.dataset_writer.writerow(output_dict)
                     node.metadata[self._prompt_metadata_key] = content
                     if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
                         node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
@@ -293,7 +325,17 @@ class OpenAIBasedExtractor():
                 return True
         return False
 
-    def extract(self, nodes: List[BaseNode]):
+    def extract(
+            self, 
+            nodes: List[BaseNode], 
+            index_id: Optional[str] = 'index_id',
+            action: Optional[str] = 'action',
+            cache_path: Optional[str] = ''
+        ):
+        csv_file = open(os.path.join(cache_path, f"{index_id}-{action}-QAR.cvs"), 'w', newline='')
+        self.dataset_writer = csv.DictWriter(csv_file, fieldnames=['node_id', 'Question', 'Answer', 'Reason'])
+        self.dataset_writer.writeheader()
+
         target_nodes = [node for node in nodes if self._is_target_node(node)] \
             if self.only_meta is not None \
             else nodes
@@ -303,6 +345,8 @@ class OpenAIBasedExtractor():
                 self._extract_metadata_from_node_immediately(node)
         elif self.mode == 'batch':
             self._extract_metadata_from_nodes_batch(target_nodes)
+        
+        csv_file.close()
         
 
         

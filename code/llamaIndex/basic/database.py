@@ -89,10 +89,10 @@ class Database():
         print('done')
         return nodes
     
-    def _extract_metadata(self, config, nodes, **kwargs):
+    def _extract_metadata(self, config, nodes, action, index_id, cache_path, **kwargs):
         print(f'[update_database] Extracting metadata {config["name"]} ...')
         extractor = get_extractors(self, config)
-        extractor.extract(nodes)
+        extractor.extract(nodes, index_id, action, cache_path)
         print("done")
         return nodes
         

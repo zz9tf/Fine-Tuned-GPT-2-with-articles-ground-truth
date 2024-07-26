@@ -33,28 +33,28 @@ def get_parser(self, config):
 # Extractor
 import os
 from custom.custom_extractor import (
-    HuggingfaceBasedExtractor,
-    OllamaBasedExtractor,
-    OpenAIBasedExtractor
+    HuggingfaceBasedQARExtractor,
+    OllamaBasedQARExtractor,
+    OpenAIBasedQARExtractor
 )
 
 def get_extractors(self, extractor_config):
     llm_config = self.prefix_config['llm'][extractor_config['llm']]
     if extractor_config['type'] == 'HuggingfaceBasedExtractor':
-        return HuggingfaceBasedExtractor(
+        return HuggingfaceBasedQARExtractor(
             model_name=extractor_config['llm'],
             no_split_modules=llm_config['no_split_modules'],
             cache_dir=self.config['cache'],
             num_questions=extractor_config['num_questions']
         )
     elif extractor_config['type'] == 'OllamaBasedExtractor':
-        return OllamaBasedExtractor(
+        return OllamaBasedQARExtractor(
             model_name=extractor_config['llm'],
             embedding_only=extractor_config.get('embedding_only', True),
             only_meta=extractor_config.get('only_meta', None)
         )
     elif extractor_config['type'] == 'OpenAIBasedExtractor':
-        return OpenAIBasedExtractor(
+        return OpenAIBasedQARExtractor(
             model_name=extractor_config['llm'],
             cache_dir=os.path.abspath(os.path.join(self.root_path, self.config['cache'])),
             mode=extractor_config['mode'],

@@ -19,10 +19,11 @@ class CreateIndexPipeline:
         self.steps_id = 0
         self.kwargs = {}
         self.kwargs['index_id'] = index_id
-        self.kwargs['index_dir_path'] = index_dir_path
         self.database = database
         self.cache_path = os.path.abspath(os.path.join(self.database.root_path, self.database.config['cache']))
         self.delete_cache = delete_cache
+        self.kwargs['cache_path'] = self.cache_path
+        self.kwargs['index_dir_path'] = index_dir_path
         os.makedirs(self.cache_path, exist_ok=True)
         self.index_pipeline = index_pipeline
 
@@ -90,6 +91,7 @@ class CreateIndexPipeline:
             # Directly use nodes have been generated
             docstore = get_a_store('SimpleDocumentStore').from_persist_path(persist_path=self.nodes_cache_path)
             nodes = [node for _, node in docstore.docs.items()]
+            # TODO: remove [:4]
             self.kwargs['nodes'] = nodes[:4]
             if self.delete_cache:
                 os.remove(self.nodes_cache_path)

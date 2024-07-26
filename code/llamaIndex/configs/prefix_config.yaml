@@ -89,7 +89,7 @@ index_pipelines:
   "test-gpt-4o":
     - reader: "CustomDocumentReader"
     - parser: "CustomHierarchicalNodeParser-vicuna_13b"
-    - break: "force"
+    - break: "-"
     - extractor: "gpt-4o-QAExtractor-immediately"
     - break: "force"
     - storage: "simple"
