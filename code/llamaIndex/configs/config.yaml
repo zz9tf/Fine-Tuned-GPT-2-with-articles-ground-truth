@@ -1,10 +1,10 @@
 indexes_dir_path: "./code/llamaIndex/database"
 cache: "./code/llamaIndex/.cache"
 document_preprocessing:
-  data_dir_path: "./data"
+  data_dir_path: "./data/tmp"
   index_pipelines:
-    - "test-gpt-4o-batch"
-    - "test-gpt-4o"
+    - "test"
+    # - "gpt-4o-batch-all"
     # - "ollama-based"
 rag:
   # default_index: "test-ollama-based"

@@ -110,7 +110,6 @@ class CustomHuggingfaceBasedEmbedding(BaseEmbedding):
         )
         return embeddings
 
-
 from llama_index.embeddings.ollama import OllamaEmbedding
 
 class CustomOllamaBasedEmbedding(BaseEmbedding):

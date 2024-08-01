@@ -1,5 +1,7 @@
 import os
 from typing import List
+import shutil
+from tqdm import tqdm
 from grobid_client.grobid_client import GrobidClient
 import xml.etree.ElementTree as ET
 from llama_index.core import Document
@@ -10,7 +12,7 @@ class CustomDocumentReader:
             input_dir, 
             cache_dir, 
             config_path=None, 
-            remove_cache=False
+            remove_cache=True
     ) -> None:
         # convert pdf to xml file
         self.input_dir = input_dir
@@ -19,14 +21,34 @@ class CustomDocumentReader:
         self.remove_cache = remove_cache
 
     def _convert_pdf_to_xml(self):
+        def process_pdf_flies(copied_files_num, tmp_folder_path, client):
+            if copied_files_num % 1000 == 0:
+                client.process(
+                    "processFulltextDocument", 
+                    input_path=tmp_folder_path, 
+                    output=self.cache_dir,
+                    n=20,
+                    verbose=True
+                )
+                if os.path.exists(tmp_folder_path):
+                    shutil.rmtree(tmp_folder_path, ignore_errors=True)
+                os.makedirs(tmp_folder_path, exist_ok=True)
+        
         client = GrobidClient(config_path=self.config_path)
-        client.process(
-            "processFulltextDocument", 
-            input_path=self.input_dir, 
-            output=self.cache_dir,
-            n=20,
-            verbose=True
-        )
+
+        ext = '.grobid.tei.xml'
+        xml_files = set([file[:-len(ext)] for file in os.listdir(self.cache_dir) if file.endswith(ext)])
+
+        copied_files_num = 0
+        tmp_folder_path = os.path.join(self.input_dir, 'tmp')
+        for file in tqdm(os.listdir(self.input_dir), desc='file'):
+            file_path = os.path.join(self.input_dir, file)
+            if file.split('.')[0] in xml_files or os.path.isdir(file_path): continue
+            process_pdf_flies(copied_files_num, tmp_folder_path, client)
+            shutil.copy(file_path, tmp_folder_path)         
+            copied_files_num += 1
+
+        process_pdf_flies(copied_files_num, tmp_folder_path, client)
 
     def _get_full_text(self, element):
         text = element.text or ''
@@ -67,16 +89,24 @@ class CustomDocumentReader:
         # Body
         body = root.findall('.//tei:text/tei:body/tei:div', namespaces=namespace)
 
+        caption = None
         for i, child in enumerate(body):
             ps = child.findall('.//tei:p', namespaces=namespace)
             if len(ps) == 0:
                 continue
-            head = child.find('.//tei:head', namespaces=namespace).text
+            head = child.find('.//tei:head', namespaces=namespace)
             content = '\n'.join([self._get_full_text(p) for p in ps])
-            if head.lower() == 'abstract':
-                file_dict['abstract'] = content
-            else:
-                file_dict[head] = content
+            try:
+                if not hasattr(head, 'text') and content is not None:
+                    file_dict[caption] += content
+                else:
+                    if head.text.lower() == 'abstract':
+                        caption = 'abstract'
+                    else:
+                        caption = head.text
+                    file_dict[caption] = content
+            except Exception as e:
+                continue
 
         return file_dict
 

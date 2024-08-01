@@ -91,8 +91,7 @@ class CreateIndexPipeline:
             # Directly use nodes have been generated
             docstore = get_a_store('SimpleDocumentStore').from_persist_path(persist_path=self.nodes_cache_path)
             nodes = [node for _, node in docstore.docs.items()]
-            # TODO: remove [:4]
-            self.kwargs['nodes'] = nodes[:4]
+            self.kwargs['nodes'] = nodes
             if self.delete_cache:
                 os.remove(self.nodes_cache_path)
 

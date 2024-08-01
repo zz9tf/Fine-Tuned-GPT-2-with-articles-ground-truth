@@ -33,31 +33,24 @@ def get_parser(self, config):
 # Extractor
 import os
 from custom.custom_extractor import (
-    HuggingfaceBasedQARExtractor,
-    OllamaBasedQARExtractor,
+    CustomLLMBasedQARExtractor,
     OpenAIBasedQARExtractor
 )
 
 def get_extractors(self, extractor_config):
     llm_config = self.prefix_config['llm'][extractor_config['llm']]
-    if extractor_config['type'] == 'HuggingfaceBasedExtractor':
-        return HuggingfaceBasedQARExtractor(
-            model_name=extractor_config['llm'],
-            no_split_modules=llm_config['no_split_modules'],
-            cache_dir=self.config['cache'],
-            num_questions=extractor_config['num_questions']
-        )
-    elif extractor_config['type'] == 'OllamaBasedExtractor':
-        return OllamaBasedQARExtractor(
-            model_name=extractor_config['llm'],
-            embedding_only=extractor_config.get('embedding_only', True),
-            only_meta=extractor_config.get('only_meta', None)
-        )
-    elif extractor_config['type'] == 'OpenAIBasedExtractor':
+    
+    if extractor_config['type'] == 'OpenAIBasedExtractor':
         return OpenAIBasedQARExtractor(
             model_name=extractor_config['llm'],
             cache_dir=os.path.abspath(os.path.join(self.root_path, self.config['cache'])),
             mode=extractor_config['mode'],
+            embedding_only=extractor_config.get('embedding_only', True),
+            only_meta=extractor_config.get('only_meta', None)
+        )
+    elif extractor_config['type'] in ['OllamaBasedExtractor', 'HuggingfaceBasedExtractor']:
+        return CustomLLMBasedQARExtractor(
+            llm=get_llm(self=self, llm_config=llm_config),
             embedding_only=extractor_config.get('embedding_only', True),
             only_meta=extractor_config.get('only_meta', None)
         )
@@ -83,6 +76,9 @@ from transformers import BitsAndBytesConfig
 from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI as llama_index_openai
 from llama_index.llms.huggingface import HuggingFaceLLM
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+from custom.schema import LLMTemplate
+from transformers import logging
 
 def get_llm(self, llm_config):
     if llm_config['based_on'] == "ollama":
@@ -90,8 +86,7 @@ def get_llm(self, llm_config):
     elif llm_config['based_on'] == 'openai':
         llm = llama_index_openai(model=llm_config['model_name'], api_key=os.getenv('OPENAI_API_KEY'))
     elif llm_config['based_on'] == "huggingface":
-        # TODO Custom Huggingface model
-
+        logging.set_verbosity_error()
         # quantize to save memory
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
@@ -102,18 +97,21 @@ def get_llm(self, llm_config):
 
         llm = HuggingFaceLLM(
             model_name=llm_config['model_name'],
-            tokenizer_name=llm_config['model_name'],
-            context_window=3900,
-            max_new_tokens=256,
             model_kwargs={
-                "quantization_config": quantization_config,
-                "cache_dir": llm_config['cache_dir']
+                # "quantization_config": quantization_config,
+                "cache_dir": llm_config['cache_dir'],
+                "local_files_only": True
             },
-            generate_kwargs={"temperature": 0.3, "top_k": 50, "top_p": 0.95},
-            token=os.getenv("HUGGING_FACE_TOKEN"),
+            tokenizer_name=llm_config['model_name'],
+            tokenizer_kwargs={
+                "cache_dir": llm_config['cache_dir'],
+                "local_files_only": True
+            },
+            query_wrapper_prompt=LLMTemplate.tmpl,
+            max_new_tokens=4096,
+            generate_kwargs={'do_sample': True, "temperature": 0.3, "top_k": 50, "top_p": 0.95, "repetition_penalty": 1.2},
             device_map="auto"
         )
-
     else:
         raise Exception(f"Invalid llm based {llm_config['based_on']}")
     

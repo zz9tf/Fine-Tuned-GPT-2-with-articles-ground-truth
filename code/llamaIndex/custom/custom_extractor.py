@@ -1,19 +1,16 @@
 from typing import Dict, List, Optional
 import os
 import csv
-import torch
 import json
 import time
 from datetime import datetime
-from transformers import AutoTokenizer, AutoModelForCausalLM
 from llama_index.core.schema import BaseNode, MetadataMode
-from llama_index.llms.ollama import Ollama
+from llama_index.core.llms.llm import LLM
 from tqdm import tqdm
 from openai import OpenAI
 from llama_index.llms.openai import OpenAI as llama_index_openai
 from custom.schema import TemplateSchema
 from custom.schema import QAR
-from llama_index.core.bridge.pydantic import BaseModel
 from custom.custom_pydantic import CustomPydanticOutputParser
 
 def parse_obj_to_str(objs):
@@ -23,64 +20,16 @@ def parse_obj_to_str(objs):
         objs_str += f"[{obj_str}]\n"
     return objs_str.strip()
 
-# TODO: make a custom extractor accept llm
-
-# [TODO] Need to accelarate the model
-class HuggingfaceBasedQARExtractor():
+class CustomLLMBasedQARExtractor():
     def __init__(
         self,
-        model_name,
-        no_split_modules: str = None,
-        cache_dir: str = None,
-        num_questions: int = 5,
-        prompt_template: str = TemplateSchema.DEFAULT_QUESTION_GEN_TMPL,
-        embedding_only: bool = True
-    ) -> None:
-        """Init params."""
-        if num_questions < 1:
-            raise ValueError("questions must be >= 1")
-        self._tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir)
-        self._model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir=cache_dir, device_map='auto', load_in_4bit=True)
-        print(self._model.get_memory_footprint())
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.num_questions = num_questions
-        self._prompt_template = prompt_template
-
-    def _extract_metadata_from_node(self, node: BaseNode) -> Dict[str, str]:
-        """Extract metadata from a node and return it's metadata dict."""
-
-        context_str = node.get_content(metadata_mode=MetadataMode.ALL)
-        input_text = self._prompt_template.format(context_str=context_str, num_questions=self.num_questions)
-        inputs = self._tokenizer(input_text, return_tensors='pt').to(self._device)
-        outputs = self._model.generate(
-            inputs.input_ids,
-            max_length=2048,
-            num_return_sequences=1,
-            no_repeat_ngram_size=2,
-            early_stopping=True
-        )
-        
-        generated_text = self._tokenizer.decode(outputs[0], skip_special_tokens=True)
-        # generated_text = self._model.complete(input_text)
-
-        return {"questions_this_excerpt_can_answer_and_corresponding_answers_": str(generated_text).strip()}
-    
-    def extract(self, nodes):
-        for node in tqdm(nodes):
-            metadata = self._extract_metadata_from_node(node)
-            for k, v in metadata.items():
-                node.metadata[k] = v
-
-class OllamaBasedQARExtractor():
-    def __init__(
-        self,
-        model_name: str,
+        llm: LLM,
         prompt_template: dict = TemplateSchema.prompt_template_ollama,
         embedding_only: bool = True,
         only_meta: Optional[Dict[str, list]] = None
     ) -> None:
         """Init params."""
-        self._model = Ollama(model=model_name, request_timeout=120.0)
+        self._model = llm
         self._prompt_metadata_key, self._prompt_template = prompt_template
         self.embedding_only = embedding_only
         self.pydantic_parser = CustomPydanticOutputParser(output_cls=QAR)
@@ -104,7 +53,6 @@ class OllamaBasedQARExtractor():
         if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
             node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
 
-    
     def _is_target_node(self, node):
         for k, meta in self.only_meta.items():
             if node.metadata[k] in meta:
@@ -118,7 +66,7 @@ class OllamaBasedQARExtractor():
             action: Optional[str] = 'action',
             cache_path: Optional[str] = ''
         ):
-        csv_file = open(os.path.join(cache_path, f"{index_id}-{action}-QAR.cvs"), 'w', newline='')
+        csv_file = open(os.path.join(cache_path, f"{index_id}-{action}-QAR.csv"), 'w', newline='')
         self.dataset_writer = csv.DictWriter(csv_file, fieldnames=['node_id', 'Question', 'Answer', 'Reason'])
         self.dataset_writer.writeheader()
         target_nodes = [node for node in nodes if self._is_target_node(node)] \
@@ -332,7 +280,7 @@ class OpenAIBasedQARExtractor():
             action: Optional[str] = 'action',
             cache_path: Optional[str] = ''
         ):
-        csv_file = open(os.path.join(cache_path, f"{index_id}-{action}-QAR.cvs"), 'w', newline='')
+        csv_file = open(os.path.join(cache_path, f"{index_id}-{action}-QAR.csv"), 'w', newline='')
         self.dataset_writer = csv.DictWriter(csv_file, fieldnames=['node_id', 'Question', 'Answer', 'Reason'])
         self.dataset_writer.writeheader()
 

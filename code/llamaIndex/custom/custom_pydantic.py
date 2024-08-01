@@ -11,7 +11,7 @@ PYDANTIC_FORMAT_TMPL = """
 Here's a JSON schema to follow:
 {schema}
 
-Output a valid JSON object can be parsed by json.loads() but do not repeat the schema.
+Output a valid JSON object but do not repeat the schema.
 """
 
 def extract_json_str(text: str) -> list:
@@ -65,16 +65,23 @@ class CustomPydanticOutputParser(ChainableOutputParser):
 
     def parse(self, text: str) -> Any:
         """Parse, validate, and correct errors programmatically."""
-        json_strs = extract_json_str(text)
-        
         results = []
-        for json_str in json_strs:
-            try:
-                results.append(self._output_cls.parse_raw(json_str))
-            except Exception as e:
-                print(e)
-                print()
-                print(json_str)
+        try:
+            json_strs = extract_json_str(text)
+            for json_str in json_strs:
+                try:
+                    results.append(self._output_cls.parse_raw(json_str))
+                except Exception as e:
+                    print(e)
+                    print("------------------------------------------------")
+                    print(json_str)
+                    print("------------------------------------------------")
+
+        except Exception as e:
+            print(e)
+            print("------------------------------------------------")
+            print(text)
+            print("------------------------------------------------")
         return results
 
     def format(self, query: str) -> str:

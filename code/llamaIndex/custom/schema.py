@@ -106,6 +106,14 @@ Here is the content:
 -----------------------------------------------------------------------------------
 """
 
+class LLMTemplate:
+    tmpl = """\
+System: You are an advanced language model designed to provide expert, high-quality responses. Your task \
+is to understand the user's input and generate an appropriate response.\n\
+User: {query_str}\n\
+Response:"""
+    
+
 from pydantic import BaseModel
 class QAR(BaseModel):
     Question: str
