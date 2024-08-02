@@ -57,17 +57,10 @@ def get_extractors(self, extractor_config):
 
 ##########################################################################
 # Embedding model method
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from custom.custom_embedding import CustomOllamaBasedEmbedding
+from custom.custom_embedding import CustomEmbedding
 
 def get_embedding_model(embedding_config):
-    if embedding_config['based_on'] == 'huggingface':
-        exit()
-        return HuggingFaceEmbedding
-    elif embedding_config["based_on"] == 'ollama':
-        return CustomOllamaBasedEmbedding(
-            model_name=embedding_config['name']
-        )
+        return CustomEmbedding(embedding_config=embedding_config)
 
 ##########################################################################
 # LLM method
@@ -75,10 +68,8 @@ import torch
 from transformers import BitsAndBytesConfig
 from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI as llama_index_openai
-from llama_index.llms.huggingface import HuggingFaceLLM
-root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+from custom.custom_huggingfacellm import CustomHuggingFaceLLM
 from custom.schema import LLMTemplate
-from transformers import logging
 
 def get_llm(self, llm_config):
     if llm_config['based_on'] == "ollama":
@@ -86,7 +77,6 @@ def get_llm(self, llm_config):
     elif llm_config['based_on'] == 'openai':
         llm = llama_index_openai(model=llm_config['model_name'], api_key=os.getenv('OPENAI_API_KEY'))
     elif llm_config['based_on'] == "huggingface":
-        logging.set_verbosity_error()
         # quantize to save memory
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
@@ -95,10 +85,10 @@ def get_llm(self, llm_config):
             # bnb_4bit_use_double_quant=True,
         )
 
-        llm = HuggingFaceLLM(
+        llm = CustomHuggingFaceLLM(
             model_name=llm_config['model_name'],
             model_kwargs={
-                # "quantization_config": quantization_config,
+                "quantization_config": quantization_config,
                 "cache_dir": llm_config['cache_dir'],
                 "local_files_only": True
             },

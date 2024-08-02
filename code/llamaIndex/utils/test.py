@@ -38,10 +38,12 @@ from custom.schema import LLMTemplate
 
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
-HuggingFaceEmbedding(
-    model_name="lmsys/vicuna-13b-v1.5",
-    tokenizer_name="lmsys/vicuna-13b-v1.5"
+embed_model = HuggingFaceEmbedding(
+    model_name="Linq-AI-Research/Linq-Embed-Mistral",
+    cache_folder="/work/zhengzheng/.hf_cache"
 )
 
-
+embeddings = embed_model.get_text_embedding("Hello World!")
+print(len(embeddings))
+print(embeddings[:5])
 

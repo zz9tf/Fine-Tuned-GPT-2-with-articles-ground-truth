@@ -17,11 +17,15 @@ parser:
     type: "HierarchicalNodeParser"
     chunk_size: [2048, 512, 128]
     retriever: "AutoMergingRetriever"
-  "CustomHierarchicalNodeParser-vicuna_13b":
+  "CustomHierarchicalNodeParser-ollama_vicuna_13b":
     type: "CustomHierarchicalNodeParser"
     retriever: "AutoMergingRetriever"
     llm: "vicuna:13b"
   "CustomHierarchicalNodeParser-hf_vicuna_13b":
+    type: "CustomHierarchicalNodeParser"
+    retriever: "AutoMergingRetriever"
+    llm: "lmsys/vicuna-13b-v1.5"
+  "ManualParser":
     type: "CustomHierarchicalNodeParser"
     retriever: "AutoMergingRetriever"
     llm: "lmsys/vicuna-13b-v1.5"
@@ -55,7 +59,7 @@ embedding_model:
   "Linq-AI-Research/Linq-Embed-Mistral":
     based_on: "huggingface"
     name: "Linq-AI-Research/Linq-Embed-Mistral"
-    cache: "/work/zhengzheng/.hf_cache"
+    cache_dir: "/work/zhengzheng/.hf_cache"
   "ollama-sfr-embedding-mistral":
     based_on: "ollama"
     name: "sammcj/sfr-embedding-mistral:Q4_K_M"
@@ -80,23 +84,26 @@ storage:
     property_graph_store: null
 index_pipelines:
   "test":
-    - reader: "SimpleDirectoryReader"
-    - parser: "SimpleFileNodeParser"
-    - extractor: "vicuna-13b-QAExtractor-hf"
+    - reader: "CustomDocumentReader"
+    - break: "-"
+    - parser: "CustomHierarchicalNodeParser-hf_vicuna_13b"
+    - break: "force"
+    - extractor: "gpt-4o-QAExtractor-batch"
+    - break: "force"
     - storage: "simple"
   "test-ollama-based":
     - reader: "CustomDocumentReader"
-    - parser: "CustomHierarchicalNodeParser-vicuna_13b"
+    - parser: "CustomHierarchicalNodeParser-ollama_vicuna_13b"
     - extractor: "section_QAExtractor"
     - storage: "simple" 
   "test-hf":
     - reader: "CustomDocumentReader"
-    - parser: "CustomHierarchicalNodeParser-vicuna_13b"
+    - parser: "CustomHierarchicalNodeParser-hf_vicuna_13b"
     - extractor: "vicuna-13b-QAExtractor-hf"
     - storage: "simple"
   "test-gpt-4o":
     - reader: "CustomDocumentReader"
-    - parser: "CustomHierarchicalNodeParser-vicuna_13b"
+    - parser: "CustomHierarchicalNodeParser-ollama_vicuna_13b"
     - break: "-"
     - extractor: "gpt-4o-QAExtractor-immediately"
     - break: "force"
@@ -104,7 +111,7 @@ index_pipelines:
   "gpt-4o-batch-all":
     - reader: "CustomDocumentReader"
     - break: "-"
-    - parser: "CustomHierarchicalNodeParser-vicuna_13b"
+    - parser: "CustomHierarchicalNodeParser-hf_vicuna_13b"
     - break: "force"
     - extractor: "gpt-4o-QAExtractor-batch"
     - break: "force"

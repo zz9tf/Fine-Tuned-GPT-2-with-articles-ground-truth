@@ -9,8 +9,8 @@ from llama_index.core.utils import get_tqdm_iterable
 from llama_index.core.node_parser.node_utils import build_nodes_from_splits
 from llama_index.core.llms import LLM
 from llama_index.core.node_parser.relational.hierarchical import _add_parent_child_relationship
-from .schema import TemplateSchema
-from .response_synthesis import TreeSummarize
+from custom.schema import TemplateSchema
+from custom.response_synthesis import TreeSummarize
 
 class CustomHierarchicalNodeParser(NodeParser):
     """Hierarchical node parser.
@@ -21,12 +21,6 @@ class CustomHierarchicalNodeParser(NodeParser):
     overlap between parent nodes (e.g. with a bigger chunk size), and child nodes
     per parent (e.g. with a smaller chunk size).
     """
-    llm: LLM = Field(
-        default=None,
-        description=(
-            "LLM model to be used for generating node summary content of \'document\' and \'section\' levels"
-        )
-    )
   
     # The chunk level to use when splitting documents: document, section, paragraph, multi-sentences
     _chunk_levels: List[str] = PrivateAttr()
@@ -34,6 +28,8 @@ class CustomHierarchicalNodeParser(NodeParser):
     _doc_id_to_document: Dict[str, Document] = PrivateAttr()
 
     _sentences_splitter: SentenceSplitter = PrivateAttr()
+
+    _tree_summarizer: TreeSummarize = PrivateAttr()
     
     @classmethod
     def from_defaults(
@@ -54,8 +50,14 @@ class CustomHierarchicalNodeParser(NodeParser):
             include_prev_next_rel=False
         )
 
+        cls._tree_summarizer = TreeSummarize.from_defaults(
+            query_str=TemplateSchema.tree_summary_section_q_Tmpl,
+            summary_str=TemplateSchema.tree_summary_summary_Tmpl,
+            qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
+            llm=llm
+        )
+
         return cls(
-            llm=llm,
             include_metadata=include_metadata,
             include_prev_next_rel=include_prev_next_rel,
             callback_manager=callback_manager,
@@ -81,6 +83,25 @@ class CustomHierarchicalNodeParser(NodeParser):
             
         return all_nodes
 
+    def _summary_content(self, texts):
+        # async with self._lock:
+        #     self._running_tasks += 1
+        #     print(f"Task started. Running tasks: {self._running_tasks}")
+        # try:
+        #     (summary, _), elapsed_time = await aevaluate_time(lambda : self._tree_summarizer.agenerate_response_hs(
+        #         texts=texts,
+        #         num_children=len(texts)
+        #     ))
+        # finally:
+        #     async with self._lock:
+        #         self._running_tasks -= 1
+        #         print(f"One node summary({len(summary)}) completed with time {elapsed_time:.2f} second. Running tasks: {self._running_tasks}\n{summary}")
+        summary, _ = self._tree_summarizer.generate_response_hs(
+            texts=texts,
+            num_children=len(texts)
+        )
+        return summary
+
     def _get_section_nodes_from_document_node(
         self, 
         document_node: BaseNode,
@@ -93,51 +114,26 @@ class CustomHierarchicalNodeParser(NodeParser):
         titles = []
         sections = []
         summaries = []
-        abstract = None
+        # Get summary of section contents
+        abstract_paragraphs = None
         for title, (start, end) in parent_document.metadata['sections'].items():
             section = document_node.get_content()[start: end]
-
             if title == 'abstract':
-                # Tree summary
-                texts = section.split('\n')
-                abstract, _ = TreeSummarize.from_defaults(
-                    texts=texts,
-                    query_str=TemplateSchema.tree_summary_section_q_Tmpl,
-                    summary_str=TemplateSchema.tree_summary_summary_Tmpl,
-                    qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
-                    llm=self.llm,
-                    num_children=3
-                ).generate_response_hs()
-
+                abstract_paragraphs = section.split('\n')
             else:
                 titles.append(title)
                 sections.append(section)
-                # Tree summary
-                texts = section.split('\n')
-                summary, _ = TreeSummarize.from_defaults(
-                    texts=texts,
-                    query_str=TemplateSchema.tree_summary_section_q_Tmpl,
-                    summary_str=TemplateSchema.tree_summary_summary_Tmpl,
-                    qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
-                    llm=self.llm,
-                    num_children=3
-                ).generate_response_hs()
-                summaries.append(summary)
-
+                summaries.append(self._summary_content(section.split('\n')))
+        
+        
+        # Get summary of abstract
         summary_for_document = None
-
-        if abstract != None:
-            summary_for_document = abstract
+        if abstract_paragraphs != None:
+            summary_for_document = self._summary_content(abstract_paragraphs)
         else:
-            # Tree summary
-            summary_for_document, _ = TreeSummarize.from_defaults(
-                texts=summaries,
-                query_str=TemplateSchema.tree_summary_section_q_Tmpl,
-                summary_str=TemplateSchema.tree_summary_summary_Tmpl,
-                qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
-                llm=self.llm,
-                num_children=3
-            ).generate_response_hs()
+            summary_for_document = self._summary_content(summaries)
+        
+        # print(len(summary_for_document), summary_for_document)
 
         # Update document node
         origin_document_text = document_node.text
@@ -313,11 +309,10 @@ class CustomHierarchicalNodeParser(NodeParser):
         with self.callback_manager.event(
             CBEventType.NODE_PARSING, payload={EventPayload.DOCUMENTS: documents}
         ) as event:
-            
             all_nodes = self._recursively_get_nodes_from_nodes(
-                nodes=documents,
-                level=0,
-                show_progress=show_progress
+                    nodes=documents,
+                    level=0,
+                    show_progress=show_progress
             )
 
             event.on_end({EventPayload.NODES: all_nodes})

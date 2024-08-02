@@ -2,6 +2,7 @@ indexes_dir_path: "./code/llamaIndex/database"
 cache: "./code/llamaIndex/.cache"
 document_preprocessing:
   data_dir_path: "./data/tmp"
+  # data_dir_path: "./data"
   index_pipelines:
     - "test"
     # - "gpt-4o-batch-all"
