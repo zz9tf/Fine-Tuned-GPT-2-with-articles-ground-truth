@@ -1,7 +1,8 @@
 ##########################################################################
 # parser
 from custom.custom_parser import (
-    CustomHierarchicalNodeParser
+    CustomHierarchicalNodeParser,
+    ManuallyParser
 )
 from llama_index.core.node_parser import (
     SentenceSplitter, 
@@ -9,7 +10,7 @@ from llama_index.core.node_parser import (
     HierarchicalNodeParser
 )
 
-def get_parser(self, config):
+def get_parser(self, config, **kwargs):
     VALID_PARSER = self.prefix_config['parser'].keys()
     if config['type'] == 'SentenceSplitter':
         return SentenceSplitter(
@@ -25,6 +26,12 @@ def get_parser(self, config):
     elif config['type'] == 'CustomHierarchicalNodeParser':
         return CustomHierarchicalNodeParser.from_defaults(
             llm=get_llm(self, self.prefix_config['llm'][config['llm']])
+        )
+    elif config['type'] == "ManuallyHierarchicalNodeParser":
+        return ManuallyParser(
+            cache_path=kwargs["cache_path"],
+            cache_name=f'{kwargs["index_id"]}_{kwargs["step_id"]}_{kwargs["step_type"]}_{kwargs["action"]}',
+            delete_cache=False
         )
     else:
         raise Exception("Invalid parser config. Please provide parser types {}".format(VALID_PARSER))

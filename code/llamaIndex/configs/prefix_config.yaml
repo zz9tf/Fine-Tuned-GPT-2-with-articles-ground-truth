@@ -25,8 +25,8 @@ parser:
     type: "CustomHierarchicalNodeParser"
     retriever: "AutoMergingRetriever"
     llm: "lmsys/vicuna-13b-v1.5"
-  "ManualParser":
-    type: "CustomHierarchicalNodeParser"
+  "ManuallyHierarchicalNodeParser":
+    type: "ManuallyHierarchicalNodeParser"
     retriever: "AutoMergingRetriever"
     llm: "lmsys/vicuna-13b-v1.5"
 extractor:
@@ -86,7 +86,7 @@ index_pipelines:
   "test":
     - reader: "CustomDocumentReader"
     - break: "-"
-    - parser: "CustomHierarchicalNodeParser-hf_vicuna_13b"
+    - parser: "ManuallyHierarchicalNodeParser"
     - break: "force"
     - extractor: "gpt-4o-QAExtractor-batch"
     - break: "force"
@@ -109,6 +109,14 @@ index_pipelines:
     - break: "force"
     - storage: "simple"
   "gpt-4o-batch-all":
+    - reader: "CustomDocumentReader"
+    - break: "-"
+    - parser: "ManuallyHierarchicalNodeParser"
+    - break: "force"
+    - extractor: "gpt-4o-QAExtractor-batch"
+    - break: "force"
+    - storage: "simple"
+  "gpt-4o-batch-all-p":
     - reader: "CustomDocumentReader"
     - break: "-"
     - parser: "CustomHierarchicalNodeParser-hf_vicuna_13b"

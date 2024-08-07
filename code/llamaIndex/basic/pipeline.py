@@ -40,6 +40,7 @@ class CreateIndexPipeline:
             return self.database._storage
 
     def _save_result(self, cache_name, **kwargs):
+        print("[update_database] Saving cache \'{}\' at the break point...".format(cache_name))
         docstore = get_a_store('SimpleDocumentStore')
         docstore.add_documents(self.kwargs['result'])
         nodes_cache_path = os.path.abspath(os.path.join(self.cache_path, cache_name))
@@ -52,7 +53,7 @@ class CreateIndexPipeline:
             cache_name = f'{self.kwargs["index_id"]}_{step_id-1}_{prev_kwargs["step_type"]}_{prev_kwargs["action"]}.json'
             # Rebuild the break point?
             if action == 'force':
-                kwargs = {'step_type': step_type, 'action': action, 'cache_name': cache_name}
+                kwargs = {'step_type': step_type, 'action': action, 'cache_name': cache_name, 'step_id': step_id}
                 self.steps[-1].append((self._save_result, kwargs))
                 self.steps.append([])
             else:
@@ -64,14 +65,14 @@ class CreateIndexPipeline:
                     self.steps.append([])
                     self.nodes_cache_path = nodes_cache_path
                 else:
-                    kwargs = {'step_type': step_type, 'action': action, 'cache_name': cache_name}
+                    kwargs = {'step_type': step_type, 'action': action, 'cache_name': cache_name, 'step_id': step_id}
                     self.steps[-1].append((self._save_result, kwargs))
                     self.steps.append([])
 
         else:
             func = self._get_action_func(step_type)
             config = self.database.prefix_config[step_type][action]
-            kwargs = {'step_type': step_type, 'action': action, 'config': config}
+            kwargs = {'step_type': step_type, 'action': action, 'config': config, 'step_id': step_id}
             self.steps[-1].append((func, kwargs))
 
     def add_steps(self):

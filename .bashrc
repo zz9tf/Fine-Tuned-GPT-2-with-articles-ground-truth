@@ -115,7 +115,7 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
-
+conda activate llm
 export PATH=/workspace/miniconda3/bin:/workspace/miniconda3/condabin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/workspace/Fine-Tuned-GPT-2-with-articles-ground-truth/code/utils
 export PATH=$PATH:/workspace
 git config --global user.email "zhengzheng@brandeis.edu"

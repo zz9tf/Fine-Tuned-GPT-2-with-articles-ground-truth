@@ -5,7 +5,7 @@ from typing import List, Optional
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
 
 from llama_index.embeddings.ollama import OllamaEmbedding
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from custom.custom_huggingface_embedding import CustomHuggingFaceEmbedding
 
 class CustomEmbedding(BaseEmbedding):
     query_instruction: Optional[str] = Field(
@@ -27,7 +27,7 @@ class CustomEmbedding(BaseEmbedding):
         callback_manager: Optional[CallbackManager] = None,
     ) -> None:
         if embedding_config["based_on"] == 'huggingface':
-            self._model = HuggingFaceEmbedding(
+            self._model = CustomHuggingFaceEmbedding(
                 model_name=embedding_config['name'],
                 cache_folder=embedding_config['cache_dir']
             )

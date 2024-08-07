@@ -35,24 +35,13 @@ class TreeSummarize():
         return self
     
     def evaluate_response(self, i, p):
-        with self.semaphore:
-            with self._lock:
-                self._running_tasks += 1
-                print(f"Task {i} started. Running tasks: {self._running_tasks}")
-            try:
-                response, elapsed_time = evaluate_time(lambda : self.llm.complete(p))
-                with self._lock:
-                    self._running_tasks -= 1
-                print(f"Task {i} completed: {elapsed_time:.2f} seconds. Running tasks: {self._running_tasks}")
-                return response
-            except Exception as e:
-                print(f"Error occurred: {e}")
-                with self._lock:
-                    self._running_tasks -= 1
-                return ""
+        response, elapsed_time = evaluate_time(lambda : self.llm.complete(p))
+        print(f"Task {i} completed: {elapsed_time:.2f} seconds. Running tasks: {self._running_tasks}")
+        return response
 
     def combine_results(self, texts, level):
         self.prompt_records[level] = []
+        responses = []
         for idx in range(0, len(texts), self.num_children):
             text_batch = texts[idx : idx + self.num_children]
             context_str = "\n\n".join([t for t in text_batch])
@@ -60,18 +49,7 @@ class TreeSummarize():
                 context_str=context_str, query_str=self.query_str
             )
             self.prompt_records[level].append(fmt_qa_prompt)
-
-        # tasks = [self.llm.acomplete(p) for p in cur_prompt_list]
-        # combined_responses = await asyncio.gather(*tasks)
-        responses = []
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            print(f"prompt number: {len(self.prompt_records[level])}")
-            for i, p in enumerate(self.prompt_records[level]):
-                futures.append(executor.submit(self.evaluate_response, i=i, p=p))
-            for future in concurrent.futures.as_completed(futures):
-                result = future.result()
-                responses.append(result)
+            responses.append(self.llm.complete(fmt_qa_prompt))
         
         new_texts = [r.text.strip() for r in responses]
 
@@ -99,26 +77,16 @@ class TreeSummarize():
         """
         self.num_children = num_children
         self.prompt_records[0] = []
+        responses = []
 
         for text in texts:
             fmt_qa_prompt = self.qa_prompt.format(
                 context_str=text, query_str=self.query_str
             )
             self.prompt_records[0].append(fmt_qa_prompt)
-
-        self._lock = threading.Lock()
-        self._running_tasks = 0
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            print(f"prompt number: {len(self.prompt_records[0])}")
-            for i, p in enumerate(self.prompt_records[0]):
-                futures.append(executor.submit(self.evaluate_response, i=i, p=p))
-            
-            responses = [future.result() for future in concurrent.futures.as_completed(futures)]
+            responses.append(self.llm.complete(fmt_qa_prompt))
 
         response_txt = self.combine_results([r.text.strip() for r in responses], 1)
         response_txt = self.refine_response(response_txt)
 
         return response_txt, self.prompt_records
-
-

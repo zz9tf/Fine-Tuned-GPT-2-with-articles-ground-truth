@@ -81,7 +81,7 @@ class Database():
 
     def _parser_documents(self, config, nodes, **kwargs):
         print("[update_database] Generating nodes from documents...", end=' ')
-        parser = get_parser(self, config)
+        parser = get_parser(self, config, **kwargs)
         nodes = parser.get_nodes_from_documents(
             nodes, show_progress=True
         )

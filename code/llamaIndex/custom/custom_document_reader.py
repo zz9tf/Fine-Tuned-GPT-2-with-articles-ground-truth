@@ -67,7 +67,7 @@ class CustomDocumentReader:
 
         # title
         title = root.find('.//tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title', namespaces=namespace)
-        file_dict['title'] = title.text
+        file_dict['title'] = title.text if len(title.text) < 300 else title.text[:200]
 
         # authors
         authors = root.findall('.//tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct/tei:analytic/tei:author/tei:persName', namespaces=namespace)
@@ -131,7 +131,9 @@ class CustomDocumentReader:
                 del file_dict[title]
                 i += 1
             file_dict['file_name'] = filename.replace('grobid.tei.xml', 'pdf')
-
+            if len(file_dict['sections']) == 0:
+                print(f"[load data] Detect invalided document with no sections {file_dict['file_name']}")
+                continue
             file_document = Document(
                 text=paper_content,
                 metadata=file_dict
