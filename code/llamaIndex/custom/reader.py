@@ -58,7 +58,7 @@ class CustomDocumentReader:
                 text += subelement.tail
         return text.strip()
 
-    def _read_file(self, file_path):
+    def _read_file(self, file_path, filename):
         file_dict = {}
         tree = ET.parse(file_path)
         root = tree.getroot()
@@ -67,8 +67,10 @@ class CustomDocumentReader:
 
         # title
         title = root.find('.//tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title', namespaces=namespace)
-        file_dict['title'] = title.text if len(title.text) < 300 else title.text[:200]
-
+        if title.text is not None:
+            file_dict['title'] = title.text if len(title.text) < 150 else title.text[:150]
+        else:
+            file_dict['title'] = filename if len(filename) < 150 else filename[:150]
         # authors
         authors = root.findall('.//tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct/tei:analytic/tei:author/tei:persName', namespaces=namespace)
         file_dict['authors'] = []
@@ -116,7 +118,7 @@ class CustomDocumentReader:
 
         for filename in filenames:
             file_path = os.path.join(self.cache_dir, filename)
-            file_dict = self._read_file(file_path)
+            file_dict = self._read_file(file_path, filename)
             file_dict['sections'] = {}
             paper_content = "Title: {}\n\n".format(file_dict['title'])
             i = 1
@@ -125,21 +127,21 @@ class CustomDocumentReader:
                 if title in ['title', 'authors', 'sections']:
                     continue
                 start = len(paper_content)
-                paper_content += f'[{i}. {title}]\n{section}\n\n'
+                paper_content += f'{section}\n\n'
                 end = len(paper_content)
                 file_dict['sections'][title] = [start, end-2]
                 del file_dict[title]
                 i += 1
             file_dict['file_name'] = filename.replace('grobid.tei.xml', 'pdf')
             if len(file_dict['sections']) == 0:
-                print(f"[load data] Detect invalided document with no sections {file_dict['file_name']}")
-                continue
-            file_document = Document(
-                text=paper_content,
-                metadata=file_dict
-            )
+                print(f"[documetn reader] Detect invalided document with no sections {file_dict['file_name']}")
+            else:
+                file_document = Document(
+                    text=paper_content,
+                    metadata=file_dict
+                )
 
-            file_documents.append(file_document)
+                file_documents.append(file_document)
             if self.remove_cache:
                 os.remove(file_path)
 

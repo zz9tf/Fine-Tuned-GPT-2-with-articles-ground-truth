@@ -1,19 +1,61 @@
+##########################################################################
+# parser
+from llama_index.core.node_parser import (
+    SentenceSplitter, 
+    SimpleFileNodeParser, 
+    HierarchicalNodeParser
+)
+
+def get_parser(self, config, **kwargs):
+    VALID_PARSER = self.prefix_config['parser'].keys()
+    if config['type'] == 'SentenceSplitter':
+        return SentenceSplitter(
+            chunk_size=config.get('chunk_size', 1024), 
+            chunk_overlap=config.get('chunk_overlap', 200)
+        )
+    elif config['type'] == 'SimpleFileNodeParser':
+        return SimpleFileNodeParser()
+    elif config['type'] == 'HierarchicalNodeParser':
+        return HierarchicalNodeParser.from_defaults(
+            chunk_sizes=config.get('chunk_size', [2048, 512, 128])
+        )
+    elif config['type'] == 'CustomHierarchicalNodeParser':
+        return CustomHierarchicalNodeParser.from_defaults(
+            llm=get_llm(self, self.prefix_config['llm'][config['llm']])
+        )
+    elif config['type'] == "ManuallyHierarchicalNodeParser":
+        return ManuallyParser(
+            cache_path=kwargs["cache_path"],
+            cache_name=f'{kwargs["index_id"]}_{kwargs["step_id"]}_{kwargs["step_type"]}_{kwargs["action"]}',
+            delete_cache=False
+        )
+    else:
+        raise Exception("Invalid parser config. Please provide parser types {}".format(VALID_PARSER))
+##########################################################################
+
 import os
+import io
+import gc
+import torch
 import json
+from tqdm import tqdm
+from llama_index.core.embeddings import BaseEmbedding
+from custom.io import load_nodes_jsonl, save_nodes_jsonl
 from typing import Any, Dict, List, Optional, Sequence
-from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.core.node_parser.interface import NodeParser
-from llama_index.core.node_parser import SentenceSplitter
-from llama_index.core.bridge.pydantic import Field, PrivateAttr
+from llama_index.core.node_parser import SentenceSplitter, SemanticSplitterNodeParser
+from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.core.callbacks.base import CallbackManager
 from llama_index.core.callbacks.schema import CBEventType, EventPayload
-from llama_index.core.schema import BaseNode, Document, NodeRelationship, MetadataMode
+from llama_index.core.schema import BaseNode, Document, NodeRelationship, MetadataMode, TextNode
 from llama_index.core.utils import get_tqdm_iterable
 from llama_index.core.node_parser.node_utils import build_nodes_from_splits
 from llama_index.core.llms import LLM
 from llama_index.core.node_parser.relational.hierarchical import _add_parent_child_relationship
 from custom.schema import TemplateSchema
 from custom.response_synthesis import TreeSummarize
+from custom.llm import get_llm
+from custom.embedding import get_embedding_model
 
 class CustomHierarchicalNodeParser(NodeParser):
     """Hierarchical node parser.
@@ -24,12 +66,9 @@ class CustomHierarchicalNodeParser(NodeParser):
     overlap between parent nodes (e.g. with a bigger chunk size), and child nodes
     per parent (e.g. with a smaller chunk size).
     """
-  
-    _cache_doc_path: str = PrivateAttr()
     _cache_process_path: str = PrivateAttr()
-    _cur_level: int = PrivateAttr()
-    _cur_processing_node_id: int = PrivateAttr()
-    _cache_docstore: SimpleDocumentStore = PrivateAttr()
+    _cache_process_file: io.IOBase = PrivateAttr()
+    _level2nodes: List[TextNode] = PrivateAttr()
 
     # The chunk level to use when splitting documents: document, section, paragraph, multi-sentences
     _chunk_levels: List[str] = PrivateAttr()
@@ -37,49 +76,37 @@ class CustomHierarchicalNodeParser(NodeParser):
     _doc_id_to_document: Dict[str, Document] = PrivateAttr()
 
     _sentences_splitter: SentenceSplitter = PrivateAttr()
-
-    _tree_summarizer: TreeSummarize = PrivateAttr()
     
+    _embedding_config: Dict = PrivateAttr()
+
+    _llm_self = PrivateAttr()
+
+    _llm_config: Dict = PrivateAttr()
+    
+    _tree_summarizer: TreeSummarize = PrivateAttr()
+
     @classmethod
     def from_defaults(
         cls,
-        llm: LLM,
+        llm_self,
+        llm_config: LLM,
+        embedding_config: BaseEmbedding,
         cache_dir_path: str = None,
-        cache_dir_name: str = None,
+        cache_file_name: str = None,
         include_metadata: bool = True,
         include_prev_next_rel: bool = True,
         callback_manager: Optional[CallbackManager] = None
     ) -> "CustomHierarchicalNodeParser":
         callback_manager = callback_manager or CallbackManager([])
         cls._chunk_levels = ["document", "section", "paragraph", "multi-sentences"]
-        
-        cls._cur_level = 0
-        cls._cur_processing_node_id = 0
 
+        cls._cache_process_path = None
+        cls._cache_process_file = None
+        cls._level2nodes = {}
         if cache_dir_path is not None:
-            if cache_dir_name is not None:
-                cache_dir_path = os.path.join(cache_dir_path, cache_dir_name)
-            os.makedirs(cache_dir_path, exist_ok=True)
-            cls._cache_doc_path = os.path.join(cache_dir_path, 'cache.json')
-            cls._cache_process_path =  os.path.join(cache_dir_path, 'process.json')
-            if os.path.exists(cls._cache_doc_path):
-                cls._cache_docstore = SimpleDocumentStore.from_persist_path(cls._cache_doc_path)
-                with open(cls._cache_process_path, 'r') as process_file:
-                    process = json.load(process_file)
-                    cls._cur_level = process['level']
-                    cls._cur_processing_node_id = process['node_id']
-            else:
-                cls._cache_docstore = SimpleDocumentStore()
-                cls._cache_docstore.persist(cls._cache_doc_path)        
-                process = {
-                    'level': cls._cur_level,
-                    'node_id': cls._cur_processing_node_id
-                }
-                with open(cls._cache_process_path, 'w') as process_file:
-                    json.dump(process, process_file, indent=4)
-        else:
-            cls._cache_docstore = None
-            cls._cache_process_path = None
+            cls._cache_process_path = os.path.join(cache_dir_path, cache_file_name)
+        
+        cls._embedding_config = embedding_config
 
         cls._sentences_splitter = SentenceSplitter(
             chunk_size=128, 
@@ -88,11 +115,14 @@ class CustomHierarchicalNodeParser(NodeParser):
             include_prev_next_rel=False
         )
 
+        cls._llm_self = llm_self
+        cls._llm_config = llm_config
         cls._tree_summarizer = TreeSummarize.from_defaults(
             query_str=TemplateSchema.tree_summary_section_q_Tmpl,
             summary_str=TemplateSchema.tree_summary_summary_Tmpl,
             qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
-            llm=llm
+            llm_self=llm_self,
+            llm_config=llm_config
         )
 
         return cls(
@@ -106,16 +136,13 @@ class CustomHierarchicalNodeParser(NodeParser):
         return "CustomHierarchicalNodeParser"
 
     def save_nodes(self, nodes: list[BaseNode]) -> None:
-        if self._cache_docstore == None:
+        if self._cache_process_path == None:
             return
-        self._cache_docstore.add_documents(nodes)
-        self._cache_docstore.persist(self._cache_doc_path)
-        process = {
-            'level': self._cur_level,
-            'node_id': self._cur_processing_node_id
-        }
-        with open(self._cache_process_path, 'w') as process_file:
-            json.dump(process, process_file, indent=4)
+        
+        for node in nodes:
+            json.dump(node.to_dict(), self._cache_process_file)
+            self._cache_process_file.write('\n')
+            self._cache_process_file.flush()
 
     def _get_document_node_from_document(
         self,
@@ -133,15 +160,58 @@ class CustomHierarchicalNodeParser(NodeParser):
         return all_nodes
 
     def _summary_content(self, texts):
+        print('summary')
         summary, _ = self._tree_summarizer.generate_response_hs(
             texts=texts,
             num_children=len(texts)
         )
         return summary
 
+    def _text_split(self, section, document_node):
+        paragraphs = []
+        semantic_splitter = None
+        for p in section.split('\n'):
+            print('text split')
+            if len(p) > 9000:
+                print('split')
+                self._tree_summarizer.del_llm()
+                if semantic_splitter is None:
+                    semantic_splitter = SemanticSplitterNodeParser(buffer_size=2, breakpoint_percentile_threshold=95, embed_model=get_embedding_model(self._embedding_config))
+                # Get the total memory allocated on the GPU
+                allocated_memory = torch.cuda.memory_allocated()
+                # Get the total memory cached on the GPU
+                cached_memory = torch.cuda.memory_reserved()
+
+                # Convert bytes to megabytes (MB)
+                allocated_memory_mb = allocated_memory / (1024 ** 3)
+                cached_memory_mb = cached_memory / (1024 ** 3)
+
+                print(f"Allocated Memory: {allocated_memory_mb:.2f} GB")
+                print(f"Cached Memory: {cached_memory_mb:.2f} GB")
+                node = build_nodes_from_splits([p], document_node, id_func=self.id_func)[0]
+                paragraphs += [n.get_content() for n in semantic_splitter.get_nodes_from_documents([node])]
+        if semantic_splitter is not None:
+            del semantic_splitter
+            torch.cuda.empty_cache()
+            gc.collect()
+            # Convert bytes to megabytes (MB)
+            allocated_memory_mb = allocated_memory / (1024 ** 3)
+            cached_memory_mb = cached_memory / (1024 ** 3)
+
+            print(f"Allocated Memory: {allocated_memory_mb:.2f} GB")
+            print(f"Cached Memory: {cached_memory_mb:.2f} GB")
+            self._tree_summarizer.load_llm()
+            # Convert bytes to megabytes (MB)
+            allocated_memory_mb = allocated_memory / (1024 ** 3)
+            cached_memory_mb = cached_memory / (1024 ** 3)
+
+            print(f"Allocated Memory: {allocated_memory_mb:.2f} GB")
+            print(f"Cached Memory: {cached_memory_mb:.2f} GB")
+        return section.split('\n')
+
     def _get_section_nodes_from_document_node(
         self, 
-        document_node: BaseNode,
+        document_node: BaseNode
     ) -> List[BaseNode]:
         all_nodes: List[BaseNode] = []
         parent_document = self._doc_id_to_document.get(document_node.ref_doc_id, None)
@@ -156,26 +226,25 @@ class CustomHierarchicalNodeParser(NodeParser):
         for title, (start, end) in parent_document.metadata['sections'].items():
             section = document_node.get_content()[start: end]
             if title == 'abstract':
-                abstract_paragraphs = section.split('\n')
+                abstract_paragraphs = self._text_split(section, document_node)
             else:
                 titles.append(title)
                 sections.append(section)
-                # summaries.append(self._summary_content(section.split('\n')))
-                summaries.append('')
-        
+                # summary = ''
+                summary = self._summary_content(self._text_split(section, document_node))
+                summaries.append(summary)
         
         # Get summary of abstract
-        # summary_for_document = None
-        # if abstract_paragraphs != None:
-        #     summary_for_document = self._summary_content(abstract_paragraphs)
-        # else:
-        #     summary_for_document = self._summary_content(summaries)
+        summary_for_document = ''
+        if abstract_paragraphs != None:
+            summary_for_document = self._summary_content(abstract_paragraphs)
+        else:
+            summary_for_document = self._summary_content(summaries)
 
         # Update document node
         origin_document_text = document_node.text
         document_node.metadata['original_content'] = origin_document_text
-        # document_node.text = summary_for_document
-        document_node.text = ''
+        document_node.text = summary_for_document
 
         # Update section nodes
         all_nodes.extend(
@@ -284,78 +353,110 @@ class CustomHierarchicalNodeParser(NodeParser):
         nodes = self._postprocess_parsed_nodes(nodes, chunk_level)
         return nodes
 
+    def _init_get_nodes_from_nodes(self, nodes):
+        latest_level = 0
+        prev_level_nodes = nodes
+
+        if self._cache_process_path is not None:
+            # init attributions
+            latest_level = -1
+            self._level2nodes = {}
+            level2int = {level: i for i, level in enumerate(self._chunk_levels)}
+            
+            # loading nodes
+            if os.path.exists(self._cache_process_path):
+                file_size = os.path.getsize(self._cache_process_path)
+                with open(self._cache_process_path, 'r') as cache_file:
+                    with tqdm(total=file_size, desc='Loading cache...', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+                        for line in cache_file:
+                            try:
+                                node_dict = json.loads(line)
+                                node = TextNode.from_dict(node_dict)
+                                if level2int[node.metadata['level']] > latest_level:
+                                    latest_level = level2int[node.metadata['level']]
+                                    self._level2nodes[latest_level] = []
+                                self._level2nodes[level2int[node.metadata['level']]].append(node)
+                            except Exception as e:
+                                print(e)
+                            # Update progress bar based on bytes read
+                            pbar.update(len(line))
+            self._cache_process_file = open(self._cache_process_path, 'a+')
+            latest_level = max(latest_level, 0)
+
+            # get prev_level_nodes
+            if latest_level == 1:
+                latest_level = 0
+                processed_prev_level_nodes_id = set()
+                for node in self._level2nodes[latest_level]:
+                    processed_prev_level_nodes_id.add(node.ref_doc_id)
+                prev_level_nodes = []
+                for node in nodes:
+                    if node.id_ not in processed_prev_level_nodes_id:
+                        prev_level_nodes.append(node)
+                
+            if latest_level > 1:
+                processed_prev_level_nodes_id = set()
+                for node in self._level2nodes[latest_level]:
+                    parent_node_id = node.relationships[NodeRelationship.PARENT].node_id
+                    processed_prev_level_nodes_id.add(parent_node_id)
+                prev_level_nodes = []
+                for node in self._level2nodes[latest_level-1]:
+                    if node.id_ not in processed_prev_level_nodes_id:
+                        prev_level_nodes.append(node)
+
+        return latest_level, prev_level_nodes
+
     def _get_nodes_from_nodes(
         self,
         nodes: List[BaseNode],
         show_progress: bool = False,
     ) -> List[BaseNode]:
         """Recursively get nodes from nodes."""
+        latest_level, prev_level_nodes = self._init_get_nodes_from_nodes(nodes)
 
-        # Is there cache docstore?
-        if self._cache_docstore is None:
-            all_nodes = []
-            prev_level_nodes = nodes
-            finished_sub_node = []
-        else:
-            all_nodes = [node for _, node in self._cache_docstore.docs.items()]
-            if self._cur_level == 0:
-                # prev_level_nodes
-                prev_level_nodes = nodes[self._cur_processing_node_id:]
-                # finished current nodes
-                finished_sub_node = all_nodes
-            else:
-                i = 0
-                prev_level_nodes = []
-                finished_sub_node = []
-                for node in all_nodes:
-                    # prev_level_nodes
-                    if node.metadata['level'] == self._chunk_levels[self._cur_level-1] and i < self._cur_processing_node_id:
-                        i += 1
-                    else:
-                        prev_level_nodes.append(node)
+        for level in range(latest_level, len(self._chunk_levels)):
+            if level not in self._level2nodes:
+                self._level2nodes[level] = []
 
-                    # finished current nodes
-                    if node.metadata['level'] == self._chunk_levels[self._cur_level]:
-                        finished_sub_node.append(node)
-
-        sub_nodes = finished_sub_node
-
-        print(f'cur level: {self._cur_level}')
-        print(f'cur node id: {self._cur_processing_node_id}')
-        print(f'prev nodes: {len(prev_level_nodes)}')
-        print(f'sub nodes: {len(sub_nodes)}')
-
-        cur_level = self._cur_level
-        for level in range(cur_level, len(self._chunk_levels)):
-            self._cur_level = level
             # first split current nodes into sub-nodes
             nodes_with_progress = get_tqdm_iterable(
                 prev_level_nodes, show_progress, f'{self._chunk_levels[level]} level parsing ...'
             )
             
+            i = 1
             for node in nodes_with_progress:
-                self.save_nodes(all_nodes)
+                if node.metadata.get('level', None) == 'document' and 'isNew' not in node.metadata:
+                    continue
                 cur_sub_nodes = self._split_nodes(chunk_level=self._chunk_levels[level], node=node)
 
                 # add parent relationship from sub node to parent node
                 # add child relationship from parent node to sub node
                 # NOTE: Only add relationships if level > 0, since we don't want to add
                 # relationships for the top-level document objects that we are splitting
-                if level > 0:
+                if level == 0:
+                    cur_sub_nodes[0].metadata['isNew'] = True
+                elif level > 0:
                     for sub_node in cur_sub_nodes:
                         _add_parent_child_relationship(
                             parent_node=node,
                             child_node=sub_node,
                         )
-                sub_nodes.extend(cur_sub_nodes)
-                self._cur_processing_node_id += 1
-            
-            prev_level_nodes = sub_nodes
-            all_nodes.extend(sub_nodes)
-            sub_nodes = []
-            self._cur_processing_node_id = 0
-            print(len(all_nodes))
 
+                if level == 1:
+                    del node.metadata['isNew']
+                    self.save_nodes([node] + cur_sub_nodes)
+                elif level > 1:
+                    self.save_nodes(cur_sub_nodes)
+                
+                self._level2nodes[level].extend(cur_sub_nodes)
+                i += 1
+            prev_level_nodes = self._level2nodes[level]
+
+        self._cache_process_file.close()
+
+        all_nodes = []
+        for nodes in self._level2nodes.values():
+            all_nodes.extend(nodes)
         return all_nodes
 
     def get_nodes_from_documents(
@@ -391,8 +492,6 @@ class CustomHierarchicalNodeParser(NodeParser):
     ) -> List[BaseNode]:
         return list(nodes)
 
-import os
-from llama_index.core.storage.docstore import SimpleDocumentStore
 class ManuallyParser():
     def __init__(self, cache_path, cache_name, delete_cache=True, force=False) -> None:
         self.cache_name = cache_name
@@ -403,14 +502,11 @@ class ManuallyParser():
     def get_nodes_from_documents(self, nodes, **kwargs):
         nodes_cache_path = os.path.join(self.cache_path, f"{self.cache_name}_finished.json")
         if os.path.exists(nodes_cache_path) and not self.force:
-            docstore = SimpleDocumentStore().from_persist_path(persist_path=nodes_cache_path)
-            nodes = [node for _, node in docstore.docs.items()]
+            nodes = load_nodes_jsonl(nodes_cache_path)
             if self.delete_cache:
                 os.remove(nodes_cache_path)
             return nodes
-        nodes_cache_path = os.path.join(self.cache_path, f"{self.cache_name}_{len(nodes)}_processing.json")
-        docstore = SimpleDocumentStore()
-        docstore.add_documents(nodes)
-        docstore.persist(persist_path=nodes_cache_path)
+        nodes_cache_path = os.path.join(self.cache_path, f"{self.cache_name}_{len(nodes)}_processing.jsonl")
+        save_nodes_jsonl(nodes_cache_path, nodes)
         print(f"\n[Manually Parser] Cache \'{self.cache_name}\' has been saved. Waiting for processing manually...")
         exit()

@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
-from utils.get import get_a_store
+from custom.io import save_nodes_jsonl, load_nodes_jsonl
 
 if TYPE_CHECKING:
     from database import Database
@@ -40,17 +40,14 @@ class CreateIndexPipeline:
             return self.database._storage
 
     def _save_result(self, cache_name, **kwargs):
-        print("[update_database] Saving cache \'{}\' at the break point...".format(cache_name))
-        docstore = get_a_store('SimpleDocumentStore')
-        docstore.add_documents(self.kwargs['result'])
         nodes_cache_path = os.path.abspath(os.path.join(self.cache_path, cache_name))
-        docstore.persist(persist_path=nodes_cache_path)
+        save_nodes_jsonl(nodes_cache_path, self.kwargs['result'])
         print("[update_database] Cache \'{}\' has been saved at the break point".format(cache_name))
 
     def _add(self, step_id, step_type, action):
         if step_type == 'break':
             _, prev_kwargs = self.steps[-1][-1]
-            cache_name = f'{self.kwargs["index_id"]}_{step_id-1}_{prev_kwargs["step_type"]}_{prev_kwargs["action"]}.json'
+            cache_name = f'{self.kwargs["index_id"]}_{step_id-1}_{prev_kwargs["step_type"]}_{prev_kwargs["action"]}.jsonl'
             # Rebuild the break point?
             if action == 'force':
                 kwargs = {'step_type': step_type, 'action': action, 'cache_name': cache_name, 'step_id': step_id}
@@ -90,9 +87,7 @@ class CreateIndexPipeline:
     def run(self):
         if hasattr(self, 'nodes_cache_path'):
             # Directly use nodes have been generated
-            docstore = get_a_store('SimpleDocumentStore').from_persist_path(persist_path=self.nodes_cache_path)
-            nodes = [node for _, node in docstore.docs.items()]
-            self.kwargs['nodes'] = nodes
+            self.kwargs['nodes'] = load_nodes_jsonl(self.nodes_cache_path)
             if self.delete_cache:
                 os.remove(self.nodes_cache_path)
 

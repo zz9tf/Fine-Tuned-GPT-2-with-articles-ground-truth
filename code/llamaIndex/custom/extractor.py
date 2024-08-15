@@ -1,3 +1,28 @@
+##########################################################################
+# Extractor
+import os
+
+def get_extractors(self, extractor_config):
+    llm_config = self.prefix_config['llm'][extractor_config['llm']]
+    
+    if extractor_config['type'] == 'OpenAIBasedExtractor':
+        return OpenAIBasedQARExtractor(
+            model_name=extractor_config['llm'],
+            cache_dir=os.path.abspath(os.path.join(self.root_path, self.config['cache'])),
+            mode=extractor_config['mode'],
+            embedding_only=extractor_config.get('embedding_only', True),
+            only_meta=extractor_config.get('only_meta', None)
+        )
+    elif extractor_config['type'] in ['OllamaBasedExtractor', 'HuggingfaceBasedExtractor']:
+        return CustomLLMBasedQARExtractor(
+            llm_self=self,
+            llm_config=llm_config,
+            embedding_config=self.prefix_config['embedding_model'][extractor_config['embedding_model']],
+            embedding_only=extractor_config.get('embedding_only', True),
+            only_meta=extractor_config.get('only_meta', None)
+        )
+##########################################################################
+
 from typing import Dict, List, Optional
 import os
 import csv
@@ -11,7 +36,7 @@ from openai import OpenAI
 from llama_index.llms.openai import OpenAI as llama_index_openai
 from custom.schema import TemplateSchema
 from custom.schema import QAR
-from custom.custom_pydantic import CustomPydanticOutputParser
+from custom.pydantic import CustomPydanticOutputParser
 
 def parse_obj_to_str(objs):
     objs_str = ""

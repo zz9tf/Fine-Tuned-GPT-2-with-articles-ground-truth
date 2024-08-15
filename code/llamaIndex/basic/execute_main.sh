@@ -1,19 +1,18 @@
 #!/bin/bash
 
-#SBATCH --account=guest
-#SBATCH --partition=guest-gpu
-#SBATCH --job-name=pid-database
-#SBATCH --qos=low-gpu
-#SBATCH --time=24:00:00
-#SBATCH --gres=gpu:H100:1
-#SBATCH --output=slurm-install.out
+#SBATCH --account=pengyu-lab
+#SBATCH --partition=pengyu-gpu
+#SBATCH --job-name=pid-0_gpu-V100_gn-1_nnum-180
+#SBATCH --qos=medium
+#SBATCH --time=72:00:00
+#SBATCH --output=slurm-0.out
+#SBATCH --gres=gpu:V100:1
+#SBATCH --nodelist=gpu-1-1
 
-# Path to your executable
-nvidia-smi
+
+# Set up env
 source ~/.bashrc
 conda activate llm
-python --version
-dev bg grobid
-sleep 60
-# python manually_parser_exe.py --input_file test_2_parser_ManuallyHierarchicalNodeParser_8_processing.json --action thread --pid 0 --gpu V100 --node_number_per_process 3
-python database.py
+
+# Path to your executable
+python manually_parser_exe.py --input_file gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_7879_processing.jsonl --action thread --pid 20 --gpu V100 --node_number_per_process 200

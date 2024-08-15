@@ -1,4 +1,3 @@
-import math
 import os, sys
 import time
 import smtplib
@@ -8,23 +7,22 @@ import yaml
 import argparse
 import subprocess
 from dotenv import load_dotenv
-from utils.get import get_a_store, get_llm
-from custom.custom_parser import CustomHierarchicalNodeParser
+from custom.parser import CustomHierarchicalNodeParser
+from custom.io import save_nodes_jsonl, load_nodes_jsonl
 
 # Set paramters
-input_file = 'gpt-4o-batch-all_2_parser_ManuallyHierarchicalNodeParser_7877_processing.json'
+input_file = 'gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_7879_processing.jsonl'
 python_file_name = 'manually_parser_exe.py'
-# gpus1 = [(pid, 'V100', 1) for pid in range(0, 10)]
-# gpus2 = [(pid, 'V100', 2) for pid in range(10, 20) if pid not in [12, 13, 18]]
-# gpus3 = [(pid, 'V100', 3) for pid in range(20, 30) if pid not in [28]]
-# gpus5 = [(pid, 'V100', 5) for pid in range(34, 45)]
-# gpus = gpus1 + gpus2 + gpus3 +  [(30, 'V100', 2), (31, 'V100', 2), (32, 'V100', 2), (33, 'V100', 3)]
-gpus = [(0, 'V100', 1)]
-# gpus = gpus5
+gpus1 = [(pid, 'V100', 1) for pid in list(range(6, 11))]
+gpus2 = [(pid, 'V100', 3) for pid in range(17, 20)] + [(21, 'V100', 3), (23, 'V100', 3), (24, 'V100', 3)]
+gpus3 = [(pid, 'V100', 4) for pid in range(26, 30)] + [(15, 'V100', 4)]
+gpus = gpus1 + gpus2 + gpus3
+# gpus = [(15, 'V100', 3), (18, 'V100', 3), (19, 'V100', 3)]
+# gpus = gpus1
 gn = 1
 nodes_length = int(input_file.split('_')[-2])
 # node_number_per_process=max(math.ceil(nodes_length/len(gpus)), 1)
-node_number_per_process=180
+node_number_per_process=200
 check_interval = 5
 
 # Load config
@@ -41,6 +39,7 @@ load_dotenv(dotenv_path=os.path.abspath(os.path.join(root_path, './code/llamaInd
 cache_path = os.path.abspath(os.path.join(root_path, config['cache']))
 parser_config = prefix_config['parser']['ManuallyHierarchicalNodeParser']
 llm_config = prefix_config['llm'][parser_config['llm']]
+embedding_config = prefix_config['embedding_model'][parser_config['embedding_model']]
 
 def load_args():
     parser = argparse.ArgumentParser(description="Process some parameters.")
@@ -123,7 +122,7 @@ python {python_file_name} --input_file {input_file} --action thread --pid {pid} 
     if result.returncode == 0:
         job_id = result.stdout.split()[-1]
         print(f"[Job ID: {job_id}] Job submitted successfully with pid {pid} at gpu {gpu}!")
-        save_cache_name = '_'.join(input_file.split('_')[:-1] + [f'gpu_{gpu}_nodeNum_{node_number_per_process}_pid_{pid}.json'])
+        save_cache_name = '_'.join(input_file.split('_')[:-1] + [f'gpu_{gpu}_nodeNum_{node_number_per_process}_pid_{pid}.jsonl'])
         return job_name, save_cache_name
 
     else:
@@ -142,7 +141,7 @@ python {python_file_name} --input_file {input_file} --action thread --pid {pid} 
             return None, None
         
         # Yes, return job id
-        save_cache_name = '_'.join(input_file.split('_')[:-1] + [f'gpu_{gpu}_nodeNum_{node_number_per_process}_pid_{pid}.json'])
+        save_cache_name = '_'.join(input_file.split('_')[:-1] + [f'gpu_{gpu}_nodeNum_{node_number_per_process}_pid_{pid}.jsonl'])
         return job_name, save_cache_name
 
 def get_job_status(job_name):
@@ -170,7 +169,7 @@ def send_email(sent_from, app_password, sent_to, subject="", email_body=""):
     smtpserver.close()
     print(f"[Send email] sent {subject}")
 
-def monitor_and_restart(jobs, script_path, node_number_per_process, check_interval=60, is_restart: bool=True):
+def monitor_and_restart(jobs, script_path, check_interval=60, is_restart: bool=True):
     """Monitor the job and restart it if it fails."""
     while len(jobs) > 0:
         unfinished = []
@@ -213,6 +212,7 @@ def monitor_and_restart(jobs, script_path, node_number_per_process, check_interv
                     else:
                         continue
             unfinished.append((job_name, save_cache_name))
+        print()
         jobs = unfinished
         time.sleep(check_interval)
 
@@ -223,24 +223,23 @@ def one_thread_parser(
 ):
     # Load nodes
     nodes_cache_path = os.path.abspath(os.path.join(cache_path, input_file_name))
-    docstore = get_a_store('SimpleDocumentStore').from_persist_path(persist_path=nodes_cache_path)
-    nodes = [node for _, node in docstore.docs.items()][pid*node_number_per_process: (pid+1)*node_number_per_process]
+    nodes = load_nodes_jsonl(nodes_cache_path)[pid*node_number_per_process: (pid+1)*node_number_per_process]
 
     # Load parser
     parser = CustomHierarchicalNodeParser.from_defaults(
-        llm=get_llm(None, llm_config), 
+        llm_self=None,
+        llm_config=llm_config,
+        embedding_config=embedding_config,
         cache_dir_path='/home/zhengzheng/scratch0/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/.cache',
-        cache_dir_name=f'pid-{pid}'
+        cache_file_name=f'pid-{pid}.jsonl'
     )
     nodes = parser.get_nodes_from_documents(nodes, show_progress=True)
 
     # Save nodes
-    docstore = get_a_store('SimpleDocumentStore')
-    docstore.add_documents(nodes)
-    input_file_name = '_'.join(input_file_name.split('_')[:-1] + [f'gpu_{gpu}_nodeNum_{node_number_per_process}_pid_{pid}.json'])
-    nodes_cache_path = os.path.abspath(os.path.join(cache_path, input_file_name))
+    save_cache_name = '_'.join(input_file.split('_')[:-1] + [f'gpu_{gpu}_nodeNum_{node_number_per_process}_pid_{pid}.jsonl'])
+    nodes_cache_path = os.path.abspath(os.path.join(cache_path, save_cache_name))
     print(nodes_cache_path)
-    docstore.persist(persist_path=nodes_cache_path)
+    save_nodes_jsonl(nodes_cache_path, nodes)
 
 if __name__ == '__main__':
     args = load_args()
@@ -260,23 +259,22 @@ if __name__ == '__main__':
         monitor_and_restart(
             jobs=jobs,
             script_path=os.getcwd(),
-            node_number_per_process=node_number_per_process,
             check_interval=check_interval,
             is_restart=False
         )
 
-        # final_docstore = get_a_store('SimpleDocumentStore')
-        # for _, save_cache_name in jobs:
-        #     nodes_cache_path = os.path.abspath(os.path.join(cache_path, save_cache_name))
-        #     docstore = get_a_store('SimpleDocumentStore').from_persist_path(persist_path=nodes_cache_path)
-        #     nodes = [node for _, node in docstore.docs.items()]
-        #     final_docstore.add_documents(nodes)
-        # nodes_cache_path = os.path.abspath(os.path.join(cache_path, '_'.join(input_file.split('_')[:-2])))
-        # final_docstore.persist(persist_path=nodes_cache_path)
-
     elif args.action == 'thread':
         one_thread_parser(
             pid=args.pid,
-            input_file_name=args.input_file,
-            gpu=args.gpu
+            gpu=args.gpu,
+            input_file_name=args.input_file
         )
+
+    elif args.action == 'merge':
+        save_files = ['_'.join(input_file.split('_')[:-1] + [f'gpu_{gpu}_nodeNum_{node_number_per_process}_pid_{pid}.jsonl']) for gpu, pid in zip(gpus, range(30))]
+        all_nodes = []
+        for save_cache_name in save_files:
+            nodes_cache_path = os.path.abspath(os.path.join(cache_path, save_cache_name))
+            all_nodes.extend(load_nodes_jsonl(nodes_cache_path))
+        nodes_cache_path = os.path.abspath(os.path.join(cache_path, '_'.join(input_file.split('_')[:-2])))
+        save_nodes_jsonl(all_nodes)

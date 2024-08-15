@@ -1,3 +1,50 @@
+##########################################################################
+# LLM method
+import torch
+from transformers import BitsAndBytesConfig
+from llama_index.llms.ollama import Ollama
+from llama_index.llms.openai import OpenAI as llama_index_openai
+from custom.schema import LLMTemplate
+
+def get_llm(self, llm_config):
+    if llm_config['based_on'] == "ollama":
+        llm = Ollama(model=llm_config['model_name'], request_timeout=240.0, temperature=0.3)
+    elif llm_config['based_on'] == 'openai':
+        llm = llama_index_openai(model=llm_config['model_name'], api_key=os.getenv('OPENAI_API_KEY'))
+    elif llm_config['based_on'] == "huggingface":
+        # quantize to save memory
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_quant_type="nf4",
+            # bnb_4bit_use_double_quant=True,
+        )
+
+        llm = CustomHuggingFaceLLM(
+            model_name=llm_config['model_name'],
+            model_kwargs={
+                "quantization_config": quantization_config,
+                "cache_dir": llm_config['cache_dir'],
+                "local_files_only": True
+            },
+            tokenizer_name=llm_config['model_name'],
+            tokenizer_kwargs={
+                "cache_dir": llm_config['cache_dir'],
+                "local_files_only": True
+            },
+            query_wrapper_prompt=LLMTemplate.tmpl,
+            max_new_tokens=4096,
+            generate_kwargs={'do_sample': True, "temperature": 0.3, "top_k": 50, "top_p": 0.95, "repetition_penalty": 1.2},
+            device_map="auto"
+        )
+    else:
+        raise Exception(f"Invalid llm based {llm_config['based_on']}")
+    
+    return llm
+
+##########################################################################
+
+
 import logging
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 import torch

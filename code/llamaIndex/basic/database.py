@@ -3,13 +3,22 @@ root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, root_dir)
 import yaml
 from datetime import datetime
-from llama_index.core import SimpleDirectoryReader
-from custom.custom_document_reader import CustomDocumentReader
 from llama_index.core import (
     VectorStoreIndex,
     StorageContext,
     load_index_from_storage,
 )
+from llama_index.core import SimpleDirectoryReader
+from custom.reader import CustomDocumentReader
+from custom.embedding import get_embedding_model
+from custom.llm import get_llm
+from custom.parser import get_parser
+from custom.extractor import get_extractors
+from custom.index import get_an_index_generator
+from custom.store import get_a_store
+from custom.io import save_storage_context
+from dotenv import load_dotenv
+from basic.pipeline import CreateIndexPipeline
 from llama_index.core.retrievers import AutoMergingRetriever
 from llama_index.core.node_parser import get_leaf_nodes
 from llama_index.core import Settings
@@ -17,16 +26,6 @@ from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.core import get_response_synthesizer
-from dotenv import load_dotenv
-from utils.get import (
-    get_parser,
-    get_extractors,
-    get_embedding_model,
-    get_llm,
-    get_an_index_generator,
-    get_a_store
-)
-from basic.pipeline import CreateIndexPipeline
 
 class Database():
     def __init__(self, root_path, config_dir_path):
@@ -110,13 +109,12 @@ class Database():
                 index_store=get_a_store(config['index_store']),
                 property_graph_store=get_a_store(config['property_graph_store'])
             ),
-            persist_dir=index_dir_path if os.path.exists(index_dir_path) else None,
             show_progress=True
         )
 
         # Save index
         index.set_index_id(index_id)
-        index.storage_context.persist(index_dir_path)
+        save_storage_context(index.storage_context, index_dir_path)
         print("[update_database] Index: {} has been saved".format(index_id))
         return index
 
@@ -165,7 +163,7 @@ class Database():
                 modified_time = os.path.getmtime(folderpath)
                 modified_date = datetime.fromtimestamp(modified_time).strftime('%Y-%m-%d %H:%M:%S')
                 indexes.append({'id': d, 'size': size, 'modified_date': modified_date})
-        return indexes        
+        return indexes
 
     def _get_index_config(self, index_pipeline):
         index_config = {}
@@ -201,6 +199,7 @@ class Database():
         Settings.embed_model = get_embedding_model(embedding_config)
         
         # Load index
+        # TODO: dealing with the large files
         storage_context = StorageContext.from_defaults(persist_dir=index_dir_path)
         index = load_index_from_storage(
             storage_context=storage_context, 

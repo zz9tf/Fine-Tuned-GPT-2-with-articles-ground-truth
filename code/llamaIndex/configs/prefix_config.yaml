@@ -25,10 +25,12 @@ parser:
     type: "CustomHierarchicalNodeParser"
     retriever: "AutoMergingRetriever"
     llm: "lmsys/vicuna-13b-v1.5"
+    embedding_model: "dunzhang/stella_en_1.5B_v5"
   "ManuallyHierarchicalNodeParser":
     type: "ManuallyHierarchicalNodeParser"
     retriever: "AutoMergingRetriever"
     llm: "lmsys/vicuna-13b-v1.5"
+    embedding_model: "dunzhang/stella_en_1.5B_v5"
 extractor:
   "vicuna-13b-QAExtractor-hf":
     name: "vicuna-13b-QAExtractor"
@@ -63,6 +65,10 @@ embedding_model:
   "ollama-sfr-embedding-mistral":
     based_on: "ollama"
     name: "sammcj/sfr-embedding-mistral:Q4_K_M"
+  "dunzhang/stella_en_1.5B_v5":
+    based_on: "huggingface"
+    name: "dunzhang/stella_en_1.5B_v5"
+    cache_dir: "/work/zhengzheng/.hf_cache"
 llm:
   "lmsys/vicuna-13b-v1.5":
     based_on: "huggingface"
@@ -76,7 +82,7 @@ llm:
     model_name: "gpt-4o"
 storage:
   "simple":
-    embedding_model: "ollama-sfr-embedding-mistral"
+    embedding_model: "dunzhang/stella_en_1.5B_v5"
     index_generator: VectorStoreIndex
     docstore: SimpleDocumentStore
     vector_store: SimpleVectorStore
@@ -119,7 +125,7 @@ index_pipelines:
   "gpt-4o-batch-all-p":
     - reader: "CustomDocumentReader"
     - break: "-"
-    - parser: "CustomHierarchicalNodeParser-hf_vicuna_13b"
+    - parser: "ManuallyHierarchicalNodeParser"
     - break: "force"
     - extractor: "gpt-4o-QAExtractor-batch"
     - break: "force"
