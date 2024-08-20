@@ -251,7 +251,7 @@ class CustomHierarchicalNodeParser(NodeParser):
             build_nodes_from_splits(summaries, document_node, id_func=self.id_func)
         )
 
-        for title, node in zip(titles, all_nodes):
+        for title, node, section in zip(titles, all_nodes, sections):
             node.metadata['section_title'] = title
             node.metadata['original_content'] = section
 
@@ -423,7 +423,6 @@ class CustomHierarchicalNodeParser(NodeParser):
                 prev_level_nodes, show_progress, f'{self._chunk_levels[level]} level parsing ...'
             )
             
-            i = 1
             for node in nodes_with_progress:
                 if node.metadata.get('level', None) == 'document' and 'isNew' not in node.metadata:
                     continue
@@ -449,7 +448,6 @@ class CustomHierarchicalNodeParser(NodeParser):
                     self.save_nodes(cur_sub_nodes)
                 
                 self._level2nodes[level].extend(cur_sub_nodes)
-                i += 1
             prev_level_nodes = self._level2nodes[level]
 
         self._cache_process_file.close()
