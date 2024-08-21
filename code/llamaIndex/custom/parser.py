@@ -21,7 +21,9 @@ def get_parser(self, config, **kwargs):
         )
     elif config['type'] == 'CustomHierarchicalNodeParser':
         return CustomHierarchicalNodeParser.from_defaults(
-            llm=get_llm(self, self.prefix_config['llm'][config['llm']])
+            llm_self=self,
+            llm_config=self.prefix_config['llm'][config['llm']],
+            embedding_config=self.prefix_config['embedding_model'][config['embedding_model']]
         )
     elif config['type'] == "ManuallyHierarchicalNodeParser":
         return ManuallyParser(
@@ -54,8 +56,8 @@ from llama_index.core.llms import LLM
 from llama_index.core.node_parser.relational.hierarchical import _add_parent_child_relationship
 from custom.schema import TemplateSchema
 from custom.response_synthesis import TreeSummarize
-from custom.llm import get_llm
 from custom.embedding import get_embedding_model
+from custom.semantic import SemanticSplitter
 
 class CustomHierarchicalNodeParser(NodeParser):
     """Hierarchical node parser.
@@ -176,7 +178,8 @@ class CustomHierarchicalNodeParser(NodeParser):
                 print('split')
                 self._tree_summarizer.del_llm()
                 if semantic_splitter is None:
-                    semantic_splitter = SemanticSplitterNodeParser(buffer_size=2, breakpoint_percentile_threshold=95, embed_model=get_embedding_model(self._embedding_config))
+                    # semantic_splitter = SemanticSplitterNodeParser(buffer_size=2, breakpoint_percentile_threshold=95, embed_model=get_embedding_model(self._embedding_config))
+                    semantic_splitter = SemanticSplitter(buffer_size=2, breakpoint_percentile_threshold=95, embed_model=get_embedding_model(self._embedding_config))
                 # Get the total memory allocated on the GPU
                 allocated_memory = torch.cuda.memory_allocated()
                 # Get the total memory cached on the GPU
@@ -251,7 +254,7 @@ class CustomHierarchicalNodeParser(NodeParser):
             build_nodes_from_splits(summaries, document_node, id_func=self.id_func)
         )
 
-        for title, node in zip(titles, all_nodes):
+        for title, section, node in zip(titles, sections, all_nodes):
             node.metadata['section_title'] = title
             node.metadata['original_content'] = section
 
@@ -423,7 +426,6 @@ class CustomHierarchicalNodeParser(NodeParser):
                 prev_level_nodes, show_progress, f'{self._chunk_levels[level]} level parsing ...'
             )
             
-            i = 1
             for node in nodes_with_progress:
                 if node.metadata.get('level', None) == 'document' and 'isNew' not in node.metadata:
                     continue
@@ -449,10 +451,11 @@ class CustomHierarchicalNodeParser(NodeParser):
                     self.save_nodes(cur_sub_nodes)
                 
                 self._level2nodes[level].extend(cur_sub_nodes)
-                i += 1
+
             prev_level_nodes = self._level2nodes[level]
 
-        self._cache_process_file.close()
+        if self._cache_process_path is not None:
+            self._cache_process_file.close()
 
         all_nodes = []
         for nodes in self._level2nodes.values():

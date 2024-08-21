@@ -11,7 +11,7 @@ from custom.parser import CustomHierarchicalNodeParser
 from custom.io import save_nodes_jsonl, load_nodes_jsonl
 
 # Set paramters
-input_file = 'gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_7879_processing.jsonl'
+input_file = 'gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_8165_processing.jsonl'
 python_file_name = 'manually_parser_exe.py'
 gpus1 = [(pid, 'V100', 1) for pid in list(range(6, 11))]
 gpus2 = [(pid, 'V100', 3) for pid in range(17, 20)] + [(21, 'V100', 3), (23, 'V100', 3), (24, 'V100', 3)]

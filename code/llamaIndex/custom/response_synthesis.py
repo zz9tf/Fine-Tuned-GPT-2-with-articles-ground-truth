@@ -101,7 +101,6 @@ class TreeSummarize():
                 context_str=text, query_str=self.query_str
             )
             self.prompt_records[0].append(fmt_qa_prompt)
-            print(f'text: {fmt_qa_prompt}')
             responses.append(self.llm.complete(fmt_qa_prompt))
 
         response_txt = self.combine_results([r.text.strip() for r in responses], 1)

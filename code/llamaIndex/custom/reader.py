@@ -1,6 +1,7 @@
 import os
 from typing import List
 import shutil
+from langdetect import detect
 from tqdm import tqdm
 from grobid_client.grobid_client import GrobidClient
 import xml.etree.ElementTree as ET
@@ -135,7 +136,7 @@ class CustomDocumentReader:
             file_dict['file_name'] = filename.replace('grobid.tei.xml', 'pdf')
             if len(file_dict['sections']) == 0:
                 print(f"[documetn reader] Detect invalided document with no sections {file_dict['file_name']}")
-            else:
+            elif detect(paper_content):
                 file_document = Document(
                     text=paper_content,
                     metadata=file_dict
