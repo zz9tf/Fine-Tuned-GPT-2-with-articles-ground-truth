@@ -451,7 +451,6 @@ class CustomHierarchicalNodeParser(NodeParser):
                     self.save_nodes(cur_sub_nodes)
                 
                 self._level2nodes[level].extend(cur_sub_nodes)
-
             prev_level_nodes = self._level2nodes[level]
 
         if self._cache_process_path is not None:
