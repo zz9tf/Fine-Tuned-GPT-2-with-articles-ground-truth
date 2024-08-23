@@ -1,0 +1,73 @@
+Executing: sinfo -N -l | grep -E 'pengyu-gpu|guest-gpu'
+NODELIST           NODES           PARTITION       STATE CPUS    S:C:T MEMORY TMP_DISK WEIGHT AVAIL_FE REASON 
+gpu-0-0                1           guest-gpu       down*    8    2:4:1  15997        0      1 sandybri Not responding      
+gpu-1-1                1           guest-gpu       mixed   40   2:20:1 772461        0      1 cascadel none                
+gpu-1-1                1          pengyu-gpu       mixed   40   2:20:1 772461        0      1 cascadel none                
+gpu-1-2                1           guest-gpu       mixed   40   2:20:1 772461        0      1 cascadel none                
+gpu-1-2                1          pengyu-gpu       mixed   40   2:20:1 772461        0      1 cascadel none                
+gpu-1-3                1           guest-gpu       mixed   40   2:20:1 772461        0      1 cascadel none                
+gpu-1-3                1          pengyu-gpu       mixed   40   2:20:1 772461        0      1 cascadel none                
+gpu-1-4                1           guest-gpu       mixed   40   2:20:1 772461        0      1 cascadel none                
+gpu-1-4                1          pengyu-gpu       mixed   40   2:20:1 772461        0      1 cascadel none                
+gpu-1-5                1           guest-gpu        idle   40   2:20:1 772461        0      1 cascadel none                
+gpu-2-1                1           guest-gpu    drained*   24   2:12:1 192014        0      1 cascadel gpu-2 nodes not in l
+gpu-2-1                1          pengyu-gpu    drained*   24   2:12:1 192014        0      1 cascadel gpu-2 nodes not in l
+gpu-2-2                1           guest-gpu    drained*   24   2:12:1 192014        0      1 cascadel gpu-2 nodes not in l
+gpu-2-2                1          pengyu-gpu    drained*   24   2:12:1 192014        0      1 cascadel gpu-2 nodes not in l
+gpu-2-3                1           guest-gpu       down*   24   2:12:1 192014        0      1 cascadel Not responding      
+gpu-2-3                1          pengyu-gpu       down*   24   2:12:1 192014        0      1 cascadel Not responding      
+gpu-2-4                1           guest-gpu    drained$   24   2:12:1 192014        0      1 cascadel gpu-2 nodes not in l
+gpu-2-4                1          pengyu-gpu    drained$   24   2:12:1 192014        0      1 cascadel gpu-2 nodes not in l
+gpu-2-5                1           guest-gpu        idle   24   2:12:1 192014        0      1 cascadel none                
+gpu-2-5                1          pengyu-gpu        idle   24   2:12:1 192014        0      1 cascadel none                
+gpu-2-6                1           guest-gpu        idle   24   2:12:1 192014        0      1 cascadel none                
+gpu-2-6                1          pengyu-gpu        idle   24   2:12:1 192014        0      1 cascadel none                
+gpu-2-7                1           guest-gpu       down*   24   2:12:1 192014        0      1 cascadel Not responding      
+gpu-2-7                1          pengyu-gpu       down*   24   2:12:1 192014        0      1 cascadel Not responding      
+gpu-2-8                1           guest-gpu       down*   24   2:12:1 192014        0      1 cascadel Not responding      
+gpu-2-8                1          pengyu-gpu       down*   24   2:12:1 192014        0      1 cascadel Not responding      
+gpu-2-9                1           guest-gpu    drained$   24   2:12:1 192014        0      1 cascadel gpu-2 nodes not in l
+gpu-2-9                1          pengyu-gpu    drained$   24   2:12:1 192014        0      1 cascadel gpu-2 nodes not in l
+gpu-2-10               1           guest-gpu        idle   24   2:12:1 192014        0      1 cascadel none                
+gpu-2-10               1          pengyu-gpu        idle   24   2:12:1 192014        0      1 cascadel none                
+gpu-2-11               1           guest-gpu        idle   24   2:12:1 192014        0      1 cascadel none                
+gpu-2-11               1          pengyu-gpu        idle   24   2:12:1 192014        0      1 cascadel none                
+gpu-2-12               1           guest-gpu    drained$   24   2:12:1 192014        0      1 cascadel gpu-2 nodes not in l
+gpu-2-12               1          pengyu-gpu    drained$   24   2:12:1 192014        0      1 cascadel gpu-2 nodes not in l
+gpu-2-13               1           guest-gpu       down*   24   2:12:1 192014        0      1 cascadel Not responding      
+gpu-2-13               1          pengyu-gpu       down*   24   2:12:1 192014        0      1 cascadel Not responding      
+gpu-2-14               1           guest-gpu        idle   24   2:12:1 192014        0      1 cascadel none                
+gpu-2-14               1          pengyu-gpu        idle   24   2:12:1 192014        0      1 cascadel none                
+gpu-2-15               1           guest-gpu    drained*   24   2:12:1 192014        0      1 cascadel gpu-2 node not in lo
+gpu-2-15               1          pengyu-gpu    drained*   24   2:12:1 192014        0      1 cascadel gpu-2 node not in lo
+gpu-5-0                1           guest-gpu    drained*   16    2:8:1  64376        0      1 ivybridg Deprecated          
+gpu-5-1                1           guest-gpu    drained*   16    2:8:1  64399        0      1 ivybridg Deprecated          
+gpu-5-2                1           guest-gpu    drained*   16    2:8:1  64376        0      1 ivybridg Deprecated          
+gpu-5-4                1           guest-gpu    drained*   16    2:8:1  64376        0      1 ivybridg Deprecated          
+gpu-5-5                1           guest-gpu    drained*   16    2:8:1  64376        0      1 ivybridg Deprecated          
+gpu-5-6                1           guest-gpu    drained*   16    2:8:1  32120        0      1 ivybridg Deprecated          
+gpu-5-8                1           guest-gpu    drained*   16    2:8:1  64376        0      1 ivybridg Deprecated          
+gpu-5-10               1           guest-gpu    drained*   16    2:8:1  64376        0      1 ivybridg Deprecated          
+gpu-5-11               1           guest-gpu    drained*   16    2:8:1  64306        0      1 haswell, Deprecated          
+gpu-6-0                1           guest-gpu        idle   16    2:8:1 128830        0      1 sandybri none                
+gpu-6-1                1           guest-gpu        idle   16    2:8:1 128830        0      1 sandybri none                
+gpu-6-2                1           guest-gpu       down*   16    2:8:1 128830        0      1 sandybri Not responding      
+gpu-6-3                1           guest-gpu       down*   16    2:8:1 128830        0      1 sandybri Not responding      
+gpu-6-4                1           guest-gpu        idle   16    2:8:1 128830        0      1 sandybri none                
+gpu-6-5                1           guest-gpu        idle   16    2:8:1 128830        0      1 sandybri none                
+gpu-6-6                1           guest-gpu        idle   16    2:8:1 128830        0      1 sandybri none                
+gpu-6-7                1           guest-gpu        idle   16    2:8:1 128830        0      1 sandybri none                
+gpu-6-8                1           guest-gpu        idle   16    2:8:1 128830        0      1 sandybri none                
+gpu-6-9                1           guest-gpu        idle   16    2:8:1  64376        0      1 sandybri none                
+gpu-6-10               1           guest-gpu        idle   16    2:8:1  64324        0      1 sandybri none                
+gpu-6-11               1           guest-gpu     drained   16    2:8:1  64324        0      1 sandybri gres/gpu count too l
+gpu-6-12               1           guest-gpu       down*   16    2:8:1  64324        0      1 sandybri Not responding      
+gpu-6-13               1           guest-gpu       down*   16    2:8:1  64324        0      1 sandybri Not responding      
+gpu-6-14               1           guest-gpu        idle   16    2:8:1  64324        0      1 sandybri none                
+gpu-6-15               1           guest-gpu        idle   16    2:8:1  64324        0      1 sandybri none                
+gpu-7-0                1           guest-gpu       maint   40   2:20:1  95314        0      1 skylake, none                
+gpu-7-1                1          pengyu-gpu       mixed   40   2:20:1  95314        0      1 skylake, none                
+gpu-7-1                1           guest-gpu       mixed   40   2:20:1  95314        0      1 skylake, none                
+gpu-h100-4-0           1           guest-gpu        idle   32   2:16:1 515377        0      1   (null) none                
+gpu-l40-4-0            1           guest-gpu        idle   16    2:8:1 515370        0      1   (null) none                
+gpu-l40-4-1            1           guest-gpu        idle   16    2:8:1 515370        0      1   (null) none                

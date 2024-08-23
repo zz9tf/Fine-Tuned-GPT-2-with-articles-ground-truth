@@ -13,11 +13,12 @@ from custom.io import save_nodes_jsonl, load_nodes_jsonl
 # Set paramters
 input_file = 'gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_8165_processing.jsonl'
 python_file_name = 'manually_parser_exe.py'
-gpus1 = [(pid, 'V100', 1) for pid in list(range(6, 11))]
-gpus2 = [(pid, 'V100', 3) for pid in range(17, 20)] + [(21, 'V100', 3), (23, 'V100', 3), (24, 'V100', 3)]
-gpus3 = [(pid, 'V100', 4) for pid in range(26, 30)] + [(15, 'V100', 4)]
-gpus = gpus1 + gpus2 + gpus3
-# gpus = [(15, 'V100', 3), (18, 'V100', 3), (19, 'V100', 3)]
+# gpus1 = [(pid, 'V100', 1) for pid in list(range(0, 10))]
+# gpus2 = [(pid, 'V100', 3) for pid in range(10, 20)]
+# gpus3 = [(pid, 'V100', 4) for pid in range(20, 30)]
+# gpus = gpus1 + gpus2 + gpus3
+# gpus = [(pid, 'V100', 2) for pid in range(30, 34)]
+gpus = [(35, 'TitanXP', 0)]
 # gpus = gpus1
 gn = 1
 nodes_length = int(input_file.split('_')[-2])
@@ -102,6 +103,25 @@ python {python_file_name} --input_file {input_file} --action thread --pid {pid} 
 # Set up env
 source ~/.bashrc
 conda activate llm
+
+# Path to your executable
+python {python_file_name} --input_file {input_file} --action thread --pid {pid} --gpu {gpu} --node_number_per_process {node_number_per_process}
+    """
+    elif gpu == 'TitanXP':
+        script_template = f"""#!/bin/bash
+
+#SBATCH --account=pengyu-lab
+#SBATCH --partition=pengyu-gpu
+#SBATCH --job-name={job_name}
+#SBATCH --qos=medium
+#SBATCH --time=72:00:00
+#SBATCH --output=slurm-{pid}.out
+#SBATCH --gres=gpu:{gpu}:{gn}
+
+
+# Set up env
+source ~/.bashrc
+conda activate llm102
 
 # Path to your executable
 python {python_file_name} --input_file {input_file} --action thread --pid {pid} --gpu {gpu} --node_number_per_process {node_number_per_process}

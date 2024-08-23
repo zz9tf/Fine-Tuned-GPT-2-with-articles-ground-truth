@@ -1,13 +1,45 @@
-from typing import Any, Callable, List, Optional, Sequence, TypedDict
-
+from typing import Any, Callable, List, Optional, TypedDict, Dict
 import numpy as np
-from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.core.bridge.pydantic import Field
-from llama_index.core.callbacks.base import CallbackManager
-from llama_index.core.node_parser import NodeParser
-from llama_index.core.node_parser.interface import NodeParser
+from enum import Enum
+from custom.embedding import get_embedding_model
 from llama_index.core.node_parser.text.utils import split_by_sentence_tokenizer
-from llama_index.core.schema import BaseNode, Document
+from llama_index.core.schema import BaseNode
+
+class SimilarityMode(str, Enum):
+    """Modes for similarity/distance."""
+
+    DEFAULT = "cosine"
+    DOT_PRODUCT = "dot_product"
+    EUCLIDEAN = "euclidean"
+
+def similarity(
+    embedding1,
+    embedding2,
+    mode: SimilarityMode = SimilarityMode.DEFAULT,
+) -> float:
+    """Get embedding similarity."""
+    embedding1 = np.array(embedding1)
+    embedding2 = np.array(embedding2)
+    if mode == SimilarityMode.EUCLIDEAN:
+        # Using -euclidean distance as similarity to achieve same ranking order
+        return -float(np.linalg.norm(np.array(embedding1) - np.array(embedding2)))
+    elif mode == SimilarityMode.DOT_PRODUCT:
+        if len(np.array(embedding1).shape) == 0:
+            return embedding1*embedding2
+        if len(np.array(embedding1).shape) == 1:
+            return np.dot(embedding1, embedding2)
+        if len(np.array(embedding1).shape) == 2:
+            return embedding1 @ embedding2
+        
+    else:
+        if len(np.array(embedding1).shape) == 0:
+            product = embedding1*embedding2
+        if len(np.array(embedding1).shape) == 1:
+            product = np.dot(embedding1, embedding2)
+        if len(np.array(embedding1).shape) == 2:
+            product = embedding1 @ embedding2
+        norm = np.linalg.norm(embedding1) * np.linalg.norm(embedding2)
+        return product / norm
 
 class SentenceCombination(TypedDict):
     sentence: str
@@ -15,7 +47,7 @@ class SentenceCombination(TypedDict):
     combined_sentence: str
     combined_sentence_embedding: List[float]
 
-class SemanticSplitter(NodeParser):
+class SemanticSplitter():
     """Semantic node parser.
 
     Splits a document into Nodes, with each node being a group of semantically related sentences.
@@ -27,104 +59,50 @@ class SemanticSplitter(NodeParser):
         include_metadata (bool): whether to include metadata in nodes
         include_prev_next_rel (bool): whether to include prev/next relationships
     """
-
-    sentence_splitter: Callable[[str], List[str]] = Field(
-        default_factory=split_by_sentence_tokenizer,
-        description="The text splitter to use when splitting documents.",
-        exclude=True,
-    )
-
-    embed_model: BaseEmbedding = Field(
-        description="The embedding model to use to for semantic comparison",
-    )
-
-    buffer_size: int = Field(
-        default=1,
-        description=(
-            "The number of sentences to group together when evaluating semantic similarity. "
-            "Set to 1 to consider each sentence individually. "
-            "Set to >1 to group sentences together."
-        ),
-    )
-
-    breakpoint_percentile_threshold: int = Field(
-        default=95,
-        description=(
-            "The percentile of cosine dissimilarity that must be exceeded between a "
-            "group of sentences and the next to form a node.  The smaller this "
-            "number is, the more nodes will be generated"
-        ),
-    )
-
     @classmethod
     def class_name(cls) -> str:
         return "SemanticSplitterNodeParser"
 
-    @classmethod
-    def from_defaults(
-        cls,
-        embed_model: Optional[BaseEmbedding] = None,
+    def __init__(
+        self,
+        embed_model_config: Dict,
         breakpoint_percentile_threshold: Optional[int] = 95,
         buffer_size: Optional[int] = 1,
-        sentence_splitter: Optional[Callable[[str], List[str]]] = None,
-        include_metadata: bool = True,
-        include_prev_next_rel: bool = True,
-        callback_manager: Optional[CallbackManager] = None,
-        id_func: Optional[Callable[[int, Document], str]] = None,
     ) -> "SemanticSplitter":
-        callback_manager = callback_manager or CallbackManager([])
+        sentence_splitter = split_by_sentence_tokenizer()
+        self.embed_model_config = embed_model_config
+        self.load_embed()
+        self.breakpoint_percentile_threshold=breakpoint_percentile_threshold
+        self.buffer_size=buffer_size
+        self.sentence_splitter=sentence_splitter
 
-        sentence_splitter = sentence_splitter or split_by_sentence_tokenizer()
-        if embed_model is None:
-            try:
-                from llama_index.embeddings.openai import (
-                    OpenAIEmbedding,
-                )  # pants: no-infer-dep
+    def load_embed(self):
+        self.embed_model = get_embedding_model(self.embed_model_config)
 
-                embed_model = embed_model or OpenAIEmbedding()
-            except ImportError:
-                raise ImportError(
-                    "`llama-index-embeddings-openai` package not found, "
-                    "please run `pip install llama-index-embeddings-openai`"
-                )
+    def del_embed(self):
+        del self.embed_model
+        self.embed_model = None
 
-        return cls(
-            embed_model=embed_model,
-            breakpoint_percentile_threshold=breakpoint_percentile_threshold,
-            buffer_size=buffer_size,
-            sentence_splitter=sentence_splitter,
-            include_metadata=include_metadata,
-            include_prev_next_rel=include_prev_next_rel,
-            callback_manager=callback_manager,
-        )
-
-    def _parse_text(
+    def parse_text(
         self,
-        texts: List[str],
-        show_progress: bool = False,
+        text: List[str],
         **kwargs: Any,
     ) -> List[BaseNode]:
         """Parse text"""
-        new_texts = []
-        for text in texts:
-            text_splits = self.sentence_splitter(text)
-            sentences = self._build_sentence_groups(text_splits)
-            # #######################################################
-            combined_sentence_embeddings = self.embed_model.get_text_embedding_batch(
-                [s["combined_sentence"] for s in sentences],
-                show_progress=show_progress,
-            )
-            # #######################################################
-            for i, embedding in enumerate(combined_sentence_embeddings):
-                sentences[i]["combined_sentence_embedding"] = embedding
+        
+        text_splits = self.sentence_splitter(text)
+        sentences = self._build_sentence_groups(text_splits)
+        combined_sentence_embeddings = []
+        for s in sentences:
+            combined_sentence_embeddings.append(self.embed_model._get_text_embedding(s["combined_sentence"]))
+        for i, embedding in enumerate(combined_sentence_embeddings):
+            sentences[i]["combined_sentence_embedding"] = embedding
 
-            distances = self._calculate_distances_between_sentence_groups(sentences)
+        distances = self._calculate_distances_between_sentence_groups(sentences)
 
-            chunks = self._build_node_chunks(sentences, distances)
-            print(chunks)
-            input()
+        chunks = self._build_node_chunks(sentences, distances)
 
-        return new_texts
+        return chunks
 
     def _build_sentence_groups(
         self, text_splits: List[str]
@@ -165,9 +143,9 @@ class SemanticSplitter(NodeParser):
             embedding_current = sentences[i]["combined_sentence_embedding"]
             embedding_next = sentences[i + 1]["combined_sentence_embedding"]
 
-            similarity = self.embed_model.similarity(embedding_current, embedding_next)
+            sim = similarity(embedding_current, embedding_next)
 
-            distance = 1 - similarity
+            distance = 1 - sim
 
             distances.append(distance)
 

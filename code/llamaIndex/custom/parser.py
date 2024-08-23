@@ -56,7 +56,6 @@ from llama_index.core.llms import LLM
 from llama_index.core.node_parser.relational.hierarchical import _add_parent_child_relationship
 from custom.schema import TemplateSchema
 from custom.response_synthesis import TreeSummarize
-from custom.embedding import get_embedding_model
 from custom.semantic import SemanticSplitter
 
 class CustomHierarchicalNodeParser(NodeParser):
@@ -87,6 +86,8 @@ class CustomHierarchicalNodeParser(NodeParser):
     
     _tree_summarizer: TreeSummarize = PrivateAttr()
 
+    _semantic_splitter: SemanticSplitter = PrivateAttr()
+
     @classmethod
     def from_defaults(
         cls,
@@ -107,8 +108,6 @@ class CustomHierarchicalNodeParser(NodeParser):
         cls._level2nodes = {}
         if cache_dir_path is not None:
             cls._cache_process_path = os.path.join(cache_dir_path, cache_file_name)
-        
-        cls._embedding_config = embedding_config
 
         cls._sentences_splitter = SentenceSplitter(
             chunk_size=128, 
@@ -126,6 +125,7 @@ class CustomHierarchicalNodeParser(NodeParser):
             llm_self=llm_self,
             llm_config=llm_config
         )
+        cls._semantic_splitter = SemanticSplitter(buffer_size=1, breakpoint_percentile_threshold=97, embed_model_config=embedding_config)
 
         return cls(
             include_metadata=include_metadata,
@@ -162,55 +162,25 @@ class CustomHierarchicalNodeParser(NodeParser):
         return all_nodes
 
     def _summary_content(self, texts):
-        print('summary')
         summary, _ = self._tree_summarizer.generate_response_hs(
             texts=texts,
             num_children=len(texts)
         )
         return summary
 
-    def _text_split(self, section, document_node):
+    def _text_split(self, section):
         paragraphs = []
-        semantic_splitter = None
         for p in section.split('\n'):
-            print('text split')
-            if len(p) > 9000:
-                print('split')
-                self._tree_summarizer.del_llm()
-                if semantic_splitter is None:
-                    # semantic_splitter = SemanticSplitterNodeParser(buffer_size=2, breakpoint_percentile_threshold=95, embed_model=get_embedding_model(self._embedding_config))
-                    semantic_splitter = SemanticSplitter(buffer_size=2, breakpoint_percentile_threshold=95, embed_model=get_embedding_model(self._embedding_config))
-                # Get the total memory allocated on the GPU
-                allocated_memory = torch.cuda.memory_allocated()
-                # Get the total memory cached on the GPU
-                cached_memory = torch.cuda.memory_reserved()
-
-                # Convert bytes to megabytes (MB)
-                allocated_memory_mb = allocated_memory / (1024 ** 3)
-                cached_memory_mb = cached_memory / (1024 ** 3)
-
-                print(f"Allocated Memory: {allocated_memory_mb:.2f} GB")
-                print(f"Cached Memory: {cached_memory_mb:.2f} GB")
-                node = build_nodes_from_splits([p], document_node, id_func=self.id_func)[0]
-                paragraphs += [n.get_content() for n in semantic_splitter.get_nodes_from_documents([node])]
-        if semantic_splitter is not None:
-            del semantic_splitter
-            torch.cuda.empty_cache()
-            gc.collect()
-            # Convert bytes to megabytes (MB)
-            allocated_memory_mb = allocated_memory / (1024 ** 3)
-            cached_memory_mb = cached_memory / (1024 ** 3)
-
-            print(f"Allocated Memory: {allocated_memory_mb:.2f} GB")
-            print(f"Cached Memory: {cached_memory_mb:.2f} GB")
-            self._tree_summarizer.load_llm()
-            # Convert bytes to megabytes (MB)
-            allocated_memory_mb = allocated_memory / (1024 ** 3)
-            cached_memory_mb = cached_memory / (1024 ** 3)
-
-            print(f"Allocated Memory: {allocated_memory_mb:.2f} GB")
-            print(f"Cached Memory: {cached_memory_mb:.2f} GB")
-        return section.split('\n')
+            if len(p) > 800:
+                # self._tree_summarizer.del_llm()
+                paragraphs.extend(self._semantic_splitter.parse_text(p))
+            else:
+                paragraphs.append(p)
+        # if semantic_splitter is not None:
+        #     del semantic_splitter
+        #     torch.cuda.empty_cache()
+        #     gc.collect()
+        return paragraphs
 
     def _get_section_nodes_from_document_node(
         self, 
@@ -229,12 +199,13 @@ class CustomHierarchicalNodeParser(NodeParser):
         for title, (start, end) in parent_document.metadata['sections'].items():
             section = document_node.get_content()[start: end]
             if title == 'abstract':
-                abstract_paragraphs = self._text_split(section, document_node)
+                abstract_paragraphs = self._text_split(section)
             else:
                 titles.append(title)
-                sections.append(section)
+                paragraphs = self._text_split(section)
+                sections.append('\n'.join(paragraphs))
                 # summary = ''
-                summary = self._summary_content(self._text_split(section, document_node))
+                summary = self._summary_content(self._text_split(section))
                 summaries.append(summary)
         
         # Get summary of abstract
@@ -245,8 +216,7 @@ class CustomHierarchicalNodeParser(NodeParser):
             summary_for_document = self._summary_content(summaries)
 
         # Update document node
-        origin_document_text = document_node.text
-        document_node.metadata['original_content'] = origin_document_text
+        document_node.metadata['original_content'] = document_node.text
         document_node.text = summary_for_document
 
         # Update section nodes
@@ -260,18 +230,18 @@ class CustomHierarchicalNodeParser(NodeParser):
 
         return all_nodes
 
+    def filter_lines(self, content):
+        for line in content.split('\n'):
+            if len(line.strip()) > 50:
+                yield line
+
     def _get_paragraph_nodes_from_section_node(
         self,
         section_node: BaseNode
     ) -> List[BaseNode]:
         all_nodes: List[BaseNode] = []
-        
-        splits = section_node.metadata['original_content'].split('\n')
-
-        for i, text in enumerate(splits):
-            if i == 0:
-                continue
-            splits[i] = f"One Paragraph of {splits[0]}: {text}"
+        original_content = section_node.metadata['original_content']
+        splits = list(self.filter_lines(original_content))
         all_nodes.extend(
             build_nodes_from_splits(splits, section_node, id_func=self.id_func)
         )
@@ -283,6 +253,7 @@ class CustomHierarchicalNodeParser(NodeParser):
         paragraph_node: BaseNode
     ) -> List[BaseNode]:
         all_nodes = self._sentences_splitter._parse_nodes([paragraph_node])
+        all_nodes = [node for node in all_nodes if len(node.get_content().strip()) > 10]
 
         return all_nodes
 
@@ -292,32 +263,25 @@ class CustomHierarchicalNodeParser(NodeParser):
         chunk_level: str
     ) -> List[BaseNode]:
         for i, node in enumerate(nodes):
+            self._doc_id_to_document[node.id_] = node
+            node.metadata['level'] = chunk_level
             parent_doc = self._doc_id_to_document.get(node.ref_doc_id, None)
             if parent_doc is not None:
                 start_char_idx = parent_doc.text.find(
                         node.get_content(metadata_mode=MetadataMode.NONE)
                     )
 
-                # update start/end char idx
-                if start_char_idx >= 0:
-                    node.start_char_idx = start_char_idx
-                    node.end_char_idx = start_char_idx + len(
-                        node.get_content(metadata_mode=MetadataMode.NONE)
-                    )
+            # update start/end char idx
+            if start_char_idx >= 0:
+                node.start_char_idx = start_char_idx
+                node.end_char_idx = start_char_idx + len(
+                    node.get_content(metadata_mode=MetadataMode.NONE)
+                )
 
-                metadata = {k: v for k, v in parent_doc.metadata.items() if k not in ['sections']}
-                metadata['level'] = chunk_level
-                node.metadata.update(metadata)
-
-                exclude_keys = list(metadata.keys())
-                exclude_keys.remove('title')
-                node.excluded_embed_metadata_keys.extend(exclude_keys)
-                node.excluded_llm_metadata_keys.extend(exclude_keys)
-
-                self._doc_id_to_document[node.id_] = parent_doc
-                    
-            if chunk_level != 'document':
+            if chunk_level == 'document':
                 # establish prev/next relationships if nodes share the same source_node
+                node.metadata.update(parent_doc.metadata)
+            else:
                 if (
                     i > 0
                     and node.source_node
@@ -336,6 +300,12 @@ class CustomHierarchicalNodeParser(NodeParser):
                     node.relationships[NodeRelationship.NEXT] = nodes[
                         i + 1
                     ].as_related_node_info()
+            
+            exclude_keys = list(node.metadata.keys()) + ['level']
+            if 'title' in exclude_keys:
+                exclude_keys.remove('title')
+            node.excluded_embed_metadata_keys.extend(exclude_keys)
+            node.excluded_llm_metadata_keys.extend(exclude_keys)
 
         return nodes
 
@@ -379,6 +349,7 @@ class CustomHierarchicalNodeParser(NodeParser):
                                     latest_level = level2int[node.metadata['level']]
                                     self._level2nodes[latest_level] = []
                                 self._level2nodes[level2int[node.metadata['level']]].append(node)
+                                self._doc_id_to_document[node.id_] = node
                             except Exception as e:
                                 print(e)
                             # Update progress bar based on bytes read

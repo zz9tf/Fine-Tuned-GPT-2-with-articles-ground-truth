@@ -20,6 +20,10 @@ class CustomEmbedding(BaseEmbedding):
     )
     _model: Any = PrivateAttr()
 
+    @classmethod
+    def class_name(cls) -> str:
+        return "CustomEmbedding"
+
     def __init__(
         self,
         embedding_config: dict,
@@ -61,18 +65,14 @@ class CustomEmbedding(BaseEmbedding):
 
     def _get_text_embedding(self, text: str) -> List[float]:
         detailed_instruct = f'Text Instruct: {self.text_instruction}\nText: {text}'
-        return self._model.get_text_embedding_batch(
-            [detailed_instruct], show_progress=True
-        )
+        return self._model._get_text_embedding(detailed_instruct)
     
     async def _aget_text_embedding(self, text: str) -> List[float]:
         """Get text embedding async."""
         return self._get_text_embedding(text)
 
     def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
-        embeddings = self._model.get_text_embedding_batch(
-            [f'Text Instruct: {self.text_instruction}\nText: {text}' for text in texts]
-        )
+        embeddings = self._model._get_text_embeddings([f'Text Instruct: {self.text_instruction}\nText: {text}' for text in texts])
         return embeddings
     
 
@@ -238,7 +238,6 @@ class CustomHuggingFaceEmbedding(BaseEmbedding):
         encoded_input = {
             key: val.to(self._device) for key, val in encoded_input.items()
         }
-
         model_output = self._model(**encoded_input)
 
         if self.pooling == Pooling.CLS:
@@ -249,12 +248,10 @@ class CustomHuggingFaceEmbedding(BaseEmbedding):
                 token_embeddings=model_output[0],
                 attention_mask=encoded_input["attention_mask"],
             )
-
         if self.normalize:
             import torch
 
             embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=1)
-
         return embeddings.tolist()
 
     def _get_query_embedding(self, query: str) -> List[float]:
@@ -273,13 +270,12 @@ class CustomHuggingFaceEmbedding(BaseEmbedding):
     def _get_text_embedding(self, text: str) -> List[float]:
         """Get text embedding."""
         text = format_text(text, self.model_name, self.text_instruction)
-        return self._embed([text])[0]
+        text = self._embed([text])[0]
+        return text
 
     def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
         """Get text embeddings."""
-        texts = [
-            format_text(text, self.model_name, self.text_instruction) for text in texts
-        ]
+        texts = [format_text(text, self.model_name, self.text_instruction) for text in texts]
         return self._embed(texts)
 
 

@@ -64,7 +64,6 @@ class TreeSummarize():
                 context_str=context_str, query_str=self.query_str
             )
             self.prompt_records[level].append(fmt_qa_prompt)
-            print(fmt_qa_prompt)
             responses.append(self.llm.complete(fmt_qa_prompt))
         
         new_texts = [r.text.strip() for r in responses]
@@ -80,7 +79,7 @@ class TreeSummarize():
             fmt_qa_prompt = self.qa_prompt.format(
                 context_str=text, query_str=self.summary_str
             )
-            print(fmt_qa_prompt)
+            # print(fmt_qa_prompt)
             new_text = str(self.llm.complete(fmt_qa_prompt)).strip()
             text = text if len(text) < len(new_text) else new_text
             i += 1
