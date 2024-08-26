@@ -3,7 +3,7 @@ class TemplateSchema:
         "questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons",
 """\
 You are an expert researcher. Using the following enhanced template, analyze the provided contextual \
-information to generate the top 5 critical academic questions that researchers in this field care about. \
+information to generate the top {qar_num} critical academic questions that researchers in this field care about. \
 For each question, provide a thorough and contextually relevant answer, and explain why these questions \
 are significant to researchers and why the provided answers are accurate.
 
@@ -59,7 +59,7 @@ and significance of addressing this specific question within the context.>
 Here is the context:
 {context_str}
 
-Using this context, generate 5 specific questions that this context can uniquely answer. Ensure that these questions:
+Using this context, generate {qar_num} specific questions that this context can uniquely answer. Ensure that these questions:
 1. Are directly related to the provided context.
 2. Highlight unique information or insights from the context.
 3. Cannot be easily answered by general knowledge.

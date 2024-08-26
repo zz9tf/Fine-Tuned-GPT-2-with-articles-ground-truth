@@ -50,13 +50,11 @@ extractor:
     type: "OpenAIBasedExtractor"
     llm: "gpt-4o"
     mode: "batch"
-  "section_QAExtractor":
-    name: "section_QAExtracotr"
-    type: "OllamaBasedExtractor"
-    llm: "vicuna:13b"
-    only_meta:
-      level: 
-        - "section"
+  "manually_partaly_QAExtractor":
+    name: "manually_partaly_QAExtractor"
+    type: "PartalyOpenAIBasedQARExtractor"
+    llm: "gpt-4o"
+    mode: "batch"
 embedding_model:
   "Linq-AI-Research/Linq-Embed-Mistral":
     based_on: "huggingface"
@@ -97,11 +95,6 @@ index_pipelines:
     - extractor: "gpt-4o-QAExtractor-batch"
     - break: "force"
     - storage: "simple"
-  "test-ollama-based":
-    - reader: "CustomDocumentReader"
-    - parser: "CustomHierarchicalNodeParser-ollama_vicuna_13b"
-    - extractor: "section_QAExtractor"
-    - storage: "simple" 
   "test-hf":
     - reader: "CustomDocumentReader"
     - parser: "CustomHierarchicalNodeParser-hf_vicuna_13b"

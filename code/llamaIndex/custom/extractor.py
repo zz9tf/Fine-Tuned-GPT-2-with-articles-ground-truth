@@ -1,6 +1,7 @@
 ##########################################################################
 # Extractor
 import os
+from custom.llm import get_llm
 
 def get_extractors(self, extractor_config):
     llm_config = self.prefix_config['llm'][extractor_config['llm']]
@@ -10,20 +11,25 @@ def get_extractors(self, extractor_config):
             model_name=extractor_config['llm'],
             cache_dir=os.path.abspath(os.path.join(self.root_path, self.config['cache'])),
             mode=extractor_config['mode'],
-            embedding_only=extractor_config.get('embedding_only', True),
-            only_meta=extractor_config.get('only_meta', None)
+            embedding_only=extractor_config.get('embedding_only', True)
         )
     elif extractor_config['type'] in ['OllamaBasedExtractor', 'HuggingfaceBasedExtractor']:
         return CustomLLMBasedQARExtractor(
-            llm_self=self,
-            llm_config=llm_config,
+            llm_self=get_llm(self, llm_config),
             embedding_config=self.prefix_config['embedding_model'][extractor_config['embedding_model']],
-            embedding_only=extractor_config.get('embedding_only', True),
-            only_meta=extractor_config.get('only_meta', None)
+            embedding_only=extractor_config.get('embedding_only', True)
+        )
+    elif extractor_config['type'] == PartalyOpenAIBasedQARExtractor:
+        return PartalyOpenAIBasedQARExtractor(
+            model_name=extractor_config['llm'],
+            cache_dir=os.path.abspath(os.path.join(self.root_path, self.config['cache'])),
+            mode=extractor_config['mode'],
+            embedding_only=extractor_config.get('embedding_only', True)
         )
 ##########################################################################
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable
+from abc import ABC, abstractmethod
 import os
 import csv
 import json
@@ -45,26 +51,27 @@ def parse_obj_to_str(objs):
         objs_str += f"[{obj_str}]\n"
     return objs_str.strip()
 
-class CustomLLMBasedQARExtractor():
+class CustomLLMBasedQARExtractor(ABC):
     def __init__(
         self,
         llm: LLM,
         prompt_template: dict = TemplateSchema.prompt_template_ollama,
-        embedding_only: bool = True,
-        only_meta: Optional[Dict[str, list]] = None
+        embedding_only: bool = True
     ) -> None:
         """Init params."""
         self._model = llm
         self._prompt_metadata_key, self._prompt_template = prompt_template
         self.embedding_only = embedding_only
         self.pydantic_parser = CustomPydanticOutputParser(output_cls=QAR)
-        self.only_meta = only_meta
 
     def _extract_metadata_from_node(self, node: BaseNode) -> Dict[str, str]:
         """Extract metadata from a node and return it's metadata dict."""
-        context_str = node.get_content(metadata_mode=MetadataMode.ALL)
-        context_str = self.pydantic_parser.format(context_str)
-        input_text = self._prompt_template.format(context_str=context_str)
+        requirements = {}
+        if 'requirements' in node.metadata:
+            requirements = node.metadata['requirements']
+            del node.metadata['requirements']
+        context_str = self._prompt_template.format(context_str=node.text, qar_num=requirements.get('qar_num', 5))
+        input_text = self.pydantic_parser.format(query=context_str)
         generated_text = self._model.complete(input_text).text.strip()
 
         outputs = self.pydantic_parser.parse(generated_text)
@@ -78,11 +85,9 @@ class CustomLLMBasedQARExtractor():
         if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
             node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
 
-    def _is_target_node(self, node):
-        for k, meta in self.only_meta.items():
-            if node.metadata[k] in meta:
-                return True
-        return False
+    @abstractmethod
+    def _get_target_nodes(self, nodes: List[BaseNode]):
+        return nodes
 
     def extract(
             self, 
@@ -94,14 +99,13 @@ class CustomLLMBasedQARExtractor():
         csv_file = open(os.path.join(cache_path, f"{index_id}-{action}-QAR.csv"), 'w', newline='')
         self.dataset_writer = csv.DictWriter(csv_file, fieldnames=['node_id', 'Question', 'Answer', 'Reason'])
         self.dataset_writer.writeheader()
-        target_nodes = [node for node in nodes if self._is_target_node(node)] \
-            if self.only_meta is not None \
-            else nodes
+        target_nodes = self._get_target_nodes(nodes)
+        
         for node in tqdm(target_nodes):
             self._extract_metadata_from_node(node)
         csv_file.close()
 
-class OpenAIBasedQARExtractor():
+class OpenAIBasedQARExtractor(ABC):
     def __init__(
         self,
         model_name: str,
@@ -109,8 +113,7 @@ class OpenAIBasedQARExtractor():
         mode: str = 'immediately',
         system_prompt: str = TemplateSchema.system_prompt,
         prompt_template: str = TemplateSchema.prompt_template_openai,
-        embedding_only: bool = True,
-        only_meta: Optional[Dict[str, list]] = None
+        embedding_only: bool = True
     ) -> None:
         self._model = llama_index_openai(model=model_name, api_key=os.environ.get('OPENAI_API_KEY'))
         self._client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
@@ -120,14 +123,15 @@ class OpenAIBasedQARExtractor():
         self._prompt_metadata_key, self._prompt_template = prompt_template
         self.embedding_only = embedding_only
         self.pydantic_parser = CustomPydanticOutputParser(output_cls=QAR)
-        self.only_meta = only_meta
 
     def _extract_metadata_from_node_immediately(self, node: BaseNode) -> Dict[str, str]:
         """Extract metadata from a node and return it's metadata dict."""
-        context_str = node.get_content(metadata_mode=MetadataMode.ALL)
-        context_str = self.pydantic_parser.format(context_str)
-        
-        input_text = self._prompt_template.format(context_str=context_str)
+        requirements = {}
+        if 'requirements' in node.metadata:
+            requirements = node.metadata['requirements']
+            del node.metadata['requirements']
+        context_str = self._prompt_template.format(context_str=node.text, qar_num=requirements.get('qar_num', 5))
+        input_text = self.pydantic_parser.format(query=context_str)
         generated_text = self._model.complete(input_text).text.strip()
         outputs = self.pydantic_parser.parse(generated_text)
         generated_text = parse_obj_to_str(outputs)
@@ -139,6 +143,9 @@ class OpenAIBasedQARExtractor():
         node.metadata[self._prompt_metadata_key] = generated_text
         if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
             node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
+
+        if 'requirement' in node.metadata:
+            del node.metadata['requirement']
 
     def _create_a_batch(self, now, input_file_path):
         with open(input_file_path, "rb") as input_file:
@@ -161,8 +168,12 @@ class OpenAIBasedQARExtractor():
         return batch, batch_info_path
 
     def _generate_an_entry(self, node):
-        context_str = self._prompt_template.format(context_str=node.text)
-        context_str = self.pydantic_parser.format(context_str)
+        requirements = {}
+        if 'requirements' in node.metadata:
+            requirements = node.metadata['requirements']
+            del node.metadata['requirements']
+        context_str = self._prompt_template.format(context_str=node.text, qar_num=requirements.get('qar_num', 5))
+        context_str = self.pydantic_parser.format(query=context_str)
         return {
             "custom_id": node.id_,
             "method": "POST",
@@ -291,27 +302,26 @@ class OpenAIBasedQARExtractor():
                     pbar.n += 1
                     pbar.refresh()
                 os.remove(output_file_path)
-            
-    def _is_target_node(self, node):
-        for k, meta in self.only_meta.items():
-            if node.metadata[k] in meta:
-                return True
-        return False
+
+    @abstractmethod
+    def _get_target_nodes(self, nodes: List[BaseNode]):
+        return nodes
 
     def extract(
             self, 
             nodes: List[BaseNode], 
             index_id: Optional[str] = 'index_id',
             action: Optional[str] = 'action',
-            cache_path: Optional[str] = ''
+            cache_path: Optional[str] = '',
+            csv_file_name: Optional[str] = None
         ):
-        csv_file = open(os.path.join(cache_path, f"{index_id}-{action}-QAR.csv"), 'w', newline='')
+        csv_file_name = csv_file_name if csv_file_name is not None else f"{index_id}-{action}-QAR.csv"
+        cache_path = self.cache_dir if cache_path is None else cache_path
+        csv_file = open(os.path.join(cache_path, csv_file_name), 'w', newline='')
         self.dataset_writer = csv.DictWriter(csv_file, fieldnames=['node_id', 'Question', 'Answer', 'Reason'])
         self.dataset_writer.writeheader()
 
-        target_nodes = [node for node in nodes if self._is_target_node(node)] \
-            if self.only_meta is not None \
-            else nodes
+        target_nodes = self._get_target_nodes(nodes)
 
         if self.mode == 'immediately':
             for node in tqdm(target_nodes):
@@ -320,6 +330,155 @@ class OpenAIBasedQARExtractor():
             self._extract_metadata_from_nodes_batch(target_nodes)
         
         csv_file.close()
-        
 
+
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+import random
+from custom.io import save_nodes_jsonl
+class PartalyOpenAIBasedQARExtractor(OpenAIBasedQARExtractor):
+
+    def get_score(self, text):
+        tokenized_input = self.tokenizer(text,truncation=True, padding=True, return_tensors='pt')
+        logits = self.sentence_model(**tokenized_input).logits
+        probabilities = logits.softmax(dim=1)
+        return probabilities.detach().numpy()[0][1]
+
+    def organize_nodes(self, target_nodes: List[BaseNode], nodes: list[BaseNode]):
+        # Initialize
+        document_id2section_nodes = {}
+        id_2_node = {}
+        document_id2paragraph_nodes = {}
+        document_id2multi_sentence_nodes = {}
+        for node in nodes:
+            requirements = {'qar_num': 1}
+            level = node.metadata['level']
+            id_2_node[node.id_] = node
+            if level == 'document':
+                requirements['qar_num'] = 3
+                target_nodes.append(node)
+            node.metadata['requirements'] = requirements
+
+        for node in nodes:
+            level = node.metadata['level']
+            if level == 'section':
+                document_id = node.ref_doc_id
+                if document_id not in document_id2section_nodes:
+                    document_id2section_nodes[document_id] = []
+                document_id2section_nodes[document_id].append(node)
+            elif level == 'paragraph':
+                document_id = id_2_node[node.ref_doc_id].ref_doc_id
+                if document_id not in document_id2paragraph_nodes:
+                    document_id2paragraph_nodes[document_id] = []
+                document_id2paragraph_nodes[document_id].append(node)
+            elif level == 'multi-sentences':
+                document_id = id_2_node[id_2_node[node.ref_doc_id].ref_doc_id].ref_doc_id
+                if document_id not in document_id2multi_sentence_nodes:
+                    document_id2multi_sentence_nodes[document_id] = []
+                document_id2multi_sentence_nodes[document_id].append(node)
+        return document_id2section_nodes, document_id2paragraph_nodes, document_id2multi_sentence_nodes
+
+    def _classify_nodes(self, nodes):
+        """Classify nodes into selected and non-selected based on key words."""
+        key_words = ['introduction', 'discussion', 'conclusion', 'result', 'method', 'materials', 'analyses']
+        selected_nodes = []
+        non_selected_nodes = []
         
+        for node in nodes:
+            if any(key_word in node.metadata.get('section_title', '') for key_word in key_words):
+                selected_nodes.append(node)
+                if len(selected_nodes) >= 7:
+                    break
+            else:
+                non_selected_nodes.append(node)
+        
+        return selected_nodes, non_selected_nodes
+
+    def _fill_nodes(self, selected_nodes, non_selected_nodes, target_count=7):
+        """Ensure that the selected nodes list has the target number of nodes."""
+        additional_nodes_needed = target_count - len(selected_nodes)
+        
+        if additional_nodes_needed > 0:
+            if len(non_selected_nodes) <= additional_nodes_needed:
+                selected_nodes.extend(non_selected_nodes)
+                return selected_nodes, additional_nodes_needed - len(non_selected_nodes)
+            else:
+                selected_nodes.extend(random.sample(non_selected_nodes, additional_nodes_needed))
+        
+        return selected_nodes, 0
+
+    def _get_target_section_nodes(
+            self, 
+            target_nodes, 
+            document_id2section_nodes
+        ):
+        document_id2paragraph_select_nums = {}
+        
+        for document_id, nodes in tqdm(document_id2section_nodes.items(), desc="Getting target section nodes..."):
+            document_id2paragraph_select_nums[document_id] = 5
+            selected_nodes, non_selected_nodes = self._classify_nodes(nodes)
+            selected_nodes, new_additional_num = self._fill_nodes(selected_nodes, non_selected_nodes)
+            document_id2paragraph_select_nums[document_id] += new_additional_num
+            target_nodes.extend(selected_nodes)
+        return document_id2paragraph_select_nums
+
+    def _get_target_paragraph_nodes(self, target_nodes, document_id2paragraph_nodes, document_id2paragraph_select_nums):
+        for document_id, nodes in tqdm(document_id2paragraph_nodes.items(), desc="Getting target paragraph nodes..."):
+            score2nodes = {}
+            for node in nodes:
+                text = node.get_content()
+                if len(text) < 800:
+                    score = self.get_score(text)
+                    if score not in score2nodes:
+                        score2nodes[score] = []
+                    score2nodes[score].append(node)
+            sorted_scores = sorted(score2nodes.keys(), reverse=True)
+
+            selected_nodes = []
+            select_num = document_id2paragraph_select_nums[document_id]
+            for score in sorted_scores:
+                if len(selected_nodes) >= select_num:
+                    break
+                nodes_at_score = score2nodes[score]
+                selected_nodes.extend(nodes_at_score)
+            selected_nodes = selected_nodes[:select_num]
+
+            target_nodes.extend(selected_nodes)
+        
+    def _get_target_multi_sentence_nodes(self, target_nodes, document_id2multi_sentence_nodes, select_num=5):
+        for _, nodes in tqdm(document_id2multi_sentence_nodes.items(), desc="Getting target multi-sentence nodes..."):
+            score2nodes = {}
+            for node in nodes:
+                text = node.get_content()
+                if len(text) < 800:
+                    score = self.get_score(text)
+                    if score not in score2nodes:
+                        score2nodes[score] = []
+                    score2nodes[score].append(node)
+            sorted_scores = sorted(score2nodes.keys(), reverse=True)
+
+            selected_nodes = []
+            for score in sorted_scores:
+                if len(selected_nodes) >= select_num:
+                    break
+                nodes_at_score = score2nodes[score]
+                selected_nodes.extend(nodes_at_score)
+            selected_nodes = selected_nodes[:select_num]
+
+            target_nodes.extend(selected_nodes)
+    
+    def _get_target_nodes(self, nodes: List[BaseNode]):
+        target_nodes = []
+        document_id2section_nodes, document_id2paragraph_nodes, document_id2multi_sentence_nodes = self.organize_nodes(target_nodes, nodes)
+        document_id2paragraph_select_nums = self._get_target_section_nodes(target_nodes, document_id2section_nodes)
+
+        # prepare models
+        self.sentence_model = AutoModelForSequenceClassification.from_pretrained("MomochiKyaru/glyco-paper-sentence",token=os.getenv('GLYCO_TOKEN'))
+        self.paragraph_model = AutoModelForSequenceClassification.from_pretrained("MomochiKyaru/glyco-paper-paragraph", token=os.getenv('GLYCO_TOKEN'))
+        self.tokenizer =AutoTokenizer.from_pretrained('MomochiKyaru/glyco-paper-sentence',token=os.getenv('GLYCO_TOKEN'))
+
+        self._get_target_paragraph_nodes(target_nodes, document_id2paragraph_nodes, document_id2paragraph_select_nums)
+        self._get_target_multi_sentence_nodes(target_nodes, document_id2multi_sentence_nodes)
+
+        save_nodes_jsonl(file_path=r'D:\Projects(D)\Fine-Tuned-GPT-2-with-articles-ground-truth\code\llamaIndex\.cache\target_nodes.jsonl', nodes=target_nodes)
+        return target_nodes
+
