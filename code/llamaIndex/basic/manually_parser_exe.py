@@ -21,19 +21,21 @@ for file_name in os.listdir(task_cache_path):
     if basic_name in file_name:
         task_id = int(file_name.split('.')[0][len(basic_name):])
         leave_tasks.remove(task_id)
+print(f"leave task: {len(leave_tasks)}")
+print(leave_tasks)
 
-gpus1 = [(pid, 'V100', 1) for pid in leave_tasks[:4]]
-gpus2 = [(pid, 'V100', 2) for pid in leave_tasks[4:8]]
-gpus3 = [(pid, 'V100', 3) for pid in leave_tasks[8:16]]
-gpus4 = [(pid, 'V100', 4) for pid in leave_tasks[16:20]]
+gpus1 = [(pid, 'V100', 1) for pid in leave_tasks[:5]]
+gpus2 = [(pid, 'V100', 2) for pid in leave_tasks[5:10]]
+gpus3 = [(pid, 'V100', 3) for pid in leave_tasks[10:15]]
+gpus4 = [(pid, 'V100', 4) for pid in leave_tasks[15:20]]
 
-# gpus = gpus1 + gpus2 + gpus3 + gpus4
-gpus = gpus3
+gpus = gpus1 + gpus2 + gpus3 + gpus4
+# gpus = gpus3
 gn = 2
 nodes_length = int(input_file.split('_')[-2])
 # node_number_per_process=max(math.ceil(nodes_length/len(gpus)), 1)
 node_number_per_process=50
-check_interval = 5
+check_interval = 2
 
 # Load config
 root_path = '../../..'
@@ -248,11 +250,16 @@ def monitor_and_restart(jobs, script_path, check_interval=60, is_restart: bool=T
 def one_thread_parser(
         input_file_name: str,
         gpu: str,
-        pid: int 
+        pid: int,
+        node_number_per_process: int
 ):
     # Load nodes
     nodes_cache_path = os.path.abspath(os.path.join(cache_path, input_file_name))
     nodes = load_nodes_jsonl(nodes_cache_path)[pid*node_number_per_process: (pid+1)*node_number_per_process]
+    # # TODO need to delete later
+    # nodes = load_nodes_jsonl(nodes_cache_path)[pid*node_number_per_process+6: pid*node_number_per_process+8]
+    # ###########################
+    
 
     # Load parser
     parser = CustomHierarchicalNodeParser.from_defaults(
@@ -296,14 +303,6 @@ if __name__ == '__main__':
         one_thread_parser(
             pid=args.pid,
             gpu=args.gpu,
-            input_file_name=args.input_file
+            input_file_name=args.input_file,
+            node_number_per_process=args.node_number_per_process
         )
-
-    elif args.action == 'merge':
-        save_files = ['_'.join(input_file.split('_')[:-1] + [f'gpu_{gpu}_nodeNum_{node_number_per_process}_pid_{pid}.jsonl']) for gpu, pid in zip(gpus, range(30))]
-        all_nodes = []
-        for save_cache_name in save_files:
-            nodes_cache_path = os.path.abspath(os.path.join(cache_path, save_cache_name))
-            all_nodes.extend(load_nodes_jsonl(nodes_cache_path))
-        nodes_cache_path = os.path.abspath(os.path.join(cache_path, '_'.join(input_file.split('_')[:-2])))
-        save_nodes_jsonl(all_nodes)

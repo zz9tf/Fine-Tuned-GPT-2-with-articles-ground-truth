@@ -66,22 +66,26 @@ class CustomPydanticOutputParser(ChainableOutputParser):
     def parse(self, text: str) -> Any:
         """Parse, validate, and correct errors programmatically."""
         results = []
+        # extract json_str from text
         try:
             json_strs = extract_json_str(text)
-            for json_str in json_strs:
-                try:
-                    results.append(self._output_cls.parse_raw(json_str))
-                except Exception as e:
-                    print(e)
-                    print("------------------------------------------------")
-                    print(json_str)
-                    print("------------------------------------------------")
-
         except Exception as e:
             print(e)
             print("------------------------------------------------")
             print(text)
             print("------------------------------------------------")
+            return []
+        
+        # parse contents from json_str
+        for json_str in json_strs:
+            try:
+                results.append(self._output_cls.parse_raw(json_str))
+            except Exception as e:
+                print(e)
+                print("------------------------------------------------")
+                print(json_str)
+                print("------------------------------------------------")
+                results.append(None)
         return results
 
     def format(self, query: str) -> str:

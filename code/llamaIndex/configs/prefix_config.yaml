@@ -25,12 +25,12 @@ parser:
     type: "CustomHierarchicalNodeParser"
     retriever: "AutoMergingRetriever"
     llm: "lmsys/vicuna-13b-v1.5"
-    embedding_model: "dunzhang/stella_en_1.5B_v5"
+    embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
   "ManuallyHierarchicalNodeParser":
     type: "ManuallyHierarchicalNodeParser"
     retriever: "AutoMergingRetriever"
     llm: "lmsys/vicuna-13b-v1.5"
-    embedding_model: "dunzhang/stella_en_1.5B_v5"
+    embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
 extractor:
   "vicuna-13b-QAExtractor-hf":
     name: "vicuna-13b-QAExtractor"

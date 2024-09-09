@@ -18,13 +18,12 @@ with open(prefix_config_path, 'r') as prefix_config:
 load_dotenv(dotenv_path=os.path.abspath(os.path.join(root_path, './code/llamaIndex/.env')))
 
 cache_path = os.path.abspath(os.path.join(root_path, config['cache']))
-cache_path = r'D:\Projects(D)\Fine-Tuned-GPT-2-with-articles-ground-truth\code\llamaIndex\.save'
 extractor_config = prefix_config['extractor']['manually_partaly_QAExtractor']
 
 # load extractor
 extractor = PartalyOpenAIBasedQARExtractor(
     model_name=extractor_config['llm'],
-    cache_dir=os.path.abspath(os.path.join(root_path, config['cache'])),
+    cache_dir=cache_path,
     mode=extractor_config['mode'],
     embedding_only=extractor_config.get('embedding_only', True)
 )
@@ -32,11 +31,13 @@ extractor = PartalyOpenAIBasedQARExtractor(
 # Load data
 input_file = 'gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_8165_gpu_V100_nodeNum_200_pid_1.jsonl'
 nodes = load_nodes_jsonl(os.path.abspath(os.path.join(cache_path, input_file)))
+
 # Do extracting
 output_file_base = 'gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_8165_gpu_V100_nodeNum_200_pid_1_extract'
+# Extract response to improve the extract presentage
 extractor.extract(
     nodes=nodes, 
-    cache_path=os.path.abspath(os.path.join(root_path, config['cache'])),
+    cache_path=cache_path,
     csv_file_name=output_file_base+'.csv')
 
 # Save nodes

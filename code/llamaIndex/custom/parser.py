@@ -37,8 +37,6 @@ def get_parser(self, config, **kwargs):
 
 import os
 import io
-import gc
-import torch
 import json
 from tqdm import tqdm
 from llama_index.core.embeddings import BaseEmbedding
@@ -162,25 +160,12 @@ class CustomHierarchicalNodeParser(NodeParser):
         return all_nodes
 
     def _summary_content(self, texts):
+        texts = [text for text in texts if len(text.strip()) > 0]
         summary, _ = self._tree_summarizer.generate_response_hs(
             texts=texts,
-            num_children=len(texts)
+            num_children=20
         )
         return summary
-
-    def _text_split(self, section):
-        paragraphs = []
-        for p in section.split('\n'):
-            if len(p) > 800:
-                # self._tree_summarizer.del_llm()
-                paragraphs.extend(self._semantic_splitter.parse_text(p))
-            else:
-                paragraphs.append(p)
-        # if semantic_splitter is not None:
-        #     del semantic_splitter
-        #     torch.cuda.empty_cache()
-        #     gc.collect()
-        return paragraphs
 
     def _get_section_nodes_from_document_node(
         self, 
@@ -199,13 +184,11 @@ class CustomHierarchicalNodeParser(NodeParser):
         for title, (start, end) in parent_document.metadata['sections'].items():
             section = document_node.get_content()[start: end]
             if title == 'abstract':
-                abstract_paragraphs = self._text_split(section)
+                abstract_paragraphs = section.split('\n')
             else:
                 titles.append(title)
-                paragraphs = self._text_split(section)
-                sections.append('\n'.join(paragraphs))
-                # summary = ''
-                summary = self._summary_content(self._text_split(section))
+                sections.append(section)
+                summary = self._summary_content(section.split('\n'))
                 summaries.append(summary)
         
         # Get summary of abstract
@@ -301,7 +284,7 @@ class CustomHierarchicalNodeParser(NodeParser):
                         i + 1
                     ].as_related_node_info()
             
-            exclude_keys = list(node.metadata.keys()) + ['level']
+            exclude_keys = list(set(list(node.metadata.keys()) + ['level']))
             if 'title' in exclude_keys:
                 exclude_keys.remove('title')
             node.excluded_embed_metadata_keys.extend(exclude_keys)
@@ -380,6 +363,46 @@ class CustomHierarchicalNodeParser(NodeParser):
 
         return latest_level, prev_level_nodes
 
+    def _text_split(self, section) -> List[str]:
+        paragraphs = []
+        force_splitter = SentenceSplitter(
+            chunk_size=1024, 
+            chunk_overlap=20, 
+            include_metadata=False, 
+            include_prev_next_rel=False
+        )
+        for p in section.split('\n'):
+            if len(p.strip()) == 0:
+                continue
+            if len(p) > 800:
+                ps = self._semantic_splitter.parse_text(p)
+                # paragraphs.extend(ps)
+                final_ps = []
+                for p_new in ps:
+                    final_new_ps = force_splitter.split_text_metadata_aware(p_new, '')
+                    final_ps.extend([p for p in final_new_ps if len(p.strip()) > 0])
+                paragraphs.extend(final_ps)
+            else:
+                paragraphs.append(p)
+        return paragraphs
+
+    def _add_line_breaks(
+            self,
+            document_node
+        ):
+        text = ""
+        sections = document_node.metadata['sections']
+        new_sections = {}
+        for title, (start, end) in sections.items():
+            section_text = document_node.get_content()[start: end]
+            # split section into suitable size with splitter \n
+            section_text = '\n'.join(self._text_split(section_text))
+            start = len(text)
+            text += section_text + '\n\n'
+            new_sections[title] = (start, len(text)-2)
+        document_node.text = text
+        document_node.metadata['sections'] = new_sections
+
     def _get_nodes_from_nodes(
         self,
         nodes: List[BaseNode],
@@ -392,6 +415,13 @@ class CustomHierarchicalNodeParser(NodeParser):
             if level not in self._level2nodes:
                 self._level2nodes[level] = []
 
+            if level == 1:
+                for node in tqdm(prev_level_nodes, desc="preprocessing section nodes ..."):
+                    if 'isNew' not in node.metadata:
+                        continue
+                    self._add_line_breaks(node)
+                self._semantic_splitter.del_embed()
+                self._tree_summarizer.load_llm()   
             # first split current nodes into sub-nodes
             nodes_with_progress = get_tqdm_iterable(
                 prev_level_nodes, show_progress, f'{self._chunk_levels[level]} level parsing ...'

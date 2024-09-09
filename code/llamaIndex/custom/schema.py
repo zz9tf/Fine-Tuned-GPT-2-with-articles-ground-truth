@@ -53,9 +53,8 @@ and significance of addressing this specific question within the context.>
 # that this context can answer.
 # """
 # ]
-    prompt_template_openai=[
-        "questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons",
-"""\
+    prompt_metadata_key_openai = "questions_this_excerpt_can_answer_and_corresponding_answers_and_reasons"
+    prompt_template_openai = """\
 Here is the context:
 {context_str}
 
@@ -68,7 +67,6 @@ Higher-level summaries of surrounding context may be provided \
 as well. Try using these summaries to generate better questions \
 that this context can answer.
 """
-]
     
     DEFAULT_QUESTION_GEN_TMPL="""\
 Here is the context:
@@ -107,10 +105,72 @@ System: You are an advanced language model designed to provide expert, high-qual
 is to understand the user's input and generate an appropriate response.\n\
 User: {query_str}\n\
 Response:"""
-    
 
-from pydantic import BaseModel
+######################################################################################
+# llama_index method
+# from pydantic import BaseModel
+
+# class QAR(BaseModel):
+#     Question: str
+#     Answer: str
+#     Reason: str
+
+######################################################################################
+# langchain method
+from langchain_core.pydantic_v1 import BaseModel, Field, validator
 class QAR(BaseModel):
-    Question: str
-    Answer: str
-    Reason: str
+    Question: str = Field(description="The question being asked")
+    Answer: str = Field(description="The answer to the question")
+    Reason: str = Field(description="The reason for the answer")
+
+    # Validator to ensure the question ends with a question mark
+    @validator("Question")
+    def question_ends_with_question_mark(cls, value):
+        if not value.endswith("?"):
+            raise ValueError("The question must end with a question mark ('?').")
+        return value
+
+    # Validator to check if the answer is not too short
+    @validator("Answer")
+    def answer_is_meaningful(cls, value):
+        if len(value) < 5:
+            raise ValueError("The answer is too short to be meaningful.")
+        return value
+
+    # Validator to check if the reason is provided and is not too short
+    @validator("Reason")
+    def reason_is_provided(cls, value):
+        if len(value) < 10:
+            raise ValueError("The reason is too short to be meaningful.")
+        return value
+    
+class MultipleQARs(BaseModel):
+    qars: list[QAR]
+    
+from langchain.output_parsers import PydanticOutputParser
+from langchain_core.prompts import PromptTemplate
+
+class LCTemp():
+    parser = PydanticOutputParser(pydantic_object=MultipleQARs)
+
+    prompt_template = PromptTemplate(
+    template="""You are an expert researcher. Using the following enhanced template, analyze the provided contextual \
+information to generate the top {qar_num} critical academic questions that researchers in this field care about. \
+For each question, provide a thorough and contextually relevant answer, and explain why these questions \
+are significant to researchers and why the provided answers are accurate.
+
+Here is the context:
+{context_str}
+
+Using this context, generate {qar_num} specific questions that this context can uniquely answer. Ensure that these questions:
+1. Are directly related to the provided context.
+2. Highlight unique information or insights from the context.
+3. Cannot be easily answered by general knowledge.
+
+Higher-level summaries of surrounding context may be provided \
+as well. Try using these summaries to generate better questions \
+that this context can answer.----------------------------------------------------------------------------------
+{format_instructions}""",
+    input_variables=["qar_num", "context_str"],
+    partial_variables={"format_instructions": parser.get_format_instructions() + "\nOutput a valid JSON object but do not repeat the schema."},
+)

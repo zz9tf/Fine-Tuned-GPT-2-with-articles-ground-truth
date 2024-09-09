@@ -1,5 +1,7 @@
-from typing import Any, Callable, List, Optional, TypedDict, Dict
+from typing import Any, List, Optional, TypedDict, Dict
+import gc
 import numpy as np
+import torch
 from enum import Enum
 from custom.embedding import get_embedding_model
 from llama_index.core.node_parser.text.utils import split_by_sentence_tokenizer
@@ -82,6 +84,18 @@ class SemanticSplitter():
     def del_embed(self):
         del self.embed_model
         self.embed_model = None
+        torch.cuda.empty_cache()
+        gc.collect()
+        
+        # free_memory, total_memory = torch.cuda.mem_get_info()
+    
+        # # Convert the values from bytes to megabytes (MB)
+        # free_memory_MB = free_memory / (1024 ** 3)
+        # total_memory_MB = total_memory / (1024 ** 3)
+        
+        # print(f"Free memory: {free_memory_MB:.2f} GB")
+        # print(f"Used memory: {total_memory_MB - free_memory_MB:.2f} GB")
+        # print(f"Total memory: {total_memory_MB:.2f} GB")
 
     def parse_text(
         self,
@@ -94,7 +108,11 @@ class SemanticSplitter():
         sentences = self._build_sentence_groups(text_splits)
         combined_sentence_embeddings = []
         for s in sentences:
-            combined_sentence_embeddings.append(self.embed_model._get_text_embedding(s["combined_sentence"]))
+            with torch.no_grad():
+                embedding = self.embed_model._get_text_embedding(s["combined_sentence"])
+            torch.cuda.empty_cache()
+            gc.collect()
+            combined_sentence_embeddings.append(embedding)
         for i, embedding in enumerate(combined_sentence_embeddings):
             sentences[i]["combined_sentence_embedding"] = embedding
 

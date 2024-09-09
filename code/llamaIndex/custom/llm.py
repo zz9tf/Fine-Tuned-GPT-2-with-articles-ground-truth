@@ -1,5 +1,6 @@
 ##########################################################################
 # LLM method
+import os
 import torch
 from transformers import BitsAndBytesConfig
 from llama_index.llms.ollama import Ollama
@@ -214,8 +215,7 @@ class CustomHuggingFaceLLM(CustomLLM):
     is_chat_model: bool = Field(
         default=False,
         description=(
-            LLMMetadata.__fields__["is_chat_model"].field_info.description
-            + " Be sure to verify that you either pass an appropriate tokenizer "
+            "Be sure to verify that you either pass an appropriate tokenizer "
             "that can convert prompts to properly formatted chat messages or a "
             "`messages_to_prompt` that does so."
         ),

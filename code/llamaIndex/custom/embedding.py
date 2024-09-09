@@ -27,8 +27,8 @@ class CustomEmbedding(BaseEmbedding):
     def __init__(
         self,
         embedding_config: dict,
-        query_instruction: Optional[str] = None,
-        text_instruction: Optional[str] = None,
+        query_instruction: Optional[str] = '',
+        text_instruction: Optional[str] = '',
         max_length: int = 4096,
         embed_batch_size: int = 10,
         normalize: bool = True,
