@@ -171,3 +171,6 @@ data/*
 .save
 .cache
 *.out
+
+*.npy
+*.h5

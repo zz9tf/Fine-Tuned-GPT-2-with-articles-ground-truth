@@ -87,3 +87,4 @@ class CustomPydanticOutputParser(ChainableOutputParser):
     def format(self, query: str) -> str:
         """Format a query with structured output formatting instructions."""
         return query + "\n" + self.get_format_string(escape_json=True)
+

@@ -129,8 +129,7 @@ class CustomDocumentReader:
                     continue
                 start = len(paper_content)
                 paper_content += f'{section}\n\n'
-                end = len(paper_content)
-                file_dict['sections'][title] = [start, end-2]
+                file_dict['sections'][title] = [start, len(paper_content)-2]
                 del file_dict[title]
                 i += 1
             file_dict['file_name'] = filename.replace('grobid.tei.xml', 'pdf')

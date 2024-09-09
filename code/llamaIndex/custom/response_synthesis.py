@@ -1,8 +1,9 @@
+import os, sys
+root_path = os.path.abspath('..')
+sys.path.insert(0, root_path)
 import gc
 import torch
-import weakref
 from typing import Dict, List
-from llama_index.core.llms import LLM
 from custom.llm import get_llm
 from utils.evaluate_execution_time import evaluate_time
 
@@ -22,7 +23,8 @@ class TreeSummarize():
         self.qa_prompt: str = qa_prompt
         self.llm_self = llm_self
         self.llm_config = llm_config
-        self.llm: LLM = get_llm(self.llm_self, self.llm_config)
+        # self.llm: LLM = get_llm(self.llm_self, self.llm_config)
+        self.llm = None
         self.response_txt: str = None
         self.prompt_records: Dict = {}
         self.refine_times = refine_times
@@ -43,8 +45,8 @@ class TreeSummarize():
     def del_llm(self):
         if hasattr(self, 'llm'):
             del self.llm
-            gc.collect()
             torch.cuda.empty_cache()
+            gc.collect()
     
     def load_llm(self):
         self.llm = get_llm(self.llm_self, self.llm_config)
@@ -54,7 +56,9 @@ class TreeSummarize():
         print(f"Task {i} completed: {elapsed_time:.2f} seconds. Running tasks: {self._running_tasks}")
         return response
 
-    def combine_results(self, texts, level):
+    def combine_results(self, texts, level) -> str:
+        assert len(texts) > 0, "[Wrong] Invalid texts with length 0"
+
         self.prompt_records[level] = []
         responses = []
         for idx in range(0, len(texts), self.num_children):
@@ -64,9 +68,22 @@ class TreeSummarize():
                 context_str=context_str, query_str=self.query_str
             )
             self.prompt_records[level].append(fmt_qa_prompt)
-            responses.append(self.llm.complete(fmt_qa_prompt))
+            with torch.no_grad():
+                try:
+                    response = self.llm.complete(fmt_qa_prompt)
+                except Exception as e:
+                    print(f"text: {len(text_batch)}\nquery_str: {len(self.query_str)}\nprompt: {len(fmt_qa_prompt)}")
+                    print()
+                    print(e)
+                    exit()
+
+            torch.cuda.empty_cache()
+            gc.collect()
+            responses.append(response)
         
         new_texts = [r.text.strip() for r in responses]
+
+        assert len(new_texts) != 0, "[Wrong] Invalid combine results that the length of new_texts is 0"
 
         if len(new_texts) == 1:
             return new_texts[0]
@@ -80,7 +97,11 @@ class TreeSummarize():
                 context_str=text, query_str=self.summary_str
             )
             # print(fmt_qa_prompt)
-            new_text = str(self.llm.complete(fmt_qa_prompt)).strip()
+            with torch.no_grad():
+                response = self.llm.complete(fmt_qa_prompt)
+            torch.cuda.empty_cache()
+            gc.collect()
+            new_text = str(response).strip()
             text = text if len(text) < len(new_text) else new_text
             i += 1
         return text
@@ -91,6 +112,8 @@ class TreeSummarize():
         Combine num_children nodes hierarchically until we get one root node.
 
         """
+        print(f"texts: \n{texts}")
+        assert len(texts) > 0, "[Wrong] Invalid texts with length 0"
         self.num_children = num_children
         self.prompt_records[0] = []
         responses = []
@@ -100,7 +123,24 @@ class TreeSummarize():
                 context_str=text, query_str=self.query_str
             )
             self.prompt_records[0].append(fmt_qa_prompt)
-            responses.append(self.llm.complete(fmt_qa_prompt))
+            if len(fmt_qa_prompt) > 8000:
+                print("at stage 8000")
+                print(f"text: {len(text)}\nquery_str: {len(self.query_str)}\nprompt: {len(fmt_qa_prompt)}")
+                print(fmt_qa_prompt)
+                print()
+            with torch.no_grad():
+                try:
+                    response = self.llm.complete(fmt_qa_prompt)
+                except Exception as e:
+                    print(f"text: {len(text)}\nquery_str: {len(self.query_str)}\nprompt: {len(fmt_qa_prompt)}")
+                    print(fmt_qa_prompt)
+                    print()
+                    print(e)
+                    exit()
+                
+            torch.cuda.empty_cache()
+            gc.collect()
+            responses.append(response)
 
         response_txt = self.combine_results([r.text.strip() for r in responses], 1)
         response_txt = self.refine_response(response_txt)
