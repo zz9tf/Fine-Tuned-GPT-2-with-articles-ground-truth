@@ -6,6 +6,7 @@ from tqdm import tqdm
 from grobid_client.grobid_client import GrobidClient
 import xml.etree.ElementTree as ET
 from llama_index.core import Document
+from langdetect import detect
 
 class CustomDocumentReader:
     def __init__(
@@ -149,7 +150,7 @@ class CustomDocumentReader:
 
     def remove_duplicate_documents(self, documents):
         unique_document = []
-        file_head_set = {}
+        file_head_set = set()
         for document in documents:
             head = document.text[:800]
             if head not in file_head_set:
@@ -157,11 +158,23 @@ class CustomDocumentReader:
                 unique_document.append(document)
         return unique_document
 
+    def remove_non_english_documents(self, documents):
+        english_documents = []
+        for document in documents:
+            head = document.text[:800]
+            try:
+                if detect(head) == 'en':
+                    english_documents.append(document)
+            except Exception as e:
+                print(e)
+        return english_documents
+
     def load_data(self) -> List[Document]:
         self._convert_pdf_to_xml()
         file_documents = self._load_data()
-        unique_document = self.remove_duplicate_documents(file_documents)
-        return unique_document
+        unique_documents = self.remove_duplicate_documents(file_documents)
+        english_documents = self.remove_non_english_documents(unique_documents)
+        return english_documents
 
 if __name__ == '__main__':
     root_path = '../../..'

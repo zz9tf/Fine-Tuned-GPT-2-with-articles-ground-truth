@@ -115,9 +115,8 @@ index_pipelines:
     - extractor: "gpt-4o-QAExtractor-batch"
     - break: "force"
     - storage: "simple"
-  "gpt-4o-batch-all-p":
+  "gpt-4o-batch-all-target":
     - reader: "CustomDocumentReader"
-    - break: "-"
     - parser: "ManuallyHierarchicalNodeParser"
     - break: "force"
     - extractor: "gpt-4o-QAExtractor-batch"

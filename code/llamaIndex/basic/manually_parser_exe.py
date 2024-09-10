@@ -11,12 +11,12 @@ from custom.parser import CustomHierarchicalNodeParser
 from custom.io import save_nodes_jsonl, load_nodes_jsonl
 
 # Set paramters
-input_file = 'gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_8165_processing.jsonl'
+input_file = 'gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_processing.jsonl'
 python_file_name = 'manually_parser_exe.py'
 
 leave_tasks = list(range(164))
 task_cache_path = "/home/zhengzheng/scratch0/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/.cache"
-basic_name = "gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_8165_gpu_V100_nodeNum_50_pid_"
+basic_name = "gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_gpu_V100_nodeNum_50_pid_"
 for file_name in os.listdir(task_cache_path):
     if basic_name in file_name:
         task_id = int(file_name.split('.')[0][len(basic_name):])
@@ -24,14 +24,14 @@ for file_name in os.listdir(task_cache_path):
 print(f"leave task: {len(leave_tasks)}")
 print(leave_tasks)
 
-gpus1 = [(pid, 'V100', 1) for pid in leave_tasks[:5]]
-gpus2 = [(pid, 'V100', 2) for pid in leave_tasks[5:10]]
-gpus3 = [(pid, 'V100', 3) for pid in leave_tasks[10:15]]
-gpus4 = [(pid, 'V100', 4) for pid in leave_tasks[15:20]]
+gpus1 = [(pid, 'V100', 1) for pid in leave_tasks[:10]]
+gpus2 = [(pid, 'V100', 3) for pid in leave_tasks[10:20]]
+gpus3 = [(pid, 'V100', 4) for pid in leave_tasks[20:30]]
+gpus4 = [(pid, 'V100', 5) for pid in leave_tasks[30:40]]
 
 gpus = gpus1 + gpus2 + gpus3 + gpus4
 # gpus = gpus3
-gn = 2
+gn = 1
 nodes_length = int(input_file.split('_')[-2])
 # node_number_per_process=max(math.ceil(nodes_length/len(gpus)), 1)
 node_number_per_process=50

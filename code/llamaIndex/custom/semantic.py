@@ -73,7 +73,6 @@ class SemanticSplitter():
     ) -> "SemanticSplitter":
         sentence_splitter = split_by_sentence_tokenizer()
         self.embed_model_config = embed_model_config
-        self.load_embed()
         self.breakpoint_percentile_threshold=breakpoint_percentile_threshold
         self.buffer_size=buffer_size
         self.sentence_splitter=sentence_splitter
@@ -87,15 +86,15 @@ class SemanticSplitter():
         torch.cuda.empty_cache()
         gc.collect()
         
-        # free_memory, total_memory = torch.cuda.mem_get_info()
+        free_memory, total_memory = torch.cuda.mem_get_info()
     
-        # # Convert the values from bytes to megabytes (MB)
-        # free_memory_MB = free_memory / (1024 ** 3)
-        # total_memory_MB = total_memory / (1024 ** 3)
+        # Convert the values from bytes to megabytes (MB)
+        free_memory_MB = free_memory / (1024 ** 3)
+        total_memory_MB = total_memory / (1024 ** 3)
         
-        # print(f"Free memory: {free_memory_MB:.2f} GB")
-        # print(f"Used memory: {total_memory_MB - free_memory_MB:.2f} GB")
-        # print(f"Total memory: {total_memory_MB:.2f} GB")
+        print(f"Free memory: {free_memory_MB:.2f} GB")
+        print(f"Used memory: {total_memory_MB - free_memory_MB:.2f} GB")
+        print(f"Total memory: {total_memory_MB:.2f} GB")
 
     def parse_text(
         self,

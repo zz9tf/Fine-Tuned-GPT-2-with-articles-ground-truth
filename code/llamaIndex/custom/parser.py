@@ -181,6 +181,7 @@ class CustomHierarchicalNodeParser(NodeParser):
         document_node.metadata['sections'] = new_sections
 
     def _preprocess_documents(self, documents: Sequence[Document]):
+        self._semantic_splitter.load_embed()
         for document in tqdm(documents, desc="preprocessing documents..."):
             document.metadata['original_content'] = document.text
             self._add_line_breaks(document_node=document)
@@ -233,19 +234,19 @@ class CustomHierarchicalNodeParser(NodeParser):
     
     def _summary_content(self, texts):
         new_texts = [text for text in texts if len(text.strip()) > 0]
-        if len(texts) == 0:
-            print(texts)
-            print(new_texts)
-            input()
-        # summary, _ = self._tree_summarizer.generate_response_hs(
-        #     texts=texts,
-        #     num_children=20
-        # )
-        # return summary
-        return ""
+        # if len(texts) == 0:
+        #     print(texts)
+        #     print(new_texts)
+        #     input()
+        summary, _ = self._tree_summarizer.generate_response_hs(
+            texts=new_texts,
+            num_children=20
+        )
+        return summary
+        # return ""
 
     def _summary_sections(
-        self, 
+        self,
         document: BaseNode,
         document_node: BaseNode
     ):
@@ -378,7 +379,7 @@ class CustomHierarchicalNodeParser(NodeParser):
         all_nodes = [node for node in all_nodes if len(node.get_content().strip()) > 10]
         for i, node in enumerate(all_nodes):
             # Update metadata
-            node.metadata['level'] = 'multi-sentence'
+            node.metadata['level'] = 'multi-sentences'
             self._add_start_char_idx_and_end_char_idx(node, paragraph_node)
             # Update relationship
             self._add_previous_and_next_relationship(i, all_nodes, node)
@@ -421,7 +422,7 @@ class CustomHierarchicalNodeParser(NodeParser):
             pbar.update(0.25)
 
         if pbar is not None:
-            pbar.set_description("parsing paragraph nodes - getting multi-sentence nodes")
+            pbar.set_description("parsing paragraph nodes - getting multi-sentences nodes")
         multi_sentences_nodes = []
         for i, paragraph_node in enumerate(paragraph_nodes):
             if pbar is not None:
@@ -474,11 +475,13 @@ class CustomHierarchicalNodeParser(NodeParser):
                     nonpreprocess_documents.append(document)
             self._preprocess_documents(nonpreprocess_documents)
             self._level2nodes = None
+            self._tree_summarizer.load_llm()
             return preprocessed_documents + nonpreprocess_documents
         else:
             finished_document_ids = {document.id_ for document in self._level2nodes['document']}
             nonfinished_documents = [document for document in documents if document.id_ not in finished_document_ids]
             self._level2nodes = None
+            self._tree_summarizer.load_llm()
             return nonfinished_documents
 
     def load_results(self):
@@ -514,8 +517,9 @@ class CustomHierarchicalNodeParser(NodeParser):
             show_progress (bool): whether to show progress bar
 
         """
-        documents = documents[:4] # TODO: remove this line
+        # documents = documents[:4] # TODO: remove this line
         non_finished_documents = self._init_get_nodes_from_documents(documents)
+        # input(len(non_finished_documents))
         
         if show_progress:
             with tqdm(total=len(documents), desc="parsing documents") as pbar:
