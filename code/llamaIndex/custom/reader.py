@@ -147,9 +147,21 @@ class CustomDocumentReader:
 
         return file_documents
 
+    def remove_duplicate_documents(self, documents):
+        unique_document = []
+        file_head_set = {}
+        for document in documents:
+            head = document.text[:800]
+            if head not in file_head_set:
+                file_head_set.add(head)
+                unique_document.append(document)
+        return unique_document
+
     def load_data(self) -> List[Document]:
         self._convert_pdf_to_xml()
-        return self._load_data()
+        file_documents = self._load_data()
+        unique_document = self.remove_duplicate_documents(file_documents)
+        return unique_document
 
 if __name__ == '__main__':
     root_path = '../../..'

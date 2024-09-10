@@ -45,7 +45,7 @@ def main():
     # Configurations
     config_path = "/home/zhengzheng/scratch0/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/configs/prefix_config.yaml"
     cache_dir = "/home/zhengzheng/scratch0/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/.save"
-    for pid_num in ['pid_1', 'pid_13', 'pid_14']:
+    for pid_num in ['pid_14']:
         output_file = f"embeddings_{pid_num}.npy"
     
         # Load models and nodes
