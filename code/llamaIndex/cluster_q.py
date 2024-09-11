@@ -74,7 +74,7 @@ embeddings_2d = pca.fit_transform(embeddings)
 # Add PCA components to the DataFrame
 df['PCA1'] = embeddings_2d[:, 0]
 df['PCA2'] = embeddings_2d[:, 1]
-df.to_hdf("cluster_result.h5", key='df', mode='w')
+df.to_hdf("cluster_result_pca_q.h5", key='df', mode='w')
 
 # TSNE
 print("executing tsne")
@@ -85,4 +85,4 @@ embeddings_2d = tsne.fit_transform(embeddings)
 df['TSNE1'] = embeddings_2d[:, 0]
 df['TSNE2'] = embeddings_2d[:, 1]
 
-df.to_hdf("cluster_result.h5", key='df', mode='w')
+df.to_hdf("cluster_result_tsne_q.h5", key='df', mode='w')
