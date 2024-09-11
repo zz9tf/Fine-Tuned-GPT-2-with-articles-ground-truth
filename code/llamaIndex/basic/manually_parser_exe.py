@@ -256,10 +256,6 @@ def one_thread_parser(
     # Load nodes
     nodes_cache_path = os.path.abspath(os.path.join(cache_path, input_file_name))
     nodes = load_nodes_jsonl(nodes_cache_path)[pid*node_number_per_process: (pid+1)*node_number_per_process]
-    # # TODO need to delete later
-    # nodes = load_nodes_jsonl(nodes_cache_path)[pid*node_number_per_process+6: pid*node_number_per_process+8]
-    # ###########################
-    
 
     # Load parser
     parser = CustomHierarchicalNodeParser.from_defaults(
