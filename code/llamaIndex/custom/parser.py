@@ -102,7 +102,6 @@ class CustomHierarchicalNodeParser(NodeParser):
         callback_manager = callback_manager or CallbackManager([])
         cls._chunk_levels = ["document", "section", "paragraph", "multi-sentences"]
         
-        cls._level2nodes = None
         cls._cache_process_file = None
         cls._cache_process_path = os.path.join(cache_dir_path, cache_file_name)
 
@@ -446,19 +445,16 @@ class CustomHierarchicalNodeParser(NodeParser):
         with open(self._cache_process_path, 'r') as cache_file:
             with tqdm(total=file_size, desc='Loading cache...', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
                 for line in cache_file:
-                    try:
-                        node_dict = json.loads(line)
-                        node = TextNode.from_dict(node_dict)
-                        self._level2nodes[node.metadata['level']].append(node)
-                    except Exception as e:
-                        print(e)
+                    node_dict = json.loads(line)
+                    node = TextNode.from_dict(node_dict)
+                    self._level2nodes[node.metadata['level']].append(node)
                     # Update progress bar based on bytes read
                     pbar.update(len(line))
 
     def _init_get_nodes_from_documents(self, documents):
         # init attributions
         self._level2nodes = {level:[] for level in self._chunk_levels + ['preprocessed_document']}
-        
+        print(self._level2nodes)
         # loading nodes
         self._load_cache_nodes()
         # Open cache file

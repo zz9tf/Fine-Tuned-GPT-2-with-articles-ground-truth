@@ -26,7 +26,7 @@ def get_llm(self, llm_config):
             model_kwargs={
                 "quantization_config": quantization_config,
                 "cache_dir": llm_config['cache_dir'],
-                "local_files_only": True
+                # "local_files_only": True # TODO Uncomment this line
             },
             tokenizer_name=llm_config['model_name'],
             tokenizer_kwargs={
