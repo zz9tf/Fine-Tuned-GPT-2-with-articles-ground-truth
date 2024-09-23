@@ -87,8 +87,13 @@ storage:
     index_store: SimpleIndexStore
     property_graph_store: null
 index_pipelines:
-  "test":
+  "test-ollama-based":
     - reader: "CustomDocumentReader"
+    - parser: "SimpleFileNodeParser"
+    - extractor: "vicuna-13b-QAExtractor-ollama"
+    - storage: "simple"
+  "test":
+    - reader: "SimpleFileNodeParser"
     - break: "-"
     - parser: "ManuallyHierarchicalNodeParser"
     - break: "force"

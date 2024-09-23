@@ -141,8 +141,14 @@ class CustomHierarchicalNodeParser(NodeParser):
 
     def _text_split(self, section) -> List[str]:
         paragraphs = []
+        pre_splitter = SentenceSplitter(
+            chunk_size=1536, 
+            chunk_overlap=20, 
+            include_metadata=False, 
+            include_prev_next_rel=False
+        )
         force_splitter = SentenceSplitter(
-            chunk_size=1024, 
+            chunk_size=768, 
             chunk_overlap=20, 
             include_metadata=False, 
             include_prev_next_rel=False
@@ -151,13 +157,15 @@ class CustomHierarchicalNodeParser(NodeParser):
             if len(p.strip()) == 0:
                 continue
             if len(p) > 800:
-                ps = self._semantic_splitter.parse_text(p)
-                # paragraphs.extend(ps)
-                final_ps = []
-                for p_new in ps:
-                    final_new_ps = force_splitter.split_text_metadata_aware(p_new, '')
-                    final_ps.extend([p for p in final_new_ps if len(p.strip()) > 0])
-                paragraphs.extend(final_ps)
+                preprocessed_ps = pre_splitter.split_text_metadata_aware(p, '')
+                for preprocessed_p in preprocessed_ps:
+                    ps = self._semantic_splitter.parse_text(preprocessed_p)
+                    # paragraphs.extend(ps)
+                    final_ps = []
+                    for p_new in ps:
+                        final_new_ps = force_splitter.split_text_metadata_aware(p_new, '')
+                        final_ps.extend([p for p in final_new_ps if len(p.strip()) > 0])
+                    paragraphs.extend(final_ps)
             else:
                 paragraphs.append(p)
         return paragraphs
@@ -255,14 +263,14 @@ class CustomHierarchicalNodeParser(NodeParser):
         # Get summary of section contents
         abstract_paragraphs = None
         for title, (start, end) in document.metadata['sections'].items():
-            print(title, start, end)
             section = document_node.get_content()[start: end]
             if title == 'abstract':
+                print(f"> abstract ({start},{end}) <")
                 abstract_paragraphs = section.split('\n')
             else:
                 titles.append(title)
                 sections.append(section)
-                print("> not title section <")
+                print(f"> {title} section ({start},{end}) <")
                 summary = self._summary_content(section.split('\n'))
                 summaries.append(summary)
         
@@ -454,9 +462,9 @@ class CustomHierarchicalNodeParser(NodeParser):
     def _init_get_nodes_from_documents(self, documents):
         # init attributions
         self._level2nodes = {level:[] for level in self._chunk_levels + ['preprocessed_document']}
-        print(self._level2nodes)
         # loading nodes
         self._load_cache_nodes()
+
         # Open cache file
         self._cache_process_file = open(self._cache_process_path, 'a+')
         # return nonfinished documents
@@ -469,12 +477,13 @@ class CustomHierarchicalNodeParser(NodeParser):
                     preprocessed_documents.append(document)
                 else:
                     nonpreprocess_documents.append(document)
-            self._preprocess_documents(nonpreprocess_documents)
+            if len(nonpreprocess_documents) > 0:
+                self._preprocess_documents(nonpreprocess_documents)
             self._level2nodes = None
             self._tree_summarizer.load_llm()
             return preprocessed_documents + nonpreprocess_documents
         else:
-            finished_document_ids = {document.id_ for document in self._level2nodes['document']}
+            finished_document_ids = {document.ref_doc_id for document in self._level2nodes['document']}
             nonfinished_documents = [document for document in documents if document.id_ not in finished_document_ids]
             self._level2nodes = None
             self._tree_summarizer.load_llm()
@@ -513,14 +522,13 @@ class CustomHierarchicalNodeParser(NodeParser):
             show_progress (bool): whether to show progress bar
 
         """
-        # documents = documents[:4] # TODO: remove this line
         non_finished_documents = self._init_get_nodes_from_documents(documents)
-        # input(len(non_finished_documents))
+        print(f"not finished document: {len(non_finished_documents)}")
         
         if show_progress:
             with tqdm(total=len(documents), desc="parsing documents") as pbar:
                 pbar.update(len(documents) - len(non_finished_documents))
-                for document in non_finished_documents:
+                for _, document in enumerate(non_finished_documents):
                     self._get_nodes_from_one_document(document, pbar)
         else:
             for document in non_finished_documents:

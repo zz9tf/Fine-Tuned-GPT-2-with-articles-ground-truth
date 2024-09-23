@@ -168,7 +168,7 @@ class Database():
     def _get_index_config(self, index_pipeline):
         index_config = {}
         for step in index_pipeline:
-            step_type, action  = next(iter(step))
+            step_type, action  = next(iter(step.items()))
             if step_type not in action:
                 index_config[step_type] = action
             else:
@@ -201,12 +201,14 @@ class Database():
         # Load index
         # TODO: dealing with the large files
         storage_context = StorageContext.from_defaults(persist_dir=index_dir_path)
+        print("here2")
         index = load_index_from_storage(
             storage_context=storage_context, 
             index_id=index_id
         )
 
         # convert it to retriever
+        print("here3")
         retriever = None
         parser_config = self.prefix_config['parser'][index_config['parser']]
         if parser_config['retriever'] == 'BaseRetriever':
@@ -223,7 +225,7 @@ class Database():
 
         # Set llm
         llm_config = self.prefix_config['llm'][llm]
-        Settings.llm = get_llm(llm_config)
+        Settings.llm = get_llm(self, llm_config)
         
         # Set if it's ReRank
         if is_rerank:

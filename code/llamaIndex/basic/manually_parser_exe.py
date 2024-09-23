@@ -14,7 +14,7 @@ from custom.io import save_nodes_jsonl, load_nodes_jsonl
 input_file = 'gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_processing.jsonl'
 python_file_name = 'manually_parser_exe.py'
 
-leave_tasks = list(range(164))
+leave_tasks = list(range(154))
 task_cache_path = "/home/zhengzheng/scratch0/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/.cache"
 basic_name = "gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_gpu_V100_nodeNum_50_pid_"
 for file_name in os.listdir(task_cache_path):
@@ -24,8 +24,8 @@ for file_name in os.listdir(task_cache_path):
 print(f"leave task: {len(leave_tasks)}")
 print(leave_tasks)
 
-gpus1 = [(pid, 'V100', 1) for pid in leave_tasks[:10]]
-gpus2 = [(pid, 'V100', 3) for pid in leave_tasks[10:20]]
+gpus1 = [(pid, 'V100', 3) for pid in leave_tasks[:10]]
+gpus2 = [(pid, 'V100', 2) for pid in leave_tasks[10:14]]
 gpus3 = [(pid, 'V100', 4) for pid in leave_tasks[20:30]]
 gpus4 = [(pid, 'V100', 5) for pid in leave_tasks[30:40]]
 
@@ -75,21 +75,21 @@ def submit_job(
         script_path: str, gpu: str, gid: int, gn: int, pid: int,
     ):
     """Submit a job to Slurm and return the job ID."""
+    print(f"[PID: {pid}] is submitting with gpu {gpu}!")
     if pid*node_number_per_process >= nodes_length:
         return None, None
     job_name = f'pid-{pid}_gpu-{gpu}_gn-{gn}_nnum-{node_number_per_process}'
 
-    if gpu == 'L40':
+    if gid == 5:
         script_template = f"""#!/bin/bash
 
 #SBATCH --account=guest
 #SBATCH --partition=guest-gpu
 #SBATCH --job-name={job_name}
 #SBATCH --qos=low-gpu
-#SBATCH --time=72:00:00
+#SBATCH --time=24:00:00
 #SBATCH --output=slurm-{pid}.out
 #SBATCH --gres=gpu:{gpu}:{gn}
-#SBATCH --nodelist=gpu-{gpu}-4-{gid}
 
 # Set up env
 source ~/.bashrc
@@ -108,8 +108,6 @@ python {python_file_name} --input_file {input_file} --action thread --pid {pid} 
 #SBATCH --time=72:00:00
 #SBATCH --output=slurm-{pid}.out
 #SBATCH --gres=gpu:{gpu}:{gn}
-#SBATCH --nodelist=gpu-1-{gid}
-
 
 # Set up env
 source ~/.bashrc
@@ -229,7 +227,7 @@ def monitor_and_restart(jobs, script_path, check_interval=60, is_restart: bool=T
                                 subject=f"Failed {job_name}",
                                 email_body=out_file.read()
                             )
-                        os.remove(slurm_out_file)
+                        # os.remove(slurm_out_file)
                     if is_restart:
                         job_name, save_cache_name = submit_job(
                             script_path=script_path,

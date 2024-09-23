@@ -2,8 +2,8 @@
 from llama_index.embeddings.ollama import OllamaEmbedding
 
 # Embedding model method
-def get_embedding_model(embedding_config):
-        return CustomEmbedding(embedding_config=embedding_config)
+def get_embedding_model(embedding_config, device=None):
+        return CustomEmbedding(embedding_config=embedding_config, device=device)
 ##########################################################################
 from typing import Any, List
 from llama_index.core.embeddings import BaseEmbedding
@@ -29,6 +29,7 @@ class CustomEmbedding(BaseEmbedding):
         embedding_config: dict,
         query_instruction: Optional[str] = '',
         text_instruction: Optional[str] = '',
+        device=None,
         max_length: int = 4096,
         embed_batch_size: int = 10,
         normalize: bool = True,
@@ -37,7 +38,8 @@ class CustomEmbedding(BaseEmbedding):
         if embedding_config["based_on"] == 'huggingface':
             self._model = CustomHuggingFaceEmbedding(
                 model_name=embedding_config['name'],
-                cache_folder=embedding_config['cache_dir']
+                cache_folder=embedding_config['cache_dir'],
+                device=device
             )
         elif embedding_config["based_on"] == 'ollama':
             self._model = OllamaEmbedding(

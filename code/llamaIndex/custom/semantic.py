@@ -2,6 +2,7 @@ from typing import Any, List, Optional, TypedDict, Dict
 import gc
 import numpy as np
 import torch
+import time
 from enum import Enum
 from custom.embedding import get_embedding_model
 from llama_index.core.node_parser.text.utils import split_by_sentence_tokenizer
@@ -85,6 +86,7 @@ class SemanticSplitter():
         self.embed_model = None
         torch.cuda.empty_cache()
         gc.collect()
+        torch.cuda.empty_cache()
         
         free_memory, total_memory = torch.cuda.mem_get_info()
     

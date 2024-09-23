@@ -119,9 +119,16 @@ Response:"""
 # langchain method
 from langchain_core.pydantic_v1 import BaseModel, Field, validator
 class QAR(BaseModel):
+    Reason: str = Field(description="The reason for the answer")
     Question: str = Field(description="The question being asked")
     Answer: str = Field(description="The answer to the question")
-    Reason: str = Field(description="The reason for the answer")
+
+    # Validator to check if the reason is provided and is not too short
+    @validator("Reason")
+    def reason_is_provided(cls, value):
+        if len(value) < 10:
+            raise ValueError("The reason is too short to be meaningful.")
+        return value
 
     # Validator to ensure the question ends with a question mark
     @validator("Question")
@@ -135,13 +142,6 @@ class QAR(BaseModel):
     def answer_is_meaningful(cls, value):
         if len(value) < 5:
             raise ValueError("The answer is too short to be meaningful.")
-        return value
-
-    # Validator to check if the reason is provided and is not too short
-    @validator("Reason")
-    def reason_is_provided(cls, value):
-        if len(value) < 10:
-            raise ValueError("The reason is too short to be meaningful.")
         return value
     
 class MultipleQARs(BaseModel):

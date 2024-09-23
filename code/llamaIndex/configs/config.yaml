@@ -7,10 +7,10 @@ document_preprocessing:
     - "gpt-4o-batch-all-target"
     # - "ollama-based"
 rag:
-  # default_index: "test-ollama-based"
-  default_index: null
+  default_index: "test-ollama-based"
+  # default_index: null
   # llm: "lmsys/vicuna-13b-v1.3"
   llm: "vicuna:13b"
   # llm: "gpt-4o"
-  isReRank: True
+  isReRank: False
   
