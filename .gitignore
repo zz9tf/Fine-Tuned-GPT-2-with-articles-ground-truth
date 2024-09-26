@@ -174,3 +174,5 @@ data/*
 
 *.npy
 *.h5
+*.jsonl
+*.csv
