@@ -64,13 +64,13 @@ def load_question_answer_contexts_dataset(file_path):
 
 def evaluation_with_metrics(dataset: Dataset, matrix: Metric, save_file):
     # Get llm
-    with open(os.path.join(os.path.abspath('../../configs'), 'prefix_config.yaml'), 'r') as prefix_config_file:
-        prefix_config = yaml.safe_load(prefix_config_file)
-    llm_config = prefix_config['llm']['lmsys/vicuna-13b-v1.5']
-    llm = get_llm(None, llm_config, 'cuda:1')
+    # with open(os.path.join(os.path.abspath('../../configs'), 'prefix_config.yaml'), 'r') as prefix_config_file:
+    #     prefix_config = yaml.safe_load(prefix_config_file)
+    # llm_config = prefix_config['llm']['lmsys/vicuna-13b-v1.5']
+    # llm = get_llm(None, llm_config, 'cuda:1')
     
-    embedding_config = prefix_config['embedding_model']['Linq-AI-Research/Linq-Embed-Mistral']
-    embed_model = get_embedding_model(embedding_config, 'cuda:2')
+    # embedding_config = prefix_config['embedding_model']['Linq-AI-Research/Linq-Embed-Mistral']
+    # embed_model = get_embedding_model(embedding_config, 'cuda:2')
     
     run_config = RunConfig(
         timeout=900,
@@ -83,8 +83,8 @@ def evaluation_with_metrics(dataset: Dataset, matrix: Metric, save_file):
     score = evaluate(
         dataset=dataset,
         metrics=[matrix],
-        llm=LlamaIndexLLMWrapper(llm),
-        embeddings=LlamaIndexEmbeddingsWrapper(embed_model),
+        # llm=LlamaIndexLLMWrapper(llm),
+        # embeddings=LlamaIndexEmbeddingsWrapper(embed_model),
         run_config=run_config,
         raise_exceptions=True
     )
