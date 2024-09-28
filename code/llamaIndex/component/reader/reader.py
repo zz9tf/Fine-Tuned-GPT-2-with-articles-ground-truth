@@ -7,6 +7,22 @@ from grobid_client.grobid_client import GrobidClient
 import xml.etree.ElementTree as ET
 from llama_index.core import Document
 from langdetect import detect
+from llama_index.core import SimpleDirectoryReader
+
+def load_documents(data_path, config, cache_path=None):
+    if config['type'] == 'SimpleDirectoryReader':
+        nodes = SimpleDirectoryReader(
+            input_dir=data_path,
+            exclude=[],
+            file_metadata=lambda file_path : {"file_path": file_path},
+            filename_as_id=True
+        ).load_data()
+    elif config['type'] == 'CustomDocumentReader':
+        nodes = CustomDocumentReader(
+            input_dir=data_path,
+            cache_dir=cache_path,
+        ).load_data()
+    return nodes
 
 class CustomDocumentReader:
     def __init__(

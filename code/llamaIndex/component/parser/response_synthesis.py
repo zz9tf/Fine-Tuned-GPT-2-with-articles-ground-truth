@@ -1,10 +1,10 @@
-import os, sys
-root_path = os.path.abspath('..')
-sys.path.insert(0, root_path)
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
 import gc
 import torch
 from typing import Dict, List
-from custom.llm import get_llm
+from component.models.llm.get_llm import get_llm
 from utils.evaluate_execution_time import evaluate_time
 
 class TreeSummarize():
@@ -13,7 +13,6 @@ class TreeSummarize():
             query_str: str, 
             summary_str: str,
             qa_prompt: str, 
-            llm_self,
             llm_config: dict, 
             refine_times: int
         ):
@@ -21,7 +20,6 @@ class TreeSummarize():
         self.query_str: str = query_str
         self.summary_str: str = summary_str
         self.qa_prompt: str = qa_prompt
-        self.llm_self = llm_self
         self.llm_config = llm_config
         # self.llm: LLM = get_llm(self.llm_self, self.llm_config)
         self.llm = None
@@ -35,11 +33,10 @@ class TreeSummarize():
         query_str: str, 
         summary_str: str,
         qa_prompt: str,
-        llm_self,
         llm_config: dict,
         refine_times: int=10
     ):
-        self = cls(query_str, summary_str, qa_prompt, llm_self, llm_config, refine_times)
+        self = cls(query_str, summary_str, qa_prompt, llm_config, refine_times)
         return self
     
     def del_llm(self):
@@ -49,7 +46,7 @@ class TreeSummarize():
             gc.collect()
     
     def load_llm(self):
-        self.llm = get_llm(self.llm_self, self.llm_config)
+        self.llm = get_llm(self.llm_config)
 
     def evaluate_response(self, i, p):
         response, elapsed_time = evaluate_time(lambda : self.llm.complete(p))

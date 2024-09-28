@@ -1,9 +1,10 @@
 """Pydantic output parser."""
-
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
 import re
 import json
 from typing import Any, List, Optional, Type
-
 from llama_index.core.output_parsers.base import ChainableOutputParser
 from llama_index.core.types import Model
 

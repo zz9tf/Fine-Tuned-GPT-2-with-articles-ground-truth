@@ -1,62 +1,20 @@
-import os, sys
-sys.path.insert(0, os.path.abspath('..'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
 import io
 import uuid
 import json
-from itertools import chain
 from typing import Any, Dict, List, Optional, Sequence
 from tqdm import tqdm
 from llama_index.core.node_parser.interface import NodeParser
-from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.core.callbacks.base import CallbackManager
 from llama_index.core.schema import BaseNode, Document, NodeRelationship, MetadataMode, TextNode
 from llama_index.core.node_parser.node_utils import build_nodes_from_splits
-from llama_index.core.llms import LLM
-from custom.io import load_nodes_jsonl, save_nodes_jsonl
-from custom.schema import TemplateSchema
-from custom.response_synthesis import TreeSummarize
-from custom.semantic import SemanticSplitter
-
-##########################################################################
-# parser
-from llama_index.core.node_parser import (
-    SentenceSplitter, 
-    SimpleFileNodeParser, 
-    HierarchicalNodeParser
-)
-
-def get_parser(self, config, **kwargs):
-    """get a parser"""
-    if config['type'] == 'SentenceSplitter':
-        return SentenceSplitter(
-            chunk_size=config.get('chunk_size', 1024), 
-            chunk_overlap=config.get('chunk_overlap', 200)
-        )
-    elif config['type'] == 'SimpleFileNodeParser':
-        return SimpleFileNodeParser()
-    elif config['type'] == 'HierarchicalNodeParser':
-        return HierarchicalNodeParser.from_defaults(
-            chunk_sizes=config.get('chunk_size', [2048, 512, 128])
-        )
-    elif config['type'] == 'CustomHierarchicalNodeParser':
-        return CustomHierarchicalNodeParser.from_defaults(
-            llm_self=self,
-            llm_config=self.prefix_config['llm'][config['llm']],
-            embedding_config=self.prefix_config['embedding_model'][config['embedding_model']]
-        )
-    elif config['type'] == "ManuallyHierarchicalNodeParser":
-        return ManuallyParser(
-            cache_path=kwargs["cache_path"],
-            cache_name=f'{kwargs["index_id"]}_{kwargs["step_id"]}_{kwargs["step_type"]}_{kwargs["action"]}',
-            delete_cache=False
-        )
-    else:
-        raise Exception(
-            f"Invalid parser config with config {config}. Please provide parser types {self.prefix_config['parser'].keys()}"
-        )
-    
-##########################################################################
+from component.schema import TemplateSchema
+from component.parser.response_synthesis import TreeSummarize
+from component.parser.semantic import SemanticSplitter
+from llama_index.core.node_parser import SentenceSplitter
 
 class CustomHierarchicalNodeParser(NodeParser):
     """Hierarchical node parser.
@@ -76,12 +34,6 @@ class CustomHierarchicalNodeParser(NodeParser):
 
     _sentences_splitter: SentenceSplitter = PrivateAttr()
     
-    _embedding_config: Dict = PrivateAttr()
-
-    _llm_self = PrivateAttr()
-
-    _llm_config: Dict = PrivateAttr()
-    
     _tree_summarizer: TreeSummarize = PrivateAttr()
 
     _semantic_splitter: SemanticSplitter = PrivateAttr()
@@ -89,9 +41,8 @@ class CustomHierarchicalNodeParser(NodeParser):
     @classmethod
     def from_defaults(
         cls,
-        llm_self,
-        llm_config: LLM,
-        embedding_config: BaseEmbedding,
+        llm_config: Dict,
+        embedding_config: Dict,
         cache_dir_path: str = os.path.abspath('.'),
         cache_file_name: str = 'CustomHierarchicalNodeParser_cache.jsonl',
         include_metadata: bool = True,
@@ -112,13 +63,10 @@ class CustomHierarchicalNodeParser(NodeParser):
             include_prev_next_rel=False
         )
 
-        cls._llm_self = llm_self
-        cls._llm_config = llm_config
         cls._tree_summarizer = TreeSummarize.from_defaults(
             query_str=TemplateSchema.tree_summary_section_q_Tmpl,
             summary_str=TemplateSchema.tree_summary_summary_Tmpl,
             qa_prompt=TemplateSchema.tree_summary_qa_Tmpl,
-            llm_self=llm_self,
             llm_config=llm_config
         )
         cls._semantic_splitter = SemanticSplitter(buffer_size=1, breakpoint_percentile_threshold=97, embed_model_config=embedding_config)
@@ -541,29 +489,3 @@ class CustomHierarchicalNodeParser(NodeParser):
         self, nodes: Sequence[BaseNode], show_progress: bool = False, **kwargs: Any
     ) -> List[BaseNode]:
         return list(nodes)
-
-class ManuallyParser():
-    """generate cache for mannually parser"""
-    def __init__(self, cache_path, cache_name, delete_cache=True, force=False) -> None:
-        self.cache_name = cache_name
-        self.cache_path = cache_path
-        self.delete_cache = delete_cache
-        self.force = force
-
-    def get_nodes_from_documents(self, nodes, **kwargs):
-        """get nodes from documents"""
-        nodes_cache_path = os.path.join(self.cache_path, f"{self.cache_name}_finished.json")
-        if os.path.exists(nodes_cache_path) and not self.force:
-            nodes = load_nodes_jsonl(nodes_cache_path)
-            if self.delete_cache:
-                os.remove(nodes_cache_path)
-            return nodes
-        nodes_cache_path = os.path.join(
-            self.cache_path, f"{self.cache_name}_{len(nodes)}_processing.jsonl"
-        )
-        save_nodes_jsonl(nodes_cache_path, nodes)
-        print(
-            f"\n[Manually Parser] Cache \'{self.cache_name}\' has been saved." +\
-            "Waiting for processing manually..."
-        )
-        sys.exit(0)

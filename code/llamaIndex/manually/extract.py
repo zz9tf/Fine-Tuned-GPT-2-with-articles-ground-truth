@@ -1,22 +1,13 @@
-import os, sys
-root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, root_dir)
-import yaml
-from dotenv import load_dotenv
-from custom.io import save_nodes_jsonl, load_nodes_jsonl
-from custom.extractor import PartalyOpenAIBasedQARExtractor
+import os
+import sys
+sys.path.insert(0, os.path.abspath('..'))
+from configs.load_config import load_configs
+from component.io import save_nodes_jsonl, load_nodes_jsonl
+from component.extractor.partaly_OpenAI_based_QAR_extractor import PartalyOpenAIBasedQARExtractor
 
 # Load config
-root_path = '../../..'
-config_dir_path='./code/llamaIndex/configs'
-config_path = os.path.abspath(os.path.join(root_path, config_dir_path, 'config.yaml'))
-prefix_config_path = os.path.abspath(os.path.join(root_path, config_dir_path, 'prefix_config.yaml'))
-with open(config_path, 'r') as config:
-    config = yaml.safe_load(config)
-with open(prefix_config_path, 'r') as prefix_config:
-    prefix_config = yaml.safe_load(prefix_config)
-load_dotenv(dotenv_path=os.path.abspath(os.path.join(root_path, './code/llamaIndex/.env')))
-
+config, prefix_config = load_configs()
+root_path = os.path.abspath('..')
 cache_path = os.path.abspath(os.path.join(root_path, config['cache']))
 extractor_config = prefix_config['extractor']['manually_partaly_QAExtractor']
 

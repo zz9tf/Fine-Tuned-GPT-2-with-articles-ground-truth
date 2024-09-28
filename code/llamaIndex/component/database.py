@@ -1,27 +1,23 @@
-import os, sys
-root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, root_dir)
-import yaml
+import os
+import sys
+sys.path.insert(0, os.path.abspath('..'))
 from datetime import datetime
 from llama_index.core import (
     VectorStoreIndex,
     StorageContext,
     load_index_from_storage,
 )
-from llama_index.core import SimpleDirectoryReader
-from custom.reader import CustomDocumentReader
-from custom.embedding import get_embedding_model
-from custom.llm import get_llm
-from custom.parser import get_parser
-from custom.extractor import get_extractors
-from custom.index import get_an_index_generator
-from custom.store import get_a_store
-from custom.io import save_storage_context
-from dotenv import load_dotenv
-from basic.pipeline import CreateIndexPipeline
+from configs.load_config import load_configs
+from component.reader.reader import load_documents
+from component.models.llm.get_llm import get_llm
+from component.parser.get_parser import get_parser
+from component.extractor.get_extractors import get_extractors
+from component.models.embed.get_embedding_model import get_embedding_model
+from component.index.index import generate_index
+from basic.pipeline import IndexPipeline
+from llama_index.core import Settings
 from llama_index.core.retrievers import AutoMergingRetriever
 from llama_index.core.node_parser import get_leaf_nodes
-from llama_index.core import Settings
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.response_synthesizers import ResponseMode
@@ -38,52 +34,30 @@ class Database():
         os.makedirs(cache_path, exist_ok=True)
 
     def _load_configs(self):
-        config_path = os.path.abspath(os.path.join(self.root_path, self.config_dir_path, 'config.yaml'))
-        prefix_config_path = os.path.abspath(os.path.join(self.root_path, self.config_dir_path, 'prefix_config.yaml'))
-        with open(config_path, 'r') as config:
-            self.config = yaml.safe_load(config)
-        with open(prefix_config_path, 'r') as prefix_config:
-            self.prefix_config = yaml.safe_load(prefix_config)
-        load_dotenv(dotenv_path=os.path.abspath(os.path.join(self.root_path, './code/llamaIndex/.env')))
+        self.config, self.prefix_config = load_configs()
 
     def _check_index_pipeline(self, index_pipeline):
-        for step_id, step in enumerate(index_pipeline):
-            assert len(step) == 1, \
-                f"Invalid index pipeline. The length of index step {step_id} is {len(step)}. But the length each step should be 1."
-
-        assert next(iter(index_pipeline[0])) == 'reader', \
-            f"Invalid index pipeline. \'reader\' should be the first step of \'index pipeline\'"
-        
-        assert next(iter(index_pipeline[-1])) == 'storage', \
-            f'Invalid index pipeline. \'storage\' should be the final step of \'index pipeline\''
+        IndexPipeline._check_index_pipeline(index_pipeline)
 
     def _load_documents(self, config, **kwargs):
         print("[update_database] Loading documents ...", end=' ') 
         file_path = self.config['document_preprocessing']['data_dir_path']
         data_path = os.path.abspath(os.path.join(self.root_path, file_path))
-
-        if config['type'] == 'SimpleDirectoryReader':
-            nodes = SimpleDirectoryReader(
-                input_dir=data_path,
-                exclude=[],
-                file_metadata=lambda file_path : {"file_path": file_path},
-                filename_as_id=True
-            ).load_data()
-        elif config['type'] == 'CustomDocumentReader':
-            cache_path = os.path.abspath(os.path.join(self.root_path, self.config['cache']))
-            nodes = CustomDocumentReader(
-                input_dir=data_path,
-                cache_dir=cache_path,
-            ).load_data()
+        cache_path = os.path.abspath(os.path.join(self.root_path, self.config['cache']))
+        nodes = load_documents(data_path, config, cache_path)
         print("done")
         return nodes
 
     def _parser_documents(self, config, nodes, **kwargs):
         print("[update_database] Generating nodes from documents...", end=' ')
-        parser = get_parser(self, config, **kwargs)
-        nodes = parser.get_nodes_from_documents(
-            nodes, show_progress=True
-        )
+        llm_config = self.prefix_config['llm'][config['llm']] if 'llm' in config else None
+        embedding_config = self.prefix_config['embedding_model'][config['embedding_model']] if 'embedding_model' in config else None
+        parser = get_parser(
+            config=config,
+            llm_config=llm_config,
+            embedding_config=embedding_config,
+            **kwargs)
+        nodes = parser.get_nodes_from_documents(nodes, show_progress=True)
         print('done')
         return nodes
     
@@ -94,34 +68,16 @@ class Database():
         print("done")
         return nodes
         
-    def _storage(self, index_id, index_dir_path, config, nodes, **kwargs):
-        # Load embedding model
+    def _generate_index(self, index_id, index_dir_path, config, nodes, **kwargs):
         embedding_config = self.prefix_config['embedding_model'][config['embedding_model']]
-        Settings.embed_model = get_embedding_model(embedding_config)
-
-        # Generate index for nodes
-        index_generator = get_an_index_generator(config['index_generator'])
-        index = index_generator(
-            nodes=nodes,
-            storage_context=StorageContext.from_defaults(
-                docstore=get_a_store(config['docstore']),
-                vector_store=get_a_store(config['vector_store']),
-                index_store=get_a_store(config['index_store']),
-                property_graph_store=get_a_store(config['property_graph_store'])
-            ),
-            show_progress=True
-        )
-
-        # Save index
-        index.set_index_id(index_id)
-        save_storage_context(index.storage_context, index_dir_path)
+        generate_index(embedding_config, config, nodes, index_dir_path, index_id)
         print("[update_database] Index: {} has been saved".format(index_id))
         return index
 
     def _generate_pipeline(self, index_id, index_dir_path):
         index_pipeline = self.prefix_config['index_pipelines'][index_id]
         self._check_index_pipeline(index_pipeline=index_pipeline)
-        pipeline = CreateIndexPipeline(
+        pipeline = IndexPipeline(
             index_id=index_id, 
             index_dir_path=index_dir_path, 
             database=self,

@@ -1,5 +1,6 @@
-##########################################################################
-# Store
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
 from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.core.storage.index_store import SimpleIndexStore
 from llama_index.core.vector_stores import SimpleVectorStore

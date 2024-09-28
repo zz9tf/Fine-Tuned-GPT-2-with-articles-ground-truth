@@ -67,6 +67,10 @@ embedding_model:
     based_on: "huggingface"
     name: "dunzhang/stella_en_1.5B_v5"
     cache_dir: "/work/zhengzheng/.hf_cache"
+  "fonshartendorp/dutch_biomedical_entity_linking":
+    based_on: "huggingface"
+    name: "fonshartendorp/dutch_biomedical_entity_linking"
+    cache_dir: "/work/zhengzheng/.hf_cache"
 llm:
   "lmsys/vicuna-13b-v1.5":
     based_on: "huggingface"

@@ -6,7 +6,7 @@ from custom.io import save_nodes_jsonl, load_nodes_jsonl
 if TYPE_CHECKING:
     from database import Database
 
-class CreateIndexPipeline:
+class IndexPipeline:
     def __init__(
             self, 
             index_id: str, 
@@ -29,6 +29,17 @@ class CreateIndexPipeline:
 
         self.add_steps()
     
+    def _check_index_pipeline(self, index_pipeline):
+        for step_id, step in enumerate(index_pipeline):
+            assert len(step) == 1, \
+                f"Invalid index pipeline. The length of index step {step_id} is {len(step)}. But the length each step should be 1."
+
+        assert next(iter(index_pipeline[0])) == 'reader', \
+            f"Invalid index pipeline. \'reader\' should be the first step of \'index pipeline\'"
+        
+        assert next(iter(index_pipeline[-1])) == 'storage', \
+            f'Invalid index pipeline. \'storage\' should be the final step of \'index pipeline\''
+    
     def _get_action_func(self, step_type):
         if step_type == "reader":
             return self.database._load_documents
@@ -37,7 +48,7 @@ class CreateIndexPipeline:
         elif step_type == "extractor":
             return self.database._extract_metadata
         elif step_type == "storage":
-            return self.database._storage
+            return self.database._generate_index
 
     def _save_result(self, cache_name, **kwargs):
         nodes_cache_path = os.path.abspath(os.path.join(self.cache_path, cache_name))

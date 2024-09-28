@@ -1,10 +1,12 @@
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
 from typing import Any, List, Optional, TypedDict, Dict
 import gc
 import numpy as np
 import torch
-import time
 from enum import Enum
-from custom.embedding import get_embedding_model
+from component.models.embed.get_embedding_model import get_embedding_model
 from llama_index.core.node_parser.text.utils import split_by_sentence_tokenizer
 from llama_index.core.schema import BaseNode
 

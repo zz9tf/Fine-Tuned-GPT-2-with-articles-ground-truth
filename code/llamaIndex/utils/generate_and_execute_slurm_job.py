@@ -1,7 +1,6 @@
 import os
 import subprocess
 
-
 def generate_and_execute_slurm_job(
     python_start_script: str,
     account: str = "pengyu-lab", # "guest"
@@ -54,6 +53,14 @@ python {python_start_script}
     print(f"Created execute.sh at {os.path.abspath(script_path)}")
     
     # Submit the script using sbatch
-    subprocess.run(['sbatch', script_path], capture_output=True, text=True)
+    result = subprocess.run(['sbatch', script_path], capture_output=True, text=True)
+
+    if result.returncode == 0:
+        job_id = result.stdout.split()[-1]
+        print(f"[Job ID: {job_id}] Job submitted successfully!")
+        return job_name
     
-    print(f"Submitted job {job_name}")
+    print("Error submitting job:")
+    print(result.stderr)
+    
+    return None
