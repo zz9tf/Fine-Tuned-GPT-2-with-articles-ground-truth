@@ -176,3 +176,4 @@ data/*
 *.h5
 *.jsonl
 *.csv
+*.parquet
