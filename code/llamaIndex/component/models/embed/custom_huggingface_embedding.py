@@ -31,7 +31,7 @@ class CustomHuggingFaceEmbedding(BaseEmbedding):
         default=DEFAULT_HUGGINGFACE_LENGTH, description="Maximum length of input.", gt=0
     )
     pooling: Pooling = Field(default=None, description="Pooling strategy.")
-    normalize: bool = Field(default=False, description="Normalize embeddings or not.")
+    normalize: bool = Field(default=True, description="Normalize embeddings or not.")
     query_instruction: Optional[str] = Field(
         description="Instruction to prepend to query text."
     )
@@ -54,7 +54,7 @@ class CustomHuggingFaceEmbedding(BaseEmbedding):
         max_length: Optional[int] = None,
         query_instruction: Optional[str] = None,
         text_instruction: Optional[str] = None,
-        normalize: bool = False,
+        normalize: bool = True,
         model: Optional[Any] = None,
         tokenizer: Optional[Any] = None,
         embed_batch_size: int = DEFAULT_EMBED_BATCH_SIZE,

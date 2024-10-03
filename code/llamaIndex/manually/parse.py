@@ -201,6 +201,18 @@ def one_thread_parser(
     print(nodes_cache_path)
     save_nodes_jsonl(nodes_cache_path, nodes)
 
+def merge(cache_path):
+    prefix_file_name = "gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_gpu_V100_nodeNum_50"
+    save_files = [file_name for file_name in os.listdir(cache_path) if prefix_file_name in file_name]
+    all_nodes = []
+    for save_cache_name in save_files:
+        nodes_cache_path = os.path.abspath(os.path.join(cache_path, save_cache_name))
+        all_nodes.extend(load_nodes_jsonl(nodes_cache_path))
+        
+    cache_name = f"gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_gpu_V100_nodeNum_{len(all_nodes)}.jsonl"
+    nodes_cache_path = os.path.join(cache_path, cache_name)
+    save_nodes_jsonl(nodes_cache_path, all_nodes)
+
 if __name__ == '__main__':
     config, prefix_config = load_configs()
     parser_config = prefix_config['parser']['ManuallyHierarchicalNodeParser']
@@ -216,13 +228,13 @@ if __name__ == '__main__':
     nodes_number = int(input_file.split('_')[-2])
     leave_tasks = math.ceil(nodes_number/node_number_per_process)
     leave_tasks = list(range(leave_tasks))
-    cache_path = os.path.abspath(os.path.join('..', config['cache']))
+    cache_path = os.path.abspath(os.path.join('../../..', config['cache']))
     print(f"cache_path: {cache_path}")
     basic_name = "_".join(input_file.split('_')[:-1])
     print(f"basic_name: {basic_name}")
     for file_name in os.listdir(cache_path):
-        if basic_name in file_name:
-            task_id = int(file_name.split('.')[0][len(basic_name):])
+        if file_name.startswith(basic_name) and not file_name.endswith('processing.jsonl'):
+            task_id = int(file_name.split('.')[0].split("_")[-1])
             leave_tasks.remove(task_id)
     print(f"leave task: {len(leave_tasks)}")
     print(leave_tasks)
@@ -270,16 +282,4 @@ if __name__ == '__main__':
         )
         
     elif args.action == 'merge':
-        prefix_file_name = "gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_gpu_V100_nodeNum_50"
-        save_files = [file_name for file_name in os.listdir(cache_path) if prefix_file_name in file_name]
-        all_nodes = []
-        for save_cache_name in save_files:
-            nodes_cache_path = os.path.abspath(os.path.join(cache_path, save_cache_name))
-            all_nodes.extend(load_nodes_jsonl(nodes_cache_path))
-            
-        cache_name = f"gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_gpu_V100_nodeNum_{len(all_nodes)}.jsonl"
-        nodes_cache_path = os.path.join(cache_path, cache_name)
-        save_nodes_jsonl(nodes_cache_path, all_nodes)
-    
-    
-    
+        merge(cache_path)
