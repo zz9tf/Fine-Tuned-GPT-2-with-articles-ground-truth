@@ -10,6 +10,7 @@ def generate_and_execute_slurm_job(
     time: str = "72:00:00", # "24:00:00"
     gpu: str = "",
     num: str = "",
+    log_file_path: str = "./{job_name}.out",
     script_path:str ="./execute.sh"
 ):
     script_template = """#!/bin/bash
@@ -19,7 +20,7 @@ def generate_and_execute_slurm_job(
 #SBATCH --job-name={job_name}
 #SBATCH --qos={qos}
 #SBATCH --time={time}
-#SBATCH --output={output}.out
+#SBATCH --output={log_file_path}
 {cpu_or_gpu}
 
 # Set up env
@@ -39,7 +40,7 @@ python {python_start_script}
         job_name=job_name,
         qos=qos,
         time=time,
-        output=job_name,
+        log_file_path=log_file_path.format(job_name=job_name),
         cpu_or_gpu=cpu_or_gpu,
         python_start_script=python_start_script
     )

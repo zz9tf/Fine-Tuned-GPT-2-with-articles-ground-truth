@@ -14,7 +14,7 @@ from component.parser.get_parser import get_parser
 from component.extractor.get_extractors import get_extractors
 from component.models.embed.get_embedding_model import get_embedding_model
 from component.index.index import generate_index
-from basic.pipeline import IndexPipeline
+from component.pipeline import IndexPipeline
 from llama_index.core import Settings
 from llama_index.core.retrievers import AutoMergingRetriever
 from llama_index.core.node_parser import get_leaf_nodes

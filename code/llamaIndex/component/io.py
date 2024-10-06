@@ -57,3 +57,41 @@ def save_storage_context(storage_context, persist_dir):
             )
 
         vector_store.persist(persist_path=vector_store_path)
+        
+        
+import logging
+from typing import Any, List, Optional
+from llama_index.core.storage.storage_context import StorageContext
+from llama_index.core.indices.base import BaseIndex
+from llama_index.core.indices.registry import INDEX_STRUCT_TYPE_TO_INDEX_CLASS
+
+logger = logging.getLogger(__name__)
+def load_index_from_storage(
+    storage_context: StorageContext,
+    index_id: Optional[str],
+    **kwargs: Any,
+) -> List[BaseIndex]:
+    """Load multiple indices from storage context.
+
+    Args:
+        storage_context (StorageContext): storage context containing
+            docstore, index store and vector store.
+        index_id (Optional[Sequence[str]]): IDs of the indices to load.
+            Defaults to None, which loads all indices in the index store.
+        **kwargs: Additional keyword args to pass to the index constructors.
+    """
+    logger.info(f"Loading indices with ids: {index_id}")
+    index_structs = []
+    
+    index_struct = storage_context.index_store.get_index_struct(index_id)
+    if index_struct is None:
+        raise ValueError(f"Failed to load index with ID {index_id}")
+    index_structs.append(index_struct)
+
+    type_ = index_struct.get_type()
+    index_cls = INDEX_STRUCT_TYPE_TO_INDEX_CLASS[type_]
+    index = index_cls(
+        index_struct=index_struct, storage_context=storage_context, **kwargs
+    )
+    
+    return index

@@ -167,7 +167,7 @@ data/*
 
 *log
 
-*/database/*
+code/llamaIndex/database/*
 .save
 .cache
 *.out
@@ -177,3 +177,8 @@ data/*
 *.jsonl
 *.csv
 *.parquet
+*/contexts/*
+*/questions/*
+*/out/*
+*/execute/*
+*/score/*

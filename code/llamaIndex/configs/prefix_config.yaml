@@ -84,7 +84,7 @@ llm:
     model_name: "gpt-4o"
 storage:
   "simple":
-    embedding_model: "dunzhang/stella_en_1.5B_v5"
+    embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
     index_generator: VectorStoreIndex
     docstore: SimpleDocumentStore
     vector_store: SimpleVectorStore

@@ -17,9 +17,7 @@ print(nodes[2].text)
 _, prefix_config = load_configs()
 embed_config = prefix_config['embedding_model']['Linq-AI-Research/Linq-Embed-Mistral']
 
-embed_model = get_embedding_model(
-    embedding_config=embed_config, device='cuda:1'
-)
+embed_model = get_embedding_model(embedding_config=embed_config)
 
 torch.cuda.empty_cache()
 embed1 = embed_model._get_text_embedding(nodes[1].text)

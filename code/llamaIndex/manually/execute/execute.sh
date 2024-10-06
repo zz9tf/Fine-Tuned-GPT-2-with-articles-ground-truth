@@ -2,10 +2,10 @@
 
 #SBATCH --account=pengyu-lab
 #SBATCH --partition=pengyu-gpu
-#SBATCH --job-name=pid-21_gpu-V100_gn-1_nnum-50
+#SBATCH --job-name=store_pid-54_account-pengyu-lab_gpu-V100_gn-1
 #SBATCH --qos=medium
 #SBATCH --time=72:00:00
-#SBATCH --output=slurm-21.out
+#SBATCH --output=/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/manually/out/store_pid-54_account-pengyu-lab_gpu-V100_gn-1.out
 #SBATCH --gres=gpu:V100:1
 
 # Set up env
@@ -13,5 +13,4 @@ source ~/.bashrc
 conda activate llm
 
 # Path to your executable
-python manually_parser_exe.py --input_file gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_processing.jsonl --action thread --pid 21 --gpu V100 --node_number_per_process 50
-    
+python step_4_store_and_index.py --action thread --pid 54 --input_file_name gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_gpu_V100_nodeNum_50_pid_54.jsonl --index_name gpt-4o-batch-all-target

@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.insert(0, os.path.abspath('../..'))
 import json
 import numpy as np
 import pandas as pd
@@ -72,7 +73,7 @@ def plot_tsne_result(tsne_result_df, unique_labels, palette, nodes_file_name):
 
 def main():
     # Load embeddings
-    embeddings_file_path = f"../1_get_embedding_value/data/embeddings_question_pid_1.jsonl"
+    embeddings_file_path = f"../step_1_get_embedding_value/questions/embeddings_question_1.jsonl"
     embeddings, levels = load_jsonl(embeddings_file_path)
 
     # Generate TSNE result
