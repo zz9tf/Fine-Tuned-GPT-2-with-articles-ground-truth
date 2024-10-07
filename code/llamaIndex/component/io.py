@@ -33,30 +33,30 @@ def load_nodes_jsonl(file_path: str) -> List[TextNode]:
     
     return nodes
 
-from pathlib import Path
-def save_storage_context(storage_context, persist_dir):
-    # TODO: dealing with large file
-    persist_dir = Path(persist_dir)
-    docstore_path = str(persist_dir / "docstore.json")
-    index_store_path = str(persist_dir / "index_store.json")
-    graph_store_path = str(persist_dir / "graph_store.json")
-    pg_graph_store_path = str(persist_dir / "property_graph_store.json")
+# from pathlib import Path
+# def save_storage_context(storage_context, persist_dir):
+#     # TODO: dealing with large file
+#     persist_dir = Path(persist_dir)
+#     docstore_path = str(persist_dir / "docstore.json")
+#     index_store_path = str(persist_dir / "index_store.json")
+#     graph_store_path = str(persist_dir / "graph_store.json")
+#     pg_graph_store_path = str(persist_dir / "property_graph_store.json")
 
-    storage_context.docstore.persist(persist_path=docstore_path)
-    storage_context.index_store.persist(persist_path=index_store_path)
-    storage_context.graph_store.persist(persist_path=graph_store_path)
+#     storage_context.docstore.persist(persist_path=docstore_path)
+#     storage_context.index_store.persist(persist_path=index_store_path)
+#     storage_context.graph_store.persist(persist_path=graph_store_path)
 
-    if storage_context.property_graph_store:
-        storage_context.property_graph_store.persist(persist_path=pg_graph_store_path)
+#     if storage_context.property_graph_store:
+#         storage_context.property_graph_store.persist(persist_path=pg_graph_store_path)
 
-    # save each vector store under it's namespace
-    for vector_store_name, vector_store in storage_context.vector_stores.items():
-        vector_store_path = str(
-                Path(persist_dir)
-                / f"{vector_store_name}{'__'}{'vector_store.json'}"
-            )
+#     # save each vector store under it's namespace
+#     for vector_store_name, vector_store in storage_context.vector_stores.items():
+#         vector_store_path = str(
+#                 Path(persist_dir)
+#                 / f"{vector_store_name}{'__'}{'vector_store.json'}"
+#             )
 
-        vector_store.persist(persist_path=vector_store_path)
+#         vector_store.persist(persist_path=vector_store_path)
         
         
 import logging
