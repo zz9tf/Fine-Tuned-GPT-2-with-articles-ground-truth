@@ -3,12 +3,13 @@ import sys
 sys.path.insert(0, os.path.abspath('../..'))
 from typing import List
 from llama_index.core import VectorStoreIndex, PropertyGraphIndex
-from component.io import save_storage_context
 from component.models.embed.get_embedding_model import get_embedding_model
 from component.index.get_a_store import get_a_store
+from component.index.store_io import load_storage_from_persist_dir, load_index_from_storage, save_storage_context
 from llama_index.core import Settings
 from llama_index.core import StorageContext
-from llama_index.core import load_index_from_storage
+# from llama_index.core import load_index_from_storage
+
 from tqdm import tqdm
 
 def get_an_index_generator(index_type):
@@ -58,9 +59,12 @@ def merge_index(
     print(merged_storage_context.index_store.index_structs())
     # Load each index into the new StorageContext
     for index_id in tqdm(index_ids, desc="merging index..."):
-        storage_context = StorageContext.from_defaults(persist_dir=os.path.join(index_dir_path, index_id))
+        # storage_context = StorageContext.from_defaults(persist_dir=os.path.join(index_dir_path, index_id))
+        
+        storage_context = load_storage_from_persist_dir(persist_dir=os.path.join(index_dir_path, index_id))
         index = load_index_from_storage(storage_context, index_id=index_id)
-        print(index.storage_context.index_store.index_structs())
+        for v in index.storage_context.index_store.index_structs():
+            print(v[0])
         exit()
         
     
@@ -80,6 +84,6 @@ if __name__ == "__main__":
     merge_index(
         config=config,
         index_dir_path=os.path.abspath(os.path.join('../../database', 'gpt-4o-batch-all-target')),
-        index_ids=['1','2'],
+        index_ids=['3','5'],
         target_id='test'
     )
