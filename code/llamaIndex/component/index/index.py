@@ -1,96 +1,65 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
-from typing import List
-from llama_index.core import VectorStoreIndex, PropertyGraphIndex
+import json
+from llama_index.core import VectorStoreIndex
 from component.models.embed.get_embedding_model import get_embedding_model
-from component.index.get_a_store import get_a_store
-from component.index.store_io import load_storage_from_persist_dir, load_index_from_storage, save_storage_context
-from llama_index.core import Settings
-from llama_index.core import StorageContext
-# from llama_index.core import load_index_from_storage
-
+from component.io import load_nodes_jsonl, save_nodes_jsonl
+from llama_index.core.schema import MetadataMode
 from tqdm import tqdm
 
 def get_an_index_generator(index_type):
         if index_type == 'VectorStoreIndex':
             return VectorStoreIndex
         else:
-            raise Exception("Invalid embedding model name. Please provide embedding models {}".format())
+            raise Exception("Invalid index generator name. Please provide name in [{}]".format('VectorStoreIndex'))
 
-def storage_nodes_for_index(embedding_config):
+def storing_nodes_for_index(embedding_config: dict, input_file_path, index_dir_path: str, index_id: str):
+    if not os.path.exists(index_dir_path):
+        os.makedirs(index_dir_path)
+    
     # Load embedding model
     embed_model = get_embedding_model(embedding_config)
+    
+    nodes = load_nodes_jsonl(input_file_path)
+    save_path = os.path.join(index_dir_path, index_id) + '_not_finish.jsonl'
+    if os.path.exists(save_path):
+        finished_nodes = load_nodes_jsonl(save_path)
+    finished_nodesIds = {node.id_ for node in finished_nodes}
+    with open(save_path, 'w') as file:
+        for node in tqdm(nodes, desc='generating embeddings...'):
+            if node.id_ in finished_nodesIds: continue
+            embedding = embed_model._get_text_embedding(node.get_content(MetadataMode.EMBED))
+            node.embedding = embedding
+            json.dump(node.to_dict(), file)
+            file.write('\n')
+    final_save_path = os.path.join(index_dir_path, index_id) + '.jsonl'
+    os.rename(save_path, final_save_path)
+    print(f"File: {index_id+'.jsonl'} has been saved at {os.path.abspath(index_dir_path)}")
 
-    # Save index
-    # if index_dir_path != None:
-    #     if index_id != None:
-    #         index.set_index_id(index_id)
-    #     save_storage_context(index.storage_context, index_dir_path)
-        
-    # return index
+def merge_database_pid_nodes(index_dir_path: str, index_id: str):
+    all_nodes = []
+    for filename in os.listdir(index_dir_path):
+        if index_id not in filename:
+            nodes = load_nodes_jsonl(os.path.join(index_dir_path, filename))
+            all_nodes.extend(nodes)
+    save_nodes_jsonl(os.path.join(index_dir_path, index_id), all_nodes)
 
-def get_index_from_nodes(nodes, config, index_dir_path=None, index_id=None):
+def get_retriever_from_nodes(nodes, index_dir_path, index_id):
     # Generate index for nodes
-    index_generator = get_an_index_generator(config['index_generator'])
-    index = index_generator(
-        nodes=nodes,
-        storage_context=StorageContext.from_defaults(
-            docstore=get_a_store(config['docstore']),
-            vector_store=get_a_store(config['vector_store']),
-            index_store=get_a_store(config['index_store']),
-            property_graph_store=get_a_store(config['property_graph_store'])
-        ),
-        show_progress=True
+    nodes = load_nodes_jsonl(os.path.join(index_dir_path, index_id))
+    
+    v = VectorStoreIndex(
+        index_struct=VectorStoreIndex.index_struct_cls(index_id=index_id)
     )
-
-    # Save index
-    if index_dir_path != None:
-        if index_id != None:
-            index.set_index_id(index_id)
-        save_storage_context(index.storage_context, index_dir_path)
-        
-    return index
-
-def merge_index(
-    config: dict, index_dir_path: str, index_ids: List[str], target_id: str
-):
-    # Create a new StorageContext
-    merged_storage_context = StorageContext.from_defaults(
-            docstore=get_a_store(config['docstore']),
-            vector_store=get_a_store(config['vector_store']),
-            index_store=get_a_store(config['index_store']),
-            property_graph_store=get_a_store(config['property_graph_store'])
-        )
+    v._add_nodes_to_index(
+        v._index_struct,
+        nodes,
+        show_progress=False
+    )
     
-    print(merged_storage_context.index_store.index_structs())
-    # Load each index into the new StorageContext
-    for index_id in tqdm(index_ids, desc="merging index..."):
-        # storage_context = StorageContext.from_defaults(persist_dir=os.path.join(index_dir_path, index_id))
-        
-        storage_context = load_storage_from_persist_dir(persist_dir=os.path.join(index_dir_path, index_id))
-        index = load_index_from_storage(storage_context, index_id=index_id)
-        for v in index.storage_context.index_store.index_structs():
-            print(v[0])
-        exit()
-        
-    
-    print(merged_storage_context.index_store.index_structs())
-    exit()
-    # add the new index struct
-    storage_context.index_store.add_index_struct(target_id)
-    save_storage_context(merged_storage_context, os.path.join(index_dir_path, target_id))
-    print(f"New merged index has been saved at {os.path.join(index_dir_path, target_id)}")
+    retriever = v.as_retriever()
+    return retriever
     
 if __name__ == "__main__":
-    from configs.load_config import load_configs
-    _, prefix_config = load_configs()
-    
-    config = prefix_config['storage']['simple']
-    
-    merge_index(
-        config=config,
-        index_dir_path=os.path.abspath(os.path.join('../../database', 'gpt-4o-batch-all-target')),
-        index_ids=['3','5'],
-        target_id='test'
-    )
+    pass

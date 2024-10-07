@@ -61,18 +61,18 @@ class LinqEmbedMistral(BaseEmbedding):
             # Normalize embeddings
             embeddings = F.normalize(embeddings, p=2, dim=1)
             embeddings_list = embeddings.tolist()
-            del embeddings
-            torch.cuda.empty_cache()
-            gc.collect()
-            # free_memory, total_memory = torch.cuda.mem_get_info()
+        del embeddings
+        torch.cuda.empty_cache()
+        gc.collect()
+        free_memory, total_memory = torch.cuda.mem_get_info()
+    
+        # Convert the values from bytes to megabytes (MB)
+        free_memory_MB = free_memory / (1024 ** 3)
+        total_memory_MB = total_memory / (1024 ** 3)
         
-            # # Convert the values from bytes to megabytes (MB)
-            # free_memory_MB = free_memory / (1024 ** 3)
-            # total_memory_MB = total_memory / (1024 ** 3)
-            
-            # print(f"Free memory: {free_memory_MB:.2f} GB")
-            # print(f"Used memory: {total_memory_MB - free_memory_MB:.2f} GB")
-            # print(f"Total memory: {total_memory_MB:.2f} GB")
+        print(f"Free memory: {free_memory_MB:.2f} GB")
+        print(f"Used memory: {total_memory_MB - free_memory_MB:.2f} GB")
+        print(f"Total memory: {total_memory_MB:.2f} GB")
         return embeddings_list
     
     def get_detailed_instruct(self, task_description: str, query: str) -> str:

@@ -71,6 +71,7 @@ def load_index_from_storage(
 
 from tqdm import tqdm
 import fsspec
+from typing import Optional
 from llama_index.core.storage.docstore.simple_docstore import SimpleDocumentStore
 from llama_index.core.storage.index_store.simple_index_store import SimpleIndexStore
 from llama_index.core.graph_stores.simple import SimpleGraphStore
