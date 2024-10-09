@@ -141,14 +141,13 @@ if __name__ == "__main__":
                 task_id = match.group(1)
                 del leave_tasks[task_id]
             else:
-                match = re.search('(?:_not_finish)?\.jsonl', filename)
+                match = re.search(r'(\d+)_not_finish\.jsonl', filename)
                 if not match:
                     print(f"[Not pid file] {filename}")
                     
-                if notIncludeNotFinishJsonl:
+                elif notIncludeNotFinishJsonl:
                     task_id = match.group(1)
                     del leave_tasks[task_id]
-                
         print(f"leave task: {len(leave_tasks)}")
         
         gpus = [(k, v, 'V100') for k, v in leave_tasks.items()]
@@ -164,7 +163,7 @@ if __name__ == "__main__":
                     pid=pid,
                     python_file_name=python_file_name,
                     input_file=input_file,
-                    account='guest' if i >= 30 else "pengyu-lab"
+                    account='guest' if i >= 25 else "pengyu-lab"
                 )
                 
         elif args.action == 'thread':
