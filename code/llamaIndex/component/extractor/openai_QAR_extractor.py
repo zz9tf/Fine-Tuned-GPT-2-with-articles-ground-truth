@@ -19,7 +19,7 @@ class OpenAIBasedQARExtractor(ABC):
     def __init__(
         self,
         model_name: str,
-        cache_dir: str,
+        cache_dir: str = '.',
         mode: str = 'immediately',
         system_prompt: str = TemplateSchema.system_prompt,
         prompt_metadata_key: str = TemplateSchema.prompt_metadata_key_openai,
@@ -64,6 +64,7 @@ class OpenAIBasedQARExtractor(ABC):
         output_dict['objs'] = objs_str
         self.dataset_writer.writerow(output_dict)
         node.metadata[self._prompt_metadata_key] = objs_str
+        node.metadata['additional_to_be_embedding_keys'] = [self._prompt_metadata_key]
         if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
             node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
 
@@ -213,11 +214,10 @@ class OpenAIBasedQARExtractor(ABC):
     def _format_response(self, response):
         if response.startswith('```json'):
             response = response[7:-3].strip()
-        else:
-            response = response
         return response
 
-    def _update_nodes(self, nodes, finished_batches, node_dict):
+    def _update_nodes(
+        self, nodes: List[BaseNode], finished_batches: dict, node_dict: dict):
         total_nodes = len(nodes)
         with tqdm(total=total_nodes, desc="Updating nodes", unit="nodes") as pbar:
             for output_file_path, batch_content in finished_batches.items():
@@ -258,6 +258,7 @@ class OpenAIBasedQARExtractor(ABC):
                     output_dict['objs'] = objs_str
                     self.dataset_writer.writerow(output_dict)
                     node.metadata[self._prompt_metadata_key] = objs_str
+                    node.metadata['additional_to_be_embedding_keys'] = [self._prompt_metadata_key]
                     if self._prompt_metadata_key not in node.excluded_llm_metadata_keys and self.embedding_only:
                         node.excluded_llm_metadata_keys.append(self._prompt_metadata_key)
                     
@@ -286,12 +287,12 @@ class OpenAIBasedQARExtractor(ABC):
             nodes: List[BaseNode], 
             index_id: Optional[str] = 'index_id',
             action: Optional[str] = 'action',
-            cache_path: Optional[str] = '',
+            cache_dir: Optional[str] = None,
             csv_file_name: Optional[str] = None
         ):
         csv_file_name = csv_file_name if csv_file_name is not None else f"{index_id}-{action}-QAR.csv"
-        cache_path = self.cache_dir if cache_path is None else cache_path
-        csv_file = open(os.path.join(cache_path, csv_file_name), 'w', newline='')
+        cache_dir = self.cache_dir if cache_dir is None else cache_dir
+        csv_file = open(os.path.join(cache_dir, csv_file_name), 'w', newline='', encoding='utf-8')
         self.dataset_writer = csv.DictWriter(csv_file, fieldnames=['node_id', 'qar_num', 'input_text', 'raw_response', 'objs'])
         self.dataset_writer.writeheader()
 

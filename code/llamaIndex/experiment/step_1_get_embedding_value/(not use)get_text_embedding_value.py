@@ -35,8 +35,8 @@ def load_nodes(file_name, cache_dir):
     print("Loading nodes")
     file_path = os.path.join(cache_dir, file_name)
     nodes = load_nodes_jsonl(file_path)
-    nodeId2node ={node.id_: node for node in nodes}
-    return nodes, nodeId2node
+    id_2_node ={node.id_: node for node in nodes}
+    return nodes, id_2_node
 
 def get_text_embeddings_and_save(embedding_model, nodes, output_file_path):
     print("Getting embeddings from nodes")
