@@ -1,6 +1,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
+import re
 import argparse
 from configs.load_config import load_configs
 from utils.generate_and_execute_slurm_job import generate_and_execute_slurm_job
@@ -72,7 +73,6 @@ def submit_job(
     account=None
 ):
     """Submit a job to Slurm and return the job ID."""
-    print(f"[PID: {pid}] is submitting with gpu {gpu}!")
     job_name = f'store_pid-{pid}_account-{account}_gpu-{gpu}_gn-{gn}'
     log_file_path = os.path.abspath(os.path.join(script_path, 'out/{job_name}.out'))
     script_path = os.path.abspath(os.path.join(script_path, 'execute/execute.sh'))
@@ -86,6 +86,7 @@ def submit_job(
         log_file_path=log_file_path,
         account=account
     )
+    print(f"[PID: {pid}] is submitted with gpu {gpu}!")
     return job_name
 
 def one_thread_store(
@@ -120,16 +121,20 @@ if __name__ == "__main__":
     # calculate finished and leaving tasks
     index_dir_path = os.path.abspath(os.path.join(root_path, total_config['indexes_dir_path'], f"{index_name}"))
     leave_tasks = {}
-    for file_name in os.listdir(cache_dir):
-        if file_name.startswith(input_file_base):
-            pid = file_name.split('.')[0].split('_')[-1]
-            leave_tasks[pid] = file_name
-    for file_name in os.listdir(index_dir_path):
-        try:
-            task_id = int(file_name.split('_')[0])
+    for filename in os.listdir(cache_dir):
+        if filename.startswith(input_file_base):
+            pid = filename.split('.')[0].split('_')[-1]
+            leave_tasks[pid] = filename
+    pattern = r'(\d+)\.jsonl'
+    for filename in os.listdir(index_dir_path):
+        match = re.search(pattern, filename)
+        if match:
+            task_id = match.group(1)
             del leave_tasks[task_id]
-        except:
-            print(f"[Not pid file] {file_name}")
+        else:
+            match = re.search('(?:_not_finish)?\.jsonl', filename)
+            if not match:
+                print(f"[Not pid file] {filename}")
     print(f"leave task: {len(leave_tasks)}")
     
     gpus = [(k, v, 'V100') for k, v in leave_tasks.items()]
@@ -154,7 +159,7 @@ if __name__ == "__main__":
             embedding_config=embedding_config,
             input_file_path=os.path.abspath(os.path.join(cache_dir, args.input_file_name)),
             index_dir_path=index_dir_path,
-            index_id=args.pid,
+            index_id=str(args.pid),
         )
         
     elif args.action == "merge":

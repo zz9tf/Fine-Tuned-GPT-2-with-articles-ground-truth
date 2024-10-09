@@ -18,14 +18,17 @@ def storing_nodes_for_index(embedding_config: dict, input_file_path, index_dir_p
     if not os.path.exists(index_dir_path):
         os.makedirs(index_dir_path)
     
-    # Load embedding model
-    embed_model = get_embedding_model(embedding_config)
-    
     nodes = load_nodes_jsonl(input_file_path)
     save_path = os.path.join(index_dir_path, index_id) + '_not_finish.jsonl'
+    
+    finished_nodesIds = set()
     if os.path.exists(save_path):
         finished_nodes = load_nodes_jsonl(save_path)
-    finished_nodesIds = {node.id_ for node in finished_nodes}
+        finished_nodesIds = {node.id_ for node in finished_nodes}
+        
+    # Load embedding model
+    embed_model = get_embedding_model(embedding_config)
+        
     with open(save_path, 'w') as file:
         for node in tqdm(nodes, desc='generating embeddings...'):
             if node.id_ in finished_nodesIds: continue

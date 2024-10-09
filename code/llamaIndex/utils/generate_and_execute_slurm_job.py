@@ -12,7 +12,7 @@ def generate_and_execute_slurm_job(
     num: str = "",
     log_file_path: str = "./{job_name}.out",
     script_path:str ="./execute.sh"
-):
+):  
     script_template = """#!/bin/bash
 
 #SBATCH --account={account}
@@ -47,7 +47,6 @@ python {python_start_script}
     # Write the script to a file
     with open(script_path, 'w') as file:
         file.write(script_template)
-
     # Make the script executable
     os.chmod(script_path, 0o755)
     
