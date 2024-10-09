@@ -48,7 +48,7 @@ def merge_database_pid_nodes(index_dir_path: str, index_id: str):
             all_nodes.extend(nodes)
     save_nodes_jsonl(os.path.join(index_dir_path, index_id), all_nodes)
 
-def get_retriever_from_nodes(nodes, index_dir_path, index_id):
+def get_retriever_from_nodes(index_dir_path, index_id):
     # Generate index for nodes
     nodes = load_nodes_jsonl(os.path.join(index_dir_path, index_id))
     
