@@ -99,7 +99,8 @@ def one_thread_store(
         embedding_config=embedding_config, 
         input_file_path=input_file_path,
         index_dir_path=index_dir_path,
-        index_id=index_id
+        index_id=index_id,
+        device='cuda:1'
     )
     
 if __name__ == "__main__":
@@ -115,9 +116,10 @@ if __name__ == "__main__":
     input_file_base = 'gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_gpu_V100_nodeNum_50_pid_'
     python_file_name = 'step_4_store_and_index.py'
     index_name = total_config['document_preprocessing']['index_pipelines'][0]
-    gn = str(1) # gpu number
+    index_id = 'all'
+    gn = str(2) # gpu number
     check_interval = 2 # sconds of interval to check tasks
-    notIncludeNotFinishJsonl = True
+    notIncludeNotFinishJsonl = False
     
     # calculate finished and leaving tasks
     index_dir_path = os.path.abspath(os.path.join(root_path, total_config['indexes_dir_path'], f"{index_name}"))
@@ -126,7 +128,7 @@ if __name__ == "__main__":
     if args.action == "merge":
         merge_database_pid_nodes(
             index_dir_path=index_dir_path,
-            index_id='all'
+            index_id=index_id
         )
     else:
         leave_tasks = {}

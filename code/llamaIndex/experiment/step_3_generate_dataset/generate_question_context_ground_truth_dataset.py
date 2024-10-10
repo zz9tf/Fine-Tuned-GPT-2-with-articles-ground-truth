@@ -1,12 +1,14 @@
 import os
+import sys
+sys.path.insert(0, '../..')
 import json
 import pandas as pd
 from datasets import Dataset
 
 def load_df(
-    qar_file_name: str='gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_8165_gpu_V100_nodeNum_200_pid_1_extract_langchain.csv'
+    qar_file_name: str='gpt-4o-batch-all-target_extract_gpt-4o-QAExtractor-batch_pid_0.jsonl.csv'
 ):
-    qar_dataset_path:str=os.path.join(os.path.abspath('../..'), f'.save/{qar_file_name}')
+    qar_dataset_path:str=os.path.join(os.path.abspath('../../.cache'), qar_file_name)
     return pd.read_csv(qar_dataset_path)
     
 def get_context(input_text):
@@ -44,7 +46,7 @@ def save_dataset(questions, correct_contexts, ground_truth):
     ]
 
     # Write the dataset to a JSONL file
-    file_path = os.path.join('.', 'qcg_dataset.jsonl')
+    file_path = os.path.abspath('./dataset/qcg_dataset.jsonl')
     with open(file_path, 'w') as f:
         for data in dataset:
             f.write(json.dumps(data) + '\n')  # Each dict as a separate line

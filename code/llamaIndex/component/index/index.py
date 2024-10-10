@@ -14,7 +14,7 @@ def get_an_index_generator(index_type):
         else:
             raise Exception("Invalid index generator name. Please provide name in [{}]".format('VectorStoreIndex'))
 
-def storing_nodes_for_index(embedding_config: dict, input_file_path, index_dir_path: str, index_id: str):
+def storing_nodes_for_index(embedding_config: dict, input_file_path, index_dir_path: str, index_id: str, device: str = None):
     if not os.path.exists(index_dir_path):
         os.makedirs(index_dir_path)
     
@@ -27,7 +27,7 @@ def storing_nodes_for_index(embedding_config: dict, input_file_path, index_dir_p
         finished_nodesIds = {node.id_ for node in finished_nodes}
         
     # Load embedding model
-    embed_model = get_embedding_model(embedding_config)
+    embed_model = get_embedding_model(embedding_config, device)
         
     with open(save_path, 'w') as file:
         for node in tqdm(nodes, desc='generating embeddings...'):
@@ -70,12 +70,12 @@ def embedding_addtional_requiring_embeddings_key(embedding_config: dict, input_f
 def merge_database_pid_nodes(index_dir_path: str, index_id: str):
     all_nodes = []
     for filename in os.listdir(index_dir_path):
-        if index_id not in filename:
+        if index_id not in filename and not filename.endswith("_not_finish.jsonl"):
             nodes = load_nodes_jsonl(os.path.join(index_dir_path, filename))
             all_nodes.extend(nodes)
     save_nodes_jsonl(os.path.join(index_dir_path, index_id) + '.jsonl', all_nodes)
 
-def get_retriever_from_nodes(index_dir_path, index_id):
+def get_retriever_from_nodes(index_dir_path, index_id, retriever_kwargs=None):
     # Generate index for nodes
     nodes = load_nodes_jsonl(os.path.join(index_dir_path, index_id) + '.jsonl')
     
@@ -88,7 +88,7 @@ def get_retriever_from_nodes(index_dir_path, index_id):
         show_progress=False
     )
     
-    retriever = v.as_retriever()
+    retriever = v.as_retriever(**retriever_kwargs)
     return retriever
     
 if __name__ == "__main__":

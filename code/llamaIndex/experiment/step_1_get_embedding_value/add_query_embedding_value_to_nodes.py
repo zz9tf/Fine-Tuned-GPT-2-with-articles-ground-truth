@@ -54,10 +54,10 @@ def add_query_embedding_values(nodes_file_path: str, question_csv_file_path: str
     get_queries_embeddings_and_save(embedding_model, id_2_node, question_df, output_file_path)
 
 if __name__ == "__main__":
-    cache_dir = os.path.abspath('../../.save')
+    cache_dir = os.path.abspath('../../.cache')
     
-    node_file_name = "gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_8165_gpu_V100_nodeNum_200_pid_1.jsonl"
-    question_file_name = "gpt-4o-batch-all-p_2_parser_ManuallyHierarchicalNodeParser_8165_gpu_V100_nodeNum_200_pid_1_extract_langchain.csv"
+    node_file_name = "gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_gpu_V100_nodeNum_50_pid_0.jsonl"
+    question_file_name = "gpt-4o-batch-all-target_extract_gpt-4o-QAExtractor-batch_pid_0.jsonl.csv"
     
     nodes_file_path = os.path.join(cache_dir, node_file_name)
     question_csv_file_path = os.path.join(cache_dir, question_file_name)

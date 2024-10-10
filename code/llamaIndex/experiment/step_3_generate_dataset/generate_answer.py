@@ -1,11 +1,11 @@
 import os, sys
 import yaml
 import json
-import pandas as pd
 from tqdm import tqdm
 sys.path.insert(0, os.path.abspath('../..'))
 from llama_index.core import PromptTemplate
-from custom.llm import get_llm
+from configs.load_config import load_configs
+from component.models.llm.get_llm import get_llm
 
 qa_prompt = PromptTemplate(
     """\
@@ -38,7 +38,7 @@ def load_dataset(file_path):
                 data = json.loads(line)  # Parse each line as a JSON object    
                 queries.append(data['question'])
                 correct_contexts.append(data['correct_contexts'])
-                ground_truths.append(data['ground_truths'])
+                ground_truths.append(data['ground_truth'])
             except Exception as e:
                 print(f"An error occurred while loading the dataset: {e}")
     
@@ -56,12 +56,11 @@ def save(query, context_str, ground_true, answer, output_file):
     output_file.write(json.dumps(data) + "\n")
     
 if __name__ == "__main__":
-    with open(os.path.join(os.path.abspath('../../configs'), 'prefix_config.yaml'), 'r') as prefix_config_file:
-        prefix_config = yaml.safe_load(prefix_config_file)
+    _, prefix_config = load_configs()
     llm_config = prefix_config['llm']['lmsys/vicuna-13b-v1.5']
-    llm = get_llm(None, llm_config)
+    llm = get_llm(llm_config)
     
-    data_path = "qcg_dataset.jsonl"  # Path to your CSV file
+    data_path = "./datasets/qcg_dataset.jsonl"  # Path to your CSV file
     # Load the CSV into a pandas DataFrame
     queries, correct_contexts, ground_truths = load_dataset(data_path)
     
