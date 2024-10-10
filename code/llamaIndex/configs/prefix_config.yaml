@@ -82,6 +82,9 @@ llm:
   "gpt-4o":
     based_on: "openai"
     model_name: "gpt-4o"
+  "gpt-4o-mini":
+    based_on: "openai"
+    model_name: "gpt-4o-mini"
 storage:
   "simple":
     embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
