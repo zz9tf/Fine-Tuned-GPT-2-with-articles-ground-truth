@@ -45,7 +45,7 @@ def generate_and_execute_slurm_script(
             python_start_script=f"{python_file_name} --action thread --pid {pid} --input_file_name {input_file_name}",
             account='guest',
             partition='guest-gpu',
-            job_name={job_name},
+            job_name=job_name,
             qos='low-gpu',
             time='24:00:00',
             gpu=gpu,
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     index_id = 'all'
     gn = str(2) # gpu number
     check_interval = 2 # sconds of interval to check tasks
-    notIncludeNotFinishJsonl = False
+    notIncludeNotFinishJsonl = True
     
     # calculate finished and leaving tasks
     index_dir_path = os.path.abspath(os.path.join(root_path, total_config['indexes_dir_path'], f"{index_name}"))

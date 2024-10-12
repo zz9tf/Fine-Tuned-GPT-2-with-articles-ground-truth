@@ -3,9 +3,10 @@ import sys
 sys.path.insert(0, os.path.abspath('../..'))
 import json
 from llama_index.core import VectorStoreIndex
+import re
 from component.models.embed.get_embedding_model import get_embedding_model
 from component.io import load_nodes_jsonl
-from llama_index.core.schema import MetadataMode
+from llama_index.core.schema import MetadataMode, TextNode
 from tqdm import tqdm
 
 def get_an_index_generator(index_type):
@@ -68,14 +69,24 @@ def embedding_addtional_requiring_embeddings_key(embedding_config: dict, input_f
     print(f"File: {index_id+'.jsonl'} has been saved at {os.path.abspath(index_dir_path)}")
 
 def merge_database_pid_nodes(index_dir_path: str, index_id: str):
-    filenames = [f for f in os.listdir(index_dir_path) if index_id not in f and not f.endswith("_not_finish.jsonl")]
-    filenames.sort(lambda x: int(x.split('.')[0]))
+    filenames = [f for f in os.listdir(index_dir_path) if bool(re.match(r'^\d+\.jsonl$', f))]
+    filenames.sort(key=lambda x: int(x.split('.')[0]))
     print(f"Detect pid files: {len(filenames)}")
     with open(os.path.join(index_dir_path, index_id) + '.jsonl', 'w') as save_file:
         for filename in filenames:
-            nodes = load_nodes_jsonl(os.path.join(index_dir_path, filename))
-            for node in tqdm(nodes, desc='saving nodes...'):
-                save_file.write(json.dump(node.to_dict()) + '\n')
+            with open(os.path.join(index_dir_path, filename), 'r', encoding='utf-8') as input_file:
+                file_size = os.path.getsize(os.path.join(index_dir_path, filename))
+                with tqdm(total=file_size, desc=f'merging {filename}...', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+                    for i, line in enumerate(input_file):
+                        try:
+                            node_data = json.loads(line)
+                            node = TextNode.from_dict(node_data)
+                            json.dump(node.to_dict(), save_file)
+                            save_file.write('\n')
+                            pbar.update(len(line))
+                        except:
+                            print(i, line)
+                
 
 def get_retriever_from_nodes(index_dir_path, index_id, retriever_kwargs=None):
     # Generate index for nodes
