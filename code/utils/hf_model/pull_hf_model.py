@@ -1,7 +1,7 @@
 import os
 import argparse
 from dotenv import load_dotenv
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModel
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModel, AutoModelForSequenceClassification
 from sentence_transformers import SentenceTransformer
 from huggingface_hub import login
 
@@ -36,14 +36,18 @@ def main():
     
     if args.from_source == 'AutoModelForCausalLM':
         AutoTokenizer.from_pretrained(repo_name, cache_dir=save_dir_path)
-        AutoModelForCausalLM.from_pretrained(repo_name, cahe_dir=save_dir_path)
+        model = AutoModelForCausalLM.from_pretrained(repo_name, cahe_dir=save_dir_path)
     elif args.from_source == 'SentenceTransformer':
-        SentenceTransformer(repo_name, cache_folder=save_dir_path)
+        model = SentenceTransformer(repo_name, cache_folder=save_dir_path)[0]
     elif args.from_source == 'AutoModel':
         AutoTokenizer.from_pretrained(repo_name, cache_dir=save_dir_path)  
-        AutoModel.from_pretrained(repo_name, cache_dir=save_dir_path)
-
-    
+        model = AutoModel.from_pretrained(repo_name, cache_dir=save_dir_path)
+    elif args.from_source == 'AutoModelForSequenceClassification':
+        AutoTokenizer.from_pretrained(repo_name, cache_dir=save_dir_path)  
+        model = AutoModelForSequenceClassification.from_pretrained(repo_name, cache_dir=save_dir_path)
+        
+    num_params = sum(p.numel() for p in model.parameters())
+    print(f"Total parameters: {num_params}")
 
 if __name__ == "__main__":
     main()

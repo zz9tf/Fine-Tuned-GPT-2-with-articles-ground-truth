@@ -43,17 +43,17 @@ extractor:
   "gpt-4o-QAExtractor-immediately":
     name: "gpt-4o-QAExtractor-immediately"
     type: "OpenAIBasedExtractor"
-    llm: "gpt-4o"
+    llm: "gpt-4o-mini"
     mode: "immediately"
   "gpt-4o-QAExtractor-batch":
     name: "gpt-4o-QAExtractor-batch"
     type: "OpenAIBasedExtractor"
-    llm: "gpt-4o"
+    llm: "gpt-4o-mini"
     mode: "batch"
   "manually_partaly_QAExtractor":
     name: "manually_partaly_QAExtractor"
     type: "PartalyOpenAIBasedQARExtractor"
-    llm: "gpt-4o"
+    llm: "gpt-4o-mini"
     mode: "batch"
 embedding_model:
   "Linq-AI-Research/Linq-Embed-Mistral":
@@ -94,33 +94,8 @@ storage:
     index_store: SimpleIndexStore
     property_graph_store: null
 index_pipelines:
-  "test-ollama-based":
-    - reader: "CustomDocumentReader"
-    - parser: "SimpleFileNodeParser"
-    - extractor: "vicuna-13b-QAExtractor-ollama"
-    - storage: "simple"
   "test":
     - reader: "SimpleFileNodeParser"
-    - break: "-"
-    - parser: "ManuallyHierarchicalNodeParser"
-    - break: "force"
-    - extractor: "gpt-4o-QAExtractor-batch"
-    - break: "force"
-    - storage: "simple"
-  "test-hf":
-    - reader: "CustomDocumentReader"
-    - parser: "CustomHierarchicalNodeParser-hf_vicuna_13b"
-    - extractor: "vicuna-13b-QAExtractor-hf"
-    - storage: "simple"
-  "test-gpt-4o":
-    - reader: "CustomDocumentReader"
-    - parser: "CustomHierarchicalNodeParser-ollama_vicuna_13b"
-    - break: "-"
-    - extractor: "gpt-4o-QAExtractor-immediately"
-    - break: "force"
-    - storage: "simple"
-  "gpt-4o-batch-all":
-    - reader: "CustomDocumentReader"
     - break: "-"
     - parser: "ManuallyHierarchicalNodeParser"
     - break: "force"
@@ -133,4 +108,10 @@ index_pipelines:
     - break: "force"
     - extractor: "gpt-4o-QAExtractor-batch"
     - break: "force"
+    - storage: "simple"
+  "sentence-splitter-rag":
+    - reader: "CustomDocumentReader"
+    - break: "-"
+    - parser: "SentenceSplitter"
+    - break: "-"
     - storage: "simple"

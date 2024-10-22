@@ -1,7 +1,9 @@
 from __future__ import annotations
 import os
+import sys
+sys.path.insert(0, os.path.abspath('..'))
 from typing import TYPE_CHECKING
-from custom.io import save_nodes_jsonl, load_nodes_jsonl
+from component.io import save_nodes_jsonl, load_nodes_jsonl
 
 if TYPE_CHECKING:
     from database import Database

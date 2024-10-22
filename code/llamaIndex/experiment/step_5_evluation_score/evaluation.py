@@ -40,8 +40,7 @@ if __name__ == '__main__':
             'context_precision',
             'context_utilization',
             'context_recall',
-            'context_entity_recall',
-            'noise_sensitivity_relevant'
+            'context_entity_recall'
         ]
         condition = '1'
         for matrix_name in matrixes:

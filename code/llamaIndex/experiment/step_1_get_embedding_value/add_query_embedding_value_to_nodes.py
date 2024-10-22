@@ -39,9 +39,6 @@ def get_queries_embeddings_and_save(embedding_model, id_2_node, question_df, out
 def add_query_embedding_values(nodes_file_path: str, question_csv_file_path: str):
     # Configurations
     _, prefix_config = load_configs()
-    embed_config = prefix_config['embedding_model']['Linq-AI-Research/Linq-Embed-Mistral']
-    embedding_model = get_embedding_model(embed_config)
-    
     # node file
     nodes = load_nodes_jsonl(nodes_file_path)
     id_2_node = {node.id_: node for node in nodes}
@@ -49,16 +46,20 @@ def add_query_embedding_values(nodes_file_path: str, question_csv_file_path: str
     # question file
     question_df = pd.read_csv(question_csv_file_path)
 
+    embed_config = prefix_config['embedding_model']['Linq-AI-Research/Linq-Embed-Mistral']
+    embedding_model = get_embedding_model(embed_config)
+
     # Get embeddings and save them
-    output_file_path = "./questions/gpt-4o-batch-all-p_extract_1.jsonl"
+    output_file_path = "./questions/gpt-4o-batch-all-p_pid_0.jsonl"
     get_queries_embeddings_and_save(embedding_model, id_2_node, question_df, output_file_path)
 
 if __name__ == "__main__":
-    cache_dir = os.path.abspath('../../.cache')
-    
+    node_dir = os.path.abspath('../../.save/gpt-4o-batch-all-target_1_parser/sub')
     node_file_name = "gpt-4o-batch-all-target_1_parser_ManuallyHierarchicalNodeParser_7652_gpu_V100_nodeNum_50_pid_0.jsonl"
-    question_file_name = "gpt-4o-batch-all-target_extract_gpt-4o-QAExtractor-batch_pid_0.jsonl.csv"
+    nodes_file_path = os.path.join(node_dir, node_file_name)
     
-    nodes_file_path = os.path.join(cache_dir, node_file_name)
-    question_csv_file_path = os.path.join(cache_dir, question_file_name)
+    question_csv_dir = ("../../.save/gpt-4o-batch-all-target_1_parser/question")
+    question_file_name = "gpt-4o-batch-all-target_extract_gpt-4o-QAExtractor-batch_pid_0.jsonl.csv"
+    question_csv_file_path = os.path.join(question_csv_dir, question_file_name)
+    
     add_query_embedding_values(nodes_file_path, question_csv_file_path)

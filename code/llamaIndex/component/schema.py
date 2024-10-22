@@ -16,14 +16,13 @@ Here is the QAR (Question, Answer, and Reason) Template:
 Question:
 <Frame a specific and unique question based on the context that addresses a crucial aspect of the topic. \
 Ensure the question is detailed and unlikely to be found elsewhere.>
-Answer:
-<Provide a detailed and contextually accurate answer to the question, incorporating insights and data from \
-the given context. Ensure the answer is comprehensive and directly addresses the question.>
-
 Reason:
 <Explain why this question is important to researchers in this field. Discuss the relevance and uniqueness \
 of the question and answer, and why such insights are unlikely to be found elsewhere. Highlight the novelty \
 and significance of addressing this specific question within the context.>
+Answer:
+<Provide a detailed and contextually accurate answer to the question, incorporating insights and data from \
+the given context. Ensure the answer is comprehensive and directly addresses the question.>
 ----------------------------------------------------------------------------------
 """
 ]
@@ -154,23 +153,66 @@ class LCTemp():
     parser = PydanticOutputParser(pydantic_object=MultipleQARs)
 
     prompt_template = PromptTemplate(
-    template="""You are an expert researcher. Using the following enhanced template, analyze the provided contextual \
-information to generate the top {qar_num} critical academic questions that researchers in this field care about. \
-For each question, provide a thorough and contextually relevant answer, and explain why these questions \
-are significant to researchers and why the provided answers are accurate.
+    template="""Based on the provided context, simulate how researchers might generate {qar_num} academic questions \
+and find corresponding references to answer them. Each question should be something that can be directly answered by \
+the context provided. Answer each question using only the information from the context, limiting answers to three \
+sentences. Finally, explain why each question is important and how the context serves as the reference to provide \
+the answers.
 
-Here is the context:
+Context:
 {context_str}
-
-Using this context, generate {qar_num} specific questions that this context can uniquely answer. Ensure that these questions:
-1. Are directly related to the provided context.
-2. Highlight unique information or insights from the context.
-3. Cannot be easily answered by general knowledge.
-
-Higher-level summaries of surrounding context may be provided \
-as well. Try using these summaries to generate better questions \
-that this context can answer.----------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 {format_instructions}""",
     input_variables=["qar_num", "context_str"],
     partial_variables={"format_instructions": parser.get_format_instructions() + "\nOutput a valid JSON object but do not repeat the schema."},
+)
+
+class A(BaseModel):
+    Reason: str = Field(description="The reason why answer answers the question")
+    Answer: str = Field(description="The answer to the question")
+
+    # Validator to check if the answer is not too short
+    @validator("Reason")
+    def reason_is_meaningful(cls, value):
+        if len(value) < 5:
+            raise ValueError("The reason is too short to be meaningful.")
+        return value
+    
+    @validator("Answer")
+    def answer_is_meaningful(cls, value):
+        if len(value) < 5:
+            raise ValueError("The answer is too short to be meaningful.")
+        return value
+
+class Gen_Dataset_Temp():
+    parser = PydanticOutputParser(pydantic_object=A)
+    
+    prompt_template = PromptTemplate(
+    template="""Using the provided context, provide a complete and concise answer based solely \
+on the bullet-point contexts. Limit your response to three sentences. If the contexts are irrelevant, \
+reply with "No related contexts found." Also, justify why and how the context provides a sufficient \
+answer or clarify why there is a lack of relevance, ensuring the quality of the response.
+
+Question:
+{query_str}
+
+Context:
+{context_str}
+----------------------------------------------------------------------------------
+{format_instructions}""",
+    input_variables=["context_str", "query_str"],
+    partial_variables={'format_instructions': parser.get_format_instructions()+"\nOutput a valid JSON object but do not repeat the schema."}
+)
+    
+from llama_index.core import PromptTemplate
+
+old_gen_temp = PromptTemplate(
+    """Context information is below.
+---------------------
+{context_str}
+---------------------
+Given the context information and not prior knowledge, answer the query.
+Query: {query_str}
+Answer: \n
+"""
 )

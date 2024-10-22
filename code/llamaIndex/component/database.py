@@ -13,7 +13,7 @@ from component.models.llm.get_llm import get_llm
 from component.parser.get_parser import get_parser
 from component.extractor.get_extractors import get_extractors
 from component.models.embed.get_embedding_model import get_embedding_model
-from component.index.index import generate_index
+from component.index.index import storing_nodes_for_index
 from component.pipeline import IndexPipeline
 from llama_index.core import Settings
 from llama_index.core.retrievers import AutoMergingRetriever
@@ -37,7 +37,7 @@ class Database():
         self.config, self.prefix_config = load_configs()
 
     def _check_index_pipeline(self, index_pipeline):
-        IndexPipeline._check_index_pipeline(index_pipeline)
+        IndexPipeline._check_index_pipeline(None, index_pipeline)
 
     def _load_documents(self, config, **kwargs):
         print("[update_database] Loading documents ...", end=' ') 
@@ -70,9 +70,13 @@ class Database():
         
     def _generate_index(self, index_id, index_dir_path, config, nodes, **kwargs):
         embedding_config = self.prefix_config['embedding_model'][config['embedding_model']]
-        generate_index(embedding_config, config, nodes, index_dir_path, index_id)
+        storing_nodes_for_index(
+            embedding_config=embedding_config, 
+            nodes=nodes,
+            index_dir_path=index_dir_path,
+            index_id=index_id,
+            device='cuda:1')
         print("[update_database] Index: {} has been saved".format(index_id))
-        return index
 
     def _generate_pipeline(self, index_id, index_dir_path):
         index_pipeline = self.prefix_config['index_pipelines'][index_id]
@@ -87,18 +91,30 @@ class Database():
 
         return pipeline
 
-    def create_or_update_indexes(self):
+    def create_indexes(self):
         self._load_configs()
         for index_id in self.config['document_preprocessing']['index_pipelines']:
             # Load index config
-            print('[update_database] Updating index: {}'.format(index_id))
+            print('[create_indexes] Creating index: {}'.format(index_id))
             index_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path'], index_id))
-
-            if not os.path.exists(index_dir_path):
-                print("[update_database] Index does not find with path: {}".format(index_dir_path))
-                print("[update_database] Creating a new one...")
+            
             pipeline = self._generate_pipeline(index_id, index_dir_path)
             pipeline.run()
+
+    def create_or_update_indexes(self):
+        # TODO
+        pass
+        # self._load_configs()
+        # for index_id in self.config['document_preprocessing']['index_pipelines']:
+        #     # Load index config
+        #     print('[update_database] Updating index: {}'.format(index_id))
+        #     index_dir_path = os.path.abspath(os.path.join(self.root_path, self.config['indexes_dir_path'], index_id))
+
+        #     if not os.path.exists(index_dir_path):
+        #         print("[update_database] Index does not find with path: {}".format(index_dir_path))
+        #         print("[update_database] Creating a new one...")
+        #     pipeline = self._generate_pipeline(index_id, index_dir_path)
+        #     pipeline.run()
 
     def get_all_index_ids(self):
         self._load_configs()
@@ -197,4 +213,4 @@ class Database():
 
 if __name__ == '__main__':
     d = Database(root_path='../../..', config_dir_path='./code/llamaIndex/configs')
-    index = d.create_or_update_indexes()
+    index = d.create_indexes()

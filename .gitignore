@@ -182,3 +182,5 @@ code/llamaIndex/database/*
 */out/*
 */execute/*
 */score/*
+*checkpoint*
+*dataset_dict*

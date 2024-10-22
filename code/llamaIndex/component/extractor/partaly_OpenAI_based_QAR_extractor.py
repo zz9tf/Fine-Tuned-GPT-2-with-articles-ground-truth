@@ -153,7 +153,7 @@ class PartalyOpenAIBasedQARExtractor(OpenAIBasedQARExtractor):
             # Overwrite selected nodes with target nodes
             for i in range(len(nodes)):
                 if nodes[i].id_ in target_node_id2target_node:
-                    node[i] = target_node_id2target_node[node.id_]
+                    nodes[i] = target_node_id2target_node[node.id_]
         else:
             document_id2section_nodes, document_id2paragraph_nodes, document_id2multi_sentence_nodes = self.organize_nodes(target_nodes, nodes)
             document_id2paragraph_select_nums = self._get_target_section_nodes(target_nodes, document_id2section_nodes)
