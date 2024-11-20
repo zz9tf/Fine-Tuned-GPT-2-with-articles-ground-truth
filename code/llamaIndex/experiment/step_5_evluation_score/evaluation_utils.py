@@ -10,7 +10,7 @@ import time
 from ragas.run_config import RunConfig
 from ragas.metrics.base import Metric
 
-def load_dataset_from_jsonl(input_path):
+def load_dataset_from_jsonl(input_path, start_num=0, end_num=None):
     dataset = {
         "question": [],
         "ground_truth": [],
@@ -20,12 +20,14 @@ def load_dataset_from_jsonl(input_path):
     file_size = os.path.getsize(input_path)
     with open(input_path, 'r') as input_file:
         with tqdm(total=file_size, desc=f'Loading {input_path.split(os.path.sep)[-1]}', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
-            for line in input_file:
-                row = json.loads(line)
-                dataset["question"].append(row["question"])
-                dataset["ground_truth"].append(row["ground_truth"])
-                dataset["answer"].append(row["answer"])
-                dataset["contexts"].append(row["context"])
+            for idx, line in enumerate(input_file):
+                if idx >= start_num and (end_num is None or idx < end_num): # [1000] [33] [1000]
+                    # print(f"Tracking row {idx}: {row}")  # Print the tracked row
+                    row = json.loads(line)
+                    dataset["question"].append(row["question"])
+                    dataset["ground_truth"].append(row["ground_truth"])
+                    dataset["answer"].append(row["answer"])
+                    dataset["contexts"].append(row["context"])
                 pbar.update(len(line))
                 
     return Dataset.from_dict(dataset)

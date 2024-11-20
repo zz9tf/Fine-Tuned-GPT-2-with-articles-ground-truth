@@ -109,7 +109,7 @@ if __name__ == "__main__":
     config = prefix_config['storage']['simple']
     embedding_config = prefix_config['embedding_model'][config['embedding_model']]
     root_path = "../../.."
-    cache_dir = os.path.abspath(os.path.join(root_path, total_config['cache']))
+    cache_dir = "../.save/gpt-4o-batch-all-target_1_parser/sub"
     print(f"cache_dir: {cache_dir}")
     
     # prefix parameters

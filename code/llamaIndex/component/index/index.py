@@ -6,7 +6,9 @@ from llama_index.core import VectorStoreIndex
 import re
 from component.models.embed.get_embedding_model import get_embedding_model
 from component.io import load_nodes_jsonl, load_nodes_jsonl_corresponding_levels
-from component.index.custom_retriever import CustomRetriever
+import chromadb
+from llama_index.vector_stores.chroma import ChromaVectorStore
+from llama_index.core import StorageContext
 from llama_index.core.schema import MetadataMode, TextNode
 from tqdm import tqdm
 from typing import List
@@ -92,43 +94,185 @@ def merge_database_pid_nodes(index_dir_path: str, index_id: str):
     new_save_path = os.path.join(index_dir_path, index_id) + '.jsonl'
     os.rename(save_path, new_save_path)
 
-def get_retriever_from_nodes(index_dir_path, index_id, retriever_kwargs=None, break_num: int=None):
+def get_retriever_from_nodes(index_dir_path, index_id, retriever_kwargs=None, break_num: int=None, nodes=None):
     # Generate index for nodes
-    nodes = load_nodes_jsonl(os.path.join(index_dir_path, index_id) + '.jsonl', break_num)
+    if nodes == None:
+        nodes = load_nodes_jsonl(os.path.join(index_dir_path, index_id) + '.jsonl', break_num)
+    chroma_client = chromadb.EphemeralClient()
+    chroma_collection = chroma_client.create_collection("quickstart")
+    vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+    storage_context = StorageContext.from_defaults(vector_store=vector_store)
     
     v = VectorStoreIndex(
-        index_struct=VectorStoreIndex.index_struct_cls(index_id=index_id)
+        index_struct=VectorStoreIndex.index_struct_cls(index_id=index_id),
+        storage_context=storage_context,
+        embed_model='skip'
     )
-    v._add_nodes_to_index(
-        v._index_struct,
-        nodes,
-        show_progress=False
+    
+    nodes_batch = []
+    for node in nodes:
+        nodes_batch.append(node)
+        if len(nodes_batch) >= 2048:
+            v._vector_store.add(nodes_batch)
+            nodes_batch = []
+    if len(nodes_batch) > 0:
+        v._vector_store.add(nodes_batch)
+    
+    retriever = v.as_retriever(**retriever_kwargs)
+    return retriever
+
+def update_retriever(nodes, retriever):
+    retriever._vector_store.client._client.delete_collection(retriever._vector_store.client.name)
+    chroma_client = chromadb.EphemeralClient()
+    chroma_collection = chroma_client.create_collection("quickstart")
+    retriever._vector_store._collection = chroma_collection
+    
+    nodes_batch = []
+    for node in nodes:
+        nodes_batch.append(node)
+        if len(nodes_batch) >= 2048:
+            retriever._vector_store.add(nodes_batch)
+            nodes_batch = []
+    if len(nodes_batch) > 0:
+        retriever._vector_store.add(nodes_batch)
+
+def get_chroma_retriever_from_nodes(index_dir_path, index_id, retriever_kwargs=None, break_num: int=None):
+    # Generate index for nodes
+    file_path = os.path.join(index_dir_path, index_id) + '.jsonl'
+    db_path = os.path.join(index_dir_path, index_id+'_chroma')
+    chroma_client = chromadb.PersistentClient(path=db_path)
+    try:
+        # Check if collection already exists
+        chroma_collection = chroma_client.get_collection(name='quickstart')
+    except Exception as e:
+        chroma_collection = chroma_client.create_collection(name='quickstart')
+    
+    vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+    
+    # Get the total file size
+    file_size = os.path.getsize(file_path)
+    nodes = []
+    
+    # Read the file and track progress based on bytes read
+    with open(file_path, 'r') as file:
+        with tqdm(total=file_size, desc=f'Loading {file_path.split(os.path.sep)[-1]}', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+            for i, line in enumerate(file):
+                if break_num is not None and i == break_num:
+                    break
+                node_data = json.loads(line)
+                node = TextNode.from_dict(node_data)
+                node.metadata = {k: str(v) for k, v in node.metadata.items()}
+                nodes.append(node)
+                if len(nodes) >= 2048:
+                    vector_store.add(nodes)
+                    nodes = []
+                # Update progress bar based on bytes read
+                pbar.update(len(line))
+    if len(nodes) > 0:
+        vector_store.add(nodes)
+    storage_context = StorageContext.from_defaults(vector_store=vector_store)
+    
+    v = VectorStoreIndex(
+        index_struct=VectorStoreIndex.index_struct_cls(index_id=index_id),
+        storage_context=storage_context,
+        embed_model='skip'
     )
     
     retriever = v.as_retriever(**retriever_kwargs)
     return retriever
     
-def get_all_level_retrievers_from_nodes(index_dir_path, index_id, retriever_kwargs=None, break_num: int=None):
-    # Generate index for nodes
-    level_to_nodes = load_nodes_jsonl_corresponding_levels(os.path.join(index_dir_path, index_id) + '.jsonl', break_num)
+def get_all_chroma_level_retrievers_from_nodes(index_dir_path, index_id, retriever_kwargs=None, break_num: int=None):
+    basic_db_path = os.path.join(index_dir_path, index_id)
+    def get_vector_store(basic_db_path, level):
+        chroma_client = chromadb.PersistentClient(path=f'{basic_db_path}_{level}_chroma')
+        try:
+            # Check if collection already exists
+            chroma_collection = chroma_client.get_collection(name='quickstart')
+        except Exception as e:
+            chroma_collection = chroma_client.create_collection(name='quickstart')
+        vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+        return vector_store
     
-    level_to_retriever = {}
+    levels = ['document', 'section', 'paragraphs', 'multi-sentences']
+    
+    level_to_vector_store = {level:get_vector_store(basic_db_path, level) for level in levels}
+    # Generate index for nodes
+    file_path = os.path.join(index_dir_path, index_id) + '.jsonl'
+    
+    # Get the total file size
+    file_size = os.path.getsize(file_path)
+    level_to_nodes = {level:[] for level in levels}
+    
+    # Read the file and track progress based on bytes read
+    with open(file_path, 'r') as file:
+        with tqdm(total=file_size, desc=f'Loading {file_path.split(os.path.sep)[-1]}', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+            for i, line in enumerate(file):
+                if break_num is not None and i == break_num:
+                    break
+                node_data = json.loads(line)
+                node = TextNode.from_dict(node_data)
+                node.metadata = {k: str(v) for k, v in node.metadata.items()}
+                level_to_nodes[node.metadata['level']].append(node)
+                for level, nodes in level_to_nodes.items():
+                    if len(nodes) == 2048:
+                        level_to_vector_store[level].add(nodes)
+                        level_to_vector_store[level] = []
+                # Update progress bar based on bytes read
+                pbar.update(len(line))
+    
     for level, nodes in level_to_nodes.items():
+        if len(nodes) != 0:
+            level_to_vector_store[level].add(nodes)
+                
+    level_to_retriever = {}
+    for level, vector_store in level_to_vector_store.items():
+        
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
         v = VectorStoreIndex(
-            index_struct=VectorStoreIndex.index_struct_cls(index_id=index_id)
+            index_struct=VectorStoreIndex.index_struct_cls(index_id=index_id),
+            storage_context=storage_context,
+            embed_model='skip'
         )
-        
-        v._add_nodes_to_index(
-            v._index_struct,
-            nodes,
-            show_progress=False
-        )
-        
         level_to_retriever[level] = v.as_retriever(**retriever_kwargs)
         
-    return level_to_retriever
+    return level_to_retriever  
 
+def get_chroma_retriever_from_storage(retriever_dir, chroma_db_name, retriever_kwargs=None):
+    db_path = os.path.join(retriever_dir, chroma_db_name)
+    chroma_client = chromadb.PersistentClient(path=db_path)
+    chroma_collection = chroma_client.get_collection(name='quickstart')
     
+    vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+    storage_context = StorageContext.from_defaults(vector_store=vector_store)
+    
+    v = VectorStoreIndex(
+        index_struct=VectorStoreIndex.index_struct_cls(index_id=chroma_db_name),
+        storage_context=storage_context,
+        embed_model='skip'
+    )
+    
+    return v.as_retriever(**retriever_kwargs)
+
+def get_chroma_retriever_from_storage(retriever_dir, chroma_db_name, retriever_kwargs=None):
+    db_path = os.path.join(retriever_dir, chroma_db_name)
+    chroma_client = chromadb.PersistentClient(path=db_path)
+    chroma_collection = chroma_client.get_collection(name='quickstart')
+    
+    vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+    storage_context = StorageContext.from_defaults(vector_store=vector_store)
+    
+    v = VectorStoreIndex(
+        index_struct=VectorStoreIndex.index_struct_cls(index_id=chroma_db_name),
+        storage_context=storage_context,
+        embed_model='skip'
+    )
+    
+    return v.as_retriever(**retriever_kwargs)
 
 if __name__ == "__main__":
-    pass
+    get_chroma_retriever_from_nodes(
+        index_dir_path=os.path.abspath('../../database/gpt-4o-batch-all-target'),
+        index_id='all',
+        retriever_kwargs=None,
+        break_num=None
+    )

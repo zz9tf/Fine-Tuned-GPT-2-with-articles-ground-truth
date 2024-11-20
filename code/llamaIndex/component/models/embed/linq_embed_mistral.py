@@ -12,9 +12,7 @@ from llama_index.core.embeddings import BaseEmbedding
 
 
 class LinqEmbedMistral(BaseEmbedding):
-    max_length: int = Field(
-        default=4096, description="Maximum length of input.", gt=0
-    )
+    max_length: int =4096
     _model: MistralModel = PrivateAttr()
     _tokenizer: LlamaTokenizerFast = PrivateAttr()
     _device: torch.device = PrivateAttr()

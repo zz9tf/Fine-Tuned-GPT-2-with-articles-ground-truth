@@ -176,8 +176,8 @@ if __name__ == '__main__':
     qar_file_name = 'gpt-4o-batch-all-target_extract_gpt-4o-QAExtractor-batch_pid_0.jsonl.csv' # modify each time
     qar_dataset_path = os.path.join(os.path.abspath('../../.save/gpt-4o-batch-all-target_1_parser/question'), qar_file_name)
     condition = 2
-    retrieved_file_name = ''
-    retrieved_contexts_path = os.path.abspath(f'./retrieved_contexts/{retrieved_file_name}')
+    retrieved_file_name = 'gpt-4o-batch-all-target_with_predictor_retrieved_contexts.jsonl' # modify each time
+    retrieved_contexts_path = os.path.abspath(f'../step_4_0_retrieve_contexts/retrieved_contexts/{retrieved_file_name}')
     prefix = retrieved_file_name.split('.')[0] # sentence_splitter
     save_file_name = f"{prefix}_dataset_condition_{condition}.jsonl" # modify each time
     save_path = os.path.abspath(os.path.join('./datasets', save_file_name))
@@ -188,11 +188,6 @@ if __name__ == '__main__':
     if condition == 1:
         q, g, cc = get_quetions_groundtruth_correct_contexts(qar_dataset_path)
         generate_answer_and_save_as_jsonl(llm_config, q, g, cc, save_path)
-    elif condition == 2:
-        q, g, c = get_quetions_groundtruth_contexts(qar_dataset_path, retrieved_contexts_file_path=retrieved_contexts_path)
-        generate_answer_and_save_as_jsonl(llm_config, q, g, c, save_path)
-    elif condition == 3:
-        retrieved_file_name = ''
-        retrieved_contexts_path = os.path.abspath(f'./retrieved_contexts/{retrieved_file_name}')
+    else:
         q, g, c = get_quetions_groundtruth_contexts(qar_dataset_path, retrieved_contexts_file_path=retrieved_contexts_path)
         generate_answer_and_save_as_jsonl(llm_config, q, g, c, save_path)

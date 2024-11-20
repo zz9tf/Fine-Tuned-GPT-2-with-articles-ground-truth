@@ -1,16 +1,16 @@
 #!/bin/bash
 
-#SBATCH --account=pengyu-lab
-#SBATCH --partition=pengyu-gpu
-#SBATCH --job-name=split_store_pid-0_account-pengyu-lab_gpu-V100_gn-2
-#SBATCH --qos=medium
-#SBATCH --time=72:00:00
-#SBATCH --output=/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/manually/out/split_store_pid-0_account-pengyu-lab_gpu-V100_gn-2.out
-#SBATCH --gres=gpu:V100:2
+#SBATCH --account=guest
+#SBATCH --partition=guest-compute
+#SBATCH --job-name=gene_153-chrdb
+#SBATCH --qos=low
+#SBATCH --time=24:00:00
+#SBATCH --output=/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/manually/out/gene_153-chrdb.out
+#SBATCH --cpus-per-task=2
 
 # Set up env
 source ~/.bashrc
 conda activate llm
 
 # Path to your executable
-python step_5_split_store_and_index.py --action thread --pid 0 --input_file_name sentence-splitter-rag_2_parser_SentenceSplitter.jsonl
+python step_6_create_chromadb.py --action thread_levels --pid 153
