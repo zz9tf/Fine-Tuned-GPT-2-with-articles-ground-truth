@@ -129,22 +129,23 @@ def add_nodes_to_levels_chromadb(index_dir_path, index_id, break_num: int=None, 
                 node_data = json.loads(line)
                 node = TextNode.from_dict(node_data)
                 node.metadata = {k: str(v) for k, v in node.metadata.items()}
-                level_dict[node.metadata['level']]['nodes'].append(node)
+                node_level = node.metadata['level']
+                level_dict[node_level]['nodes'].append(node)
                 pbar.update(len(line))
-                
-                for level in level_dict.keys():
-                    if (len(level_dict[level]['nodes']) >= 2048):
-                        level_dict[level]['vector_store'].add(level_dict[level]['nodes'])
-                        level_dict[level]['nodes'] = []
+                if (len(level_dict[node_level]['nodes']) >= 2048):
+                    level_dict[node_level]['vector_store'].add(level_dict[node_level]['nodes'])
+                    print(f"Added {len(level_dict[node_level]['nodes'])} nodes to level {node_level}")
+                    level_dict[node_level]['nodes'] = []
                     
     for level in level_dict.keys():
         if (len(level_dict[level]['nodes']) > 0):
-            vector_store.add(level_dict[level]['nodes'])
+            level_dict[level]['vector_store'].add(level_dict[level]['nodes'])
+            print(f"Added {len(level_dict[level]['nodes'])} nodes to level {level}")
         if level_dict[level]['not_finish']:
             db_path = os.path.join(index_dir_path, f"{db_name}_{level}_not_finish_chroma")
-            print(f'renamed file {db_name}_{level}_not_finish_chroma')
+            print(f'Renamed file {db_name}_{level}_not_finish_chroma')
             os.rename(db_path, os.path.join(index_dir_path, f"{db_name}_{level}_chroma"))
-    
+        print(level_dict[level]['vector_store']._collection.count())
     
 if __name__ == "__main__":
     # Load config

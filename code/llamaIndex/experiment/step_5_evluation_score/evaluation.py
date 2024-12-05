@@ -60,7 +60,7 @@ if __name__ == '__main__':
         now = args.now
         save_file_name = f"{dataset_name.split('.')[0]}_{matrix_name}_{now}.csv"
         save_file_path = f'./score/{save_file_name}'
-        dataset = load_dataset_from_jsonl(os.path.join(dataset_dir_path, dataset_name), start_num=0, end_num=800)
+        dataset = load_dataset_from_jsonl(os.path.join(dataset_dir_path, dataset_name))
         
         if matrix_name == 'faithfulness':
             evaluation_with_metrics(dataset, faithfulness, save_file_path)

@@ -6,9 +6,13 @@ import json
 from typing import Union
 from datasets import Dataset
 from ragas import evaluate
+from ragas.evaluation import Result
 import time
 from ragas.run_config import RunConfig
 from ragas.metrics.base import Metric
+from ragas.llms import llm_factory
+from ragas.embeddings.base import embedding_factory
+# from ragas import SingleTurnSample 
 
 def load_dataset_from_jsonl(input_path, start_num=0, end_num=None):
     dataset = {
@@ -32,7 +36,7 @@ def load_dataset_from_jsonl(input_path, start_num=0, end_num=None):
                 
     return Dataset.from_dict(dataset)
 
-def evaluation_with_metrics(dataset: Dataset, metrix: Union[Metric, list[Metric]], save_file_path: str):
+def evaluation_with_metrics(dataset: Dataset, metric: Metric, save_file_path: str):
     # Get llm
     # with open(os.path.join(os.path.abspath('../../configs'), 'prefix_config.yaml'), 'r') as prefix_config_file:
     #     prefix_config = yaml.safe_load(prefix_config_file)
@@ -50,22 +54,39 @@ def evaluation_with_metrics(dataset: Dataset, metrix: Union[Metric, list[Metric]
     
     # Evaluate
     start_time = time.time()
-    score = evaluate(
+    scores = evaluate(
         dataset=dataset,
-        metrics=[metrix] if isinstance(metrix, Metric) else metrix,
+        metrics=[metric],
         # llm=LlamaIndexLLMWrapper(llm),
         # embeddings=LlamaIndexEmbeddingsWrapper(embed_model),
         run_config=run_config,
         raise_exceptions=True
     )
-    print(score.to_pandas())
+    print(scores.to_pandas())
     end_time = time.time()  # End timing
 
     # Calculate and print the time taken
     elapsed_time = end_time - start_time
     print(f"Time taken to process the dataset: {elapsed_time/60:.2f} minutes")
+
+    # # Slow but stable evaluation method
+    # scores = []
+    # llm = llm_factory()
+    # embeddings = embedding_factory()
+    # metric.llm = llm
+    # metric.embeddings = embeddings
+    # metric.init(run_config)
     
-    return score.to_pandas().to_csv(save_file_path, index=False)
+    # for row in tqdm(dataset, desc='Evaluating ...'):
+    #     score = metric.score(row)
+    #     scores.append({metric.name: score})
+    
+    # scores = Result(
+    #     scores=Dataset.from_list(scores),
+    #     dataset=dataset
+    # )
+        
+    return scores.to_pandas().to_csv(save_file_path, index=False)
 
 if __name__ == '__main__':
     pass

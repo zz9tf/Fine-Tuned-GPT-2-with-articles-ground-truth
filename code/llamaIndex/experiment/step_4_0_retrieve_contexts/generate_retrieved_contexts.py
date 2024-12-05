@@ -67,9 +67,10 @@ def generate_retrieved_node_cache(question_nodes_path, database_dir, chroma_db_n
     retriever = None
     retrievers = None
     if needLevel:
+        retrievers = {}
         for level in levels:
             level_chroma_db_name = f"_{level}_".join(chroma_db_name.split('_'))
-            retrievers = {level: get_chroma_retriever_from_storage(database_dir, level_chroma_db_name, retriever_kwargs) for level in levels}
+            retrievers[level] = get_chroma_retriever_from_storage(database_dir, level_chroma_db_name, retriever_kwargs)
     else:
         retriever = get_chroma_retriever_from_storage(database_dir, chroma_db_name, retriever_kwargs)
         
@@ -100,8 +101,13 @@ def generate_retrieved_node_cache(question_nodes_path, database_dir, chroma_db_n
                                 sparse_top_k=retrievers[level]._sparse_top_k,
                                 hybrid_top_k=retrievers[level]._hybrid_top_k,
                             )
+                            # print("searching " + level)
                             retrieved_nodes = retrievers[level]._vector_store.query(query, include=retriever_kwargs['include']).nodes
+                            # print([node.id_ for node in retrieved_nodes])
                             data['retrieved_nodes'][level] = [node.to_dict() for node in retrieved_nodes]
+                            # for l in data['retrieved_nodes'].keys():
+                            #     print(l)
+                            #     print([node['id_'] for node in data['retrieved_nodes'][l]])
                         save_file.write(json.dumps(data) + "\n")
                     else: # One
                         query = VectorStoreQuery(
@@ -270,7 +276,7 @@ if __name__ == "__main__":
     }
     
     if args.action == 'main':
-        configs = [
+        configs = [ # modify each time
             # ['gpt-4o-batch-all-target', 'one', '5'],
             # ['gpt-4o-batch-all-target', 'all-level', '2'],
             ['gpt-4o-batch-all-target', 'with_predictor', '5'],
