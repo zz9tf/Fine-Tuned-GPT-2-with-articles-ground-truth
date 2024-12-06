@@ -1,0 +1,117 @@
+reader:
+  "CustomDocumentReader":
+    type: "CustomDocumentReader"
+    config_file_path: "./code/llamaIndex/utils/config.json"
+  "SimpleDirectoryReader":
+    type: "SimpleDirectoryReader"
+parser:
+  "SimpleFileNodeParser":
+    type: "SimpleFileNodeParser"
+    retriever: "BaseRetriever"
+  "SentenceSplitter":
+    type: "SentenceSplitter"
+    chunk_size: 512
+    chunk_overlap: 20
+    retriever: "BaseRetriever"
+  "HierarchicalNodeParser":
+    type: "HierarchicalNodeParser"
+    chunk_size: [2048, 512, 128]
+    retriever: "AutoMergingRetriever"
+  "CustomHierarchicalNodeParser-ollama_vicuna_13b":
+    type: "CustomHierarchicalNodeParser"
+    retriever: "AutoMergingRetriever"
+    llm: "vicuna:13b"
+  "CustomHierarchicalNodeParser-hf_vicuna_13b":
+    type: "CustomHierarchicalNodeParser"
+    retriever: "AutoMergingRetriever"
+    llm: "lmsys/vicuna-13b-v1.5"
+    embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
+  "ManuallyHierarchicalNodeParser":
+    type: "ManuallyHierarchicalNodeParser"
+    retriever: "AutoMergingRetriever"
+    llm: "lmsys/vicuna-13b-v1.5"
+    embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
+extractor:
+  "vicuna-13b-QAExtractor-hf":
+    name: "vicuna-13b-QAExtractor"
+    type: "HuggingfaceBasedExtractor"
+    llm: "lmsys/vicuna-13b-v1.5"
+  "vicuna-13b-QAExtractor-ollama":
+    name: "vicuna:13b-QAExtractor"
+    type: "OllamaBasedExtractor"
+    llm: "vicuna:13b"
+  "gpt-4o-QAExtractor-immediately":
+    name: "gpt-4o-QAExtractor-immediately"
+    type: "OpenAIBasedExtractor"
+    llm: "gpt-4o-mini"
+    mode: "immediately"
+  "gpt-4o-QAExtractor-batch":
+    name: "gpt-4o-QAExtractor-batch"
+    type: "OpenAIBasedExtractor"
+    llm: "gpt-4o-mini"
+    mode: "batch"
+  "manually_partaly_QAExtractor":
+    name: "manually_partaly_QAExtractor"
+    type: "PartalyOpenAIBasedQARExtractor"
+    llm: "gpt-4o-mini"
+    mode: "batch"
+embedding_model:
+  "Linq-AI-Research/Linq-Embed-Mistral":
+    based_on: "huggingface"
+    name: "Linq-AI-Research/Linq-Embed-Mistral"
+    cache_dir: "/work/zhengzheng/.hf_cache"
+  "ollama-sfr-embedding-mistral":
+    based_on: "ollama"
+    name: "sammcj/sfr-embedding-mistral:Q4_K_M"
+  "dunzhang/stella_en_1.5B_v5":
+    based_on: "huggingface"
+    name: "dunzhang/stella_en_1.5B_v5"
+    cache_dir: "/work/zhengzheng/.hf_cache"
+  "fonshartendorp/dutch_biomedical_entity_linking":
+    based_on: "huggingface"
+    name: "fonshartendorp/dutch_biomedical_entity_linking"
+    cache_dir: "/work/zhengzheng/.hf_cache"
+llm:
+  "lmsys/vicuna-13b-v1.5":
+    based_on: "huggingface"
+    model_name: "lmsys/vicuna-13b-v1.5"
+    cache_dir: "/work/zhengzheng/.hf_cache"
+  "vicuna:13b":
+    based_on: "ollama"
+    model_name: "vicuna:13b"
+  "gpt-4o":
+    based_on: "openai"
+    model_name: "gpt-4o"
+  "gpt-4o-mini":
+    based_on: "openai"
+    model_name: "gpt-4o-mini"
+storage:
+  "simple":
+    embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
+    index_generator: VectorStoreIndex
+    docstore: SimpleDocumentStore
+    vector_store: SimpleVectorStore
+    index_store: SimpleIndexStore
+    property_graph_store: null
+index_pipelines:
+  "test":
+    - reader: "SimpleFileNodeParser"
+    - break: "-"
+    - parser: "ManuallyHierarchicalNodeParser"
+    - break: "force"
+    - extractor: "gpt-4o-QAExtractor-batch"
+    - break: "force"
+    - storage: "simple"
+  "gpt-4o-batch-all-target":
+    - reader: "CustomDocumentReader"
+    - parser: "ManuallyHierarchicalNodeParser"
+    - break: "force"
+    - extractor: "gpt-4o-QAExtractor-batch"
+    - break: "force"
+    - storage: "simple"
+  "sentence-splitter-rag":
+    - reader: "CustomDocumentReader"
+    - break: "-"
+    - parser: "SentenceSplitter"
+    - break: "-"
+    - storage: "simple"
