@@ -7,7 +7,7 @@
 #SBATCH --mail-user=zhengzheng@brandeis.edu
 #SBATCH --qos=medium
 #SBATCH --time=72:00:00
-#SBATCH --output=/home/zhengzheng/scratch0/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/experiment/step_1_get_embedding_value/out/embedding.out
+#SBATCH --output=./out/embedding.out
 #SBATCH --gres=gpu:V100:1
 
 
@@ -16,5 +16,5 @@ source ~/.bashrc
 conda activate llm
 
 # Path to your executable
-python /home/zhengzheng/scratch0/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/experiment/step_1_get_embedding_value/get_query_embedding_value.py
+python add_query_embedding_value_to_nodes.py
     

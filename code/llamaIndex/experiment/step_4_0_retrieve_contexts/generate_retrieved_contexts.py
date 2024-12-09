@@ -277,10 +277,13 @@ if __name__ == "__main__":
     
     if args.action == 'main':
         configs = [ # modify each time
-            # ['gpt-4o-batch-all-target', 'one', '5'],
-            # ['gpt-4o-batch-all-target', 'all-level', '2'],
-            ['gpt-4o-batch-all-target', 'with_predictor', '5'],
-            # ['sentence-splitter-rag', 'one', '5']
+            ['gpt-4o-batch-all-target', 'one', '10'],
+            # ['gpt-4o-batch-all-target', 'all-level', '3'],
+            # ['gpt-4o-batch-all-target', 'with_predictor', '10'],
+            # ['gpt-4o-batch-all-target', 'top2_predictor', '5'],
+            # ['gpt-4o-batch-all-target', 'top3_predictor', '4'],
+            # ['gpt-4o-batch-all-target', '1OrOver50_predictor', '10'],
+            # ['sentence-splitter-rag', 'one', '10']
         ]
         
         for (index_dir, retrieved_mode, top_k) in configs:

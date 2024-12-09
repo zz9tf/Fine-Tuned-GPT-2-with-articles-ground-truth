@@ -72,6 +72,7 @@ def get_quetions_groundtruth_contexts(
         for i, obj in enumerate(objs):
             questions.append(obj['Question'])
             ground_truths.append(obj['Answer'])
+            # Todo: Modify here for selecting chunks logic
             contexts.append(contexts_dict[df['node_id'][row_id]][i])
     return questions, ground_truths, contexts
 

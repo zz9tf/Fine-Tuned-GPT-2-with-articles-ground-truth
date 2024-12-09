@@ -22,7 +22,8 @@ def load_args():
 def submit_job(
     script_path: str,
     python_file_name: str,
-    reducer_id: int
+    reducer_id: int,
+    action: str
 ):
     """Submit a job to Slurm and return the job ID."""
     job_name = f'redu_{reducer_id}'
@@ -30,7 +31,7 @@ def submit_job(
     script_path = os.path.abspath(os.path.join(script_path, 'execute/execute.sh'))
     
     job_name = generate_and_execute_slurm_job(
-            python_start_script=f"{python_file_name} --action thread --reducer_id {reducer_id}",
+            python_start_script=f"{python_file_name} --action {action} --reducer_id {reducer_id}",
             account='guest',
             partition='guest-compute',
             job_name=job_name,
@@ -44,7 +45,6 @@ def submit_job(
 
 def generate_cache_retrieved_nodes_dict(filenames, cache_dir='./.cache', needLevel=False):
     retrieved_nodes_dict = {}
-        
     with tqdm(total=len(filenames), desc='loading ...') as pbar:
         for filename in filenames:
             file_path = os.path.join(cache_dir, filename)
@@ -66,7 +66,7 @@ def generate_cache_retrieved_nodes_dict(filenames, cache_dir='./.cache', needLev
                             nodes = [TextNode.from_dict(node_data) for node_data in data['retrieved_nodes'][level]]
                             retrieved_nodes_dict[data['question_node_id']][data['question_id']][level].extend(nodes)
                     else:
-                        nodes = [TextNode.from_dict(node_data) for node_data in data['retrieved_nodes'][level]]
+                        nodes = [TextNode.from_dict(node_data) for node_data in data['retrieved_nodes']]
                         retrieved_nodes_dict[data['question_node_id']][data['question_id']].extend(nodes)
                     # line_pbar.update(len(line))
             pbar.update(1)
@@ -114,8 +114,9 @@ def retrieved_node_cache_reducer(question_nodes, retrieved_nodes_dict, retriever
 
 if __name__ == "__main__":
     args = load_args()
-    prefix = "gpt-4o-batch-all-target_all-level" # modify each time
+    prefix = "gpt-4o-batch-all-target_one" # modify each time
     cache_dir = './.cache'
+    action = 'thread'
     
     filenames = [filename for filename in os.listdir(cache_dir) if prefix in filename]
     filenames.sort(key=lambda x: int(x.split('_')[-2]))
@@ -127,13 +128,43 @@ if __name__ == "__main__":
             submit_job(
                 script_path=os.getcwd(),
                 python_file_name='retrieved_node_cache_reducer.py',
-                reducer_id=i
+                reducer_id=i,
+                action=action
             )
     elif args.action == 'thread':    
         retriever_kwargs = {
-            'similarity_top_k': 5,
+            'similarity_top_k': 15,
             'mode': 'default',
-            'break_num': 100000, # 400000
+            'break_num': None, # 400000, 100000
+            'batch_size': None, # 200000
+            'worker': 5,
+            "include": ["metadatas", "documents", "embeddings", "distances"]
+            # 'worker': None
+        }
+        
+        question_nodes_path = os.path.abspath('../step_1_get_embedding_value/questions/gpt-4o-batch-all-p_pid_0.jsonl')
+        question_nodes = load_nodes_jsonl(question_nodes_path)
+        
+        retrieved_nodes_dict = generate_cache_retrieved_nodes_dict(
+            filenames=filenames[args.reducer_id*file_batch_size:(args.reducer_id+1)*file_batch_size],
+            cache_dir=cache_dir,
+            needLevel=False
+        )
+        retrieved_node_cache_reducer(
+            question_nodes,
+            retrieved_nodes_dict,
+            retriever_kwargs=retriever_kwargs,
+            reducer_id=args.reducer_id,
+            cache_prefix=prefix,
+            save_dir='./.reducer_cache',
+            needLevel=False
+        )
+        
+    elif args.action == 'thread_level':    
+        retriever_kwargs = {
+            'similarity_top_k': 15,
+            'mode': 'default',
+            'break_num': None, # 400000, 100000
             'batch_size': None, # 200000
             'worker': 5,
             "include": ["metadatas", "documents", "embeddings", "distances"]
