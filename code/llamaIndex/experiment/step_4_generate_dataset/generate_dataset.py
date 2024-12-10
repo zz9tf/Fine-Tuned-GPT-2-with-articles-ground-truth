@@ -65,6 +65,7 @@ def get_quetions_groundtruth_contexts(
     ground_truths = []
     contexts = []
 
+    exceed_contexts_num = 0
     for row_id, obj_str in enumerate(df['objs']):
         objs = json.loads(obj_str)
         if len(objs) == 0:
@@ -73,7 +74,22 @@ def get_quetions_groundtruth_contexts(
             questions.append(obj['Question'])
             ground_truths.append(obj['Answer'])
             # Todo: Modify here for selecting chunks logic
-            contexts.append(contexts_dict[df['node_id'][row_id]][i])
+            text_len = 0
+            cur_contexts = []
+            for text in contexts_dict[df['node_id'][row_id]][i]:
+                if text_len+len(text) < 3000:
+                    cur_contexts.append(text)
+                    text_len += len(text)
+                else:
+                    if text_len + len(text) - 3000 < 3000 - text_len:
+                        cur_contexts.append(text)
+                        text_len += len(text)
+                if abs(text_len - 3000) > 500:
+                    print(f"Warning: text len exceed limitation at question {row_id}_{i}: text len {text_len}")
+                    exceed_contexts_num += 1
+            contexts.append(cur_contexts)
+            
+    print(f"Exceed limiation: {100*exceed_contexts_num/len(questions):.2f}")
     return questions, ground_truths, contexts
 
 def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, contexts, save_path:str='./dataset.jsonl'):
@@ -177,7 +193,7 @@ if __name__ == '__main__':
     qar_file_name = 'gpt-4o-batch-all-target_extract_gpt-4o-QAExtractor-batch_pid_0.jsonl.csv' # modify each time
     qar_dataset_path = os.path.join(os.path.abspath('../../.save/gpt-4o-batch-all-target_1_parser/question'), qar_file_name)
     condition = 2
-    retrieved_file_name = 'gpt-4o-batch-all-target_with_predictor_retrieved_contexts.jsonl' # modify each time
+    retrieved_file_name = 'gpt-4o-batch-all-target_one_retrieved_contexts.jsonl' # modify each time
     retrieved_contexts_path = os.path.abspath(f'../step_4_0_retrieve_contexts/retrieved_contexts/{retrieved_file_name}')
     prefix = retrieved_file_name.split('.')[0] # sentence_splitter
     save_file_name = f"{prefix}_dataset_condition_{condition}.jsonl" # modify each time

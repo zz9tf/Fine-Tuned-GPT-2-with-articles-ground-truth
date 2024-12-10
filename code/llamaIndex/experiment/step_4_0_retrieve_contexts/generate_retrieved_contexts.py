@@ -277,7 +277,7 @@ if __name__ == "__main__":
     
     if args.action == 'main':
         configs = [ # modify each time
-            ['gpt-4o-batch-all-target', 'one', '10'],
+            ['gpt-4o-batch-all-target', 'one', '15'],
             # ['gpt-4o-batch-all-target', 'all-level', '3'],
             # ['gpt-4o-batch-all-target', 'with_predictor', '10'],
             # ['gpt-4o-batch-all-target', 'top2_predictor', '5'],

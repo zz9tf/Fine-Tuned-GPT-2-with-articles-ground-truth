@@ -13,4 +13,4 @@ source ~/.bashrc
 conda activate llm
 
 # Path to your executable
-python step_6_create_chromadb.py --action thread --pid 153
+python step_6_create_chromadb.py --action thread_levels --pid 153
