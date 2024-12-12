@@ -157,7 +157,7 @@ if __name__ == "__main__":
     # prefix parameters
     python_file_name = 'step_6_create_chromadb.py'
     index_name = 'gpt-4o-batch-all-target' # modify each time  ## gpt-4o-batch-all-target
-    action = 'thread_levels' # modify each time
+    action = 'thread' # modify each time
     index_dir_path = os.path.join(indexes_dir_path, index_name)
     break_num = None
     notIncludeNotFinishChroma = True

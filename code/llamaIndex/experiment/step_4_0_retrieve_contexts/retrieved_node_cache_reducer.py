@@ -122,6 +122,16 @@ if __name__ == "__main__":
     filenames.sort(key=lambda x: int(x.split('_')[-2]))
     file_batch_size = 15 # modify each time
     
+    retriever_kwargs = {
+        'similarity_top_k': 50,
+        'mode': 'default',
+        'break_num': None, # 400000, 100000
+        'batch_size': None, # 200000
+        'worker': 5,
+        "include": ["metadatas", "documents", "embeddings", "distances"]
+        # 'worker': None
+    }
+    
     if args.action == 'main':
         task_num = math.ceil(len(filenames)/file_batch_size)
         for i in range(task_num):
@@ -131,17 +141,7 @@ if __name__ == "__main__":
                 reducer_id=i,
                 action=action
             )
-    elif args.action == 'thread':    
-        retriever_kwargs = {
-            'similarity_top_k': 15,
-            'mode': 'default',
-            'break_num': None, # 400000, 100000
-            'batch_size': None, # 200000
-            'worker': 5,
-            "include": ["metadatas", "documents", "embeddings", "distances"]
-            # 'worker': None
-        }
-        
+    elif args.action == 'thread':
         question_nodes_path = os.path.abspath('../step_1_get_embedding_value/questions/gpt-4o-batch-all-p_pid_0.jsonl')
         question_nodes = load_nodes_jsonl(question_nodes_path)
         
@@ -160,16 +160,7 @@ if __name__ == "__main__":
             needLevel=False
         )
         
-    elif args.action == 'thread_level':    
-        retriever_kwargs = {
-            'similarity_top_k': 15,
-            'mode': 'default',
-            'break_num': None, # 400000, 100000
-            'batch_size': None, # 200000
-            'worker': 5,
-            "include": ["metadatas", "documents", "embeddings", "distances"]
-            # 'worker': None
-        }
+    elif args.action == 'thread_level':
         question_nodes_path = os.path.abspath('../step_1_get_embedding_value/questions/gpt-4o-batch-all-p_pid_0.jsonl')
         question_nodes = load_nodes_jsonl(question_nodes_path)
         

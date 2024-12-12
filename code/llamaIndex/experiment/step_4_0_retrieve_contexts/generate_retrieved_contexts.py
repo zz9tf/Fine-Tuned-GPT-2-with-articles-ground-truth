@@ -47,7 +47,6 @@ def submit_job(
     log_file_path = os.path.abspath(os.path.join(script_path, 'out/{job_name}.out'))
     script_path = os.path.abspath(os.path.join(script_path, 'execute/execute.sh'))
     
-    top_k = '5' if (retrieved_mode != 'one' and action == 'thread_cache') else top_k
     job_name = generate_and_execute_slurm_job(
             python_start_script=f"{python_file_name} --action {action} --index_id {index_id} --index_dir {index_dir} --retrieved_mode {retrieved_mode} --top_k {top_k}",
             account='guest',
@@ -76,11 +75,22 @@ def generate_retrieved_node_cache(question_nodes_path, database_dir, chroma_db_n
         
     save_path = os.path.join(save_dir, f"{cache_prefix}_{chroma_db_name}_not_finish.jsonl")
     
+    line_number = 0
+    if os.path.exists(save_path):
+        file_size = os.path.getsize(save_path)
+        with open(save_path, 'r') as save_file:
+            with tqdm(total=file_size, desc=f'Counting lines in {save_path.split(os.path.sep)[-1]}', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+                for line in save_file:
+                    pbar.update(len(line))
+                    line_number += 1
+    
     # generate retrieved nodes
-    with open(save_path, 'w') as save_file:
+    with open(save_path, 'a') as save_file:
         with tqdm(total=sum(len(node.metadata['questions_and_embeddings']) for node in question_nodes), desc="retrieving nodes ...") as pbar:
             for node in question_nodes:
                 for i, (q, e) in enumerate(node.metadata['questions_and_embeddings'].items()):
+                    if i <= line_number:
+                        continue
                     query_bundle = QueryBundle(query_str=q, embedding=e)
                     if needLevel:
                         data = {
@@ -256,6 +266,57 @@ def generate_contexts(
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
             return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[predicted_class]]]
         
+    elif retrieved_mode == 'top2_predictor':
+        model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            inputs = tokenizer(query, return_tensors="pt", truncation=True)
+            # Put the model in evaluation mode
+            model.eval()
+            # Get the prediction
+            with torch.no_grad():
+                outputs = model(**inputs)
+                logits = outputs.logits
+                _, top_indices = torch.topk(logits, k=2, dim=-1)
+            num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
+            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index]] for index in top_indices]
+        
+    elif retrieve_mode == 'top3_predictor':
+        model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            inputs = tokenizer(query, return_tensors="pt", truncation=True)
+            # Put the model in evaluation mode
+            model.eval()
+            # Get the prediction
+            with torch.no_grad():
+                outputs = model(**inputs)
+                logits = outputs.logits
+                _, top_indices = torch.topk(logits, k=3, dim=-1)
+            num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
+            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index]] for index in top_indices]
+    
+    elif retrieved_mode == 'top2_predictor':
+        model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            inputs = tokenizer(query, return_tensors="pt", truncation=True)
+            # Put the model in evaluation mode
+            model.eval()
+            # Get the prediction
+            with torch.no_grad():
+                outputs = model(**inputs)
+                logits = outputs.logits
+                _, top_indices = torch.topk(logits, k=2, dim=-1)
+            num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
+            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index]] for index in top_indices]
+        
     generate_retrieved_contexts(question_nodes, retriever, retriever_nodes_list_generator, retrieved_contexts_save_path)
     # conn.close()
 
@@ -264,7 +325,7 @@ if __name__ == "__main__":
     
     question_nodes_path = os.path.abspath('../step_1_get_embedding_value/questions/gpt-4o-batch-all-p_pid_0.jsonl')
     save_dir = './.cache'
-    notIncludeNotFinishCache = True # modify each time
+    notIncludeNotFinishCache = False # modify each time
     retriever_kwargs = {
         'similarity_top_k': int(args.top_k) if args.top_k else args.top_k,
         'mode': 'default',
@@ -277,12 +338,12 @@ if __name__ == "__main__":
     
     if args.action == 'main':
         configs = [ # modify each time
-            ['gpt-4o-batch-all-target', 'one', '15'],
-            # ['gpt-4o-batch-all-target', 'all-level', '3'],
-            # ['gpt-4o-batch-all-target', 'with_predictor', '10'],
-            # ['gpt-4o-batch-all-target', 'top2_predictor', '5'],
-            # ['gpt-4o-batch-all-target', 'top3_predictor', '4'],
-            # ['gpt-4o-batch-all-target', '1OrOver50_predictor', '10'],
+            # ['gpt-4o-batch-all-target', 'one', '50'],
+            ['gpt-4o-batch-all-target', 'all-level', '25'],
+            # ['gpt-4o-batch-all-target', 'with_predictor', '25'],
+            # ['gpt-4o-batch-all-target', 'top2_predictor', '15'],
+            # ['gpt-4o-batch-all-target', 'top3_predictor', '10'],
+            # ['gpt-4o-batch-all-target', '30rOver50_prediction', '30'],
             # ['sentence-splitter-rag', 'one', '10']
         ]
         
