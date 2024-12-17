@@ -73,23 +73,25 @@ def get_quetions_groundtruth_contexts(
         for i, obj in enumerate(objs):
             questions.append(obj['Question'])
             ground_truths.append(obj['Answer'])
-            # Todo: Modify here for selecting chunks logic
             text_len = 0
             used_texts = 0
             cur_contexts = []
-            for text in contexts_dict[df['node_id'][row_id]][i]:
-                if text_len+len(text) < 3000:
-                    cur_contexts.append(text)
-                    text_len += len(text)
-                    used_texts += 1
-                else:
-                    if text_len + len(text) - 3000 < 3000 - text_len:
+            for contexts in contexts_dict[df['node_id'][row_id]][i]:
+                for text in contexts:
+                    if text_len+len(text) < 3000:
                         cur_contexts.append(text)
                         text_len += len(text)
                         used_texts += 1
+                    else:
+                        if text_len + len(text) - 3000 < 3000 - text_len:
+                            cur_contexts.append(text)
+                            text_len += len(text)
+                            used_texts += 1
+                            break
             if abs(text_len - 3000) > 500:
                 print(f"Warning: text len exceed limitation at question {row_id}_{i}: text len {text_len} with text num {used_texts}")
                 exceed_contexts_num += 1
+            print(text_len)
             contexts.append(cur_contexts)
             
     print(f"Exceed limiation: {100*exceed_contexts_num/len(questions):.2f}%")
@@ -210,4 +212,5 @@ if __name__ == '__main__':
         generate_answer_and_save_as_jsonl(llm_config, q, g, cc, save_path)
     else:
         q, g, c = get_quetions_groundtruth_contexts(qar_dataset_path, retrieved_contexts_file_path=retrieved_contexts_path)
+        # input()
         generate_answer_and_save_as_jsonl(llm_config, q, g, c, save_path)

@@ -20,6 +20,7 @@ from llama_index.core.vector_stores.types import (
     FilterOperator,
     FilterCondition
 )
+import torch.nn.functional as F  # For softmax
 from llama_index.core.schema import TextNode
 
 def load_args():
@@ -190,13 +191,13 @@ def generate_retrieved_contexts(question_nodes, retriever, retriever_nodes_list_
                         update_retriever(retrieve_nodes, retriever)
                         query = retriever._build_vector_store_query(query_bundle)
                         result = retriever._vector_store.query(query, include=retriever_kwargs['include'])
-                        retrieved_nodes.extend(result.nodes)
+                        retrieved_nodes.append(result.nodes)
                         
                     data = {
                         'question_node_id': node.id_,
                         'question_id': question_id,
-                        'retrieved_nodes_id': [n.id_ for n in retrieved_nodes],
-                        'retrieved_contexts': [n.text for n in retrieved_nodes]
+                        'retrieved_nodes_id': [[n.id_ for n in nodes] for nodes in retrieved_nodes],
+                        'retrieved_contexts': [[n.text for n in nodes] for nodes in retrieved_nodes]
                     }
                     save_file.write(json.dumps(data) + "\n")
                     pbar.update(1)
@@ -300,7 +301,7 @@ def generate_contexts(
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
             return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index]] for index in top_indices]
     
-    elif retrieved_mode == 'top2_predictor':
+    elif retrieved_mode == '40Over25_prediction':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
         tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -313,9 +314,10 @@ def generate_contexts(
             with torch.no_grad():
                 outputs = model(**inputs)
                 logits = outputs.logits
-                _, top_indices = torch.topk(logits, k=2, dim=-1)
+                probabilities = F.softmax(logits, dim=-1)
+                selected_indices = (probabilities > 0.25).nonzero(as_tuple=True)
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
-            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index]] for index in top_indices]
+            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index]] for index in selected_indices]
         
     generate_retrieved_contexts(question_nodes, retriever, retriever_nodes_list_generator, retrieved_contexts_save_path)
     # conn.close()
@@ -339,11 +341,11 @@ if __name__ == "__main__":
     if args.action == 'main':
         configs = [ # modify each time
             # ['gpt-4o-batch-all-target', 'one', '50'],
-            ['gpt-4o-batch-all-target', 'all-level', '25'],
-            # ['gpt-4o-batch-all-target', 'with_predictor', '25'],
-            # ['gpt-4o-batch-all-target', 'top2_predictor', '15'],
-            # ['gpt-4o-batch-all-target', 'top3_predictor', '10'],
-            # ['gpt-4o-batch-all-target', '30rOver50_prediction', '30'],
+            # ['gpt-4o-batch-all-target', 'all-level', '25'],
+            ['gpt-4o-batch-all-target', 'with_predictor', '25'],
+            # ['gpt-4o-batch-all-target', 'top2_predictor', '25'],
+            # ['gpt-4o-batch-all-target', 'top3_predictor', '15'],
+            # ['gpt-4o-batch-all-target', '40Over25_prediction', '25'],
             # ['sentence-splitter-rag', 'one', '10']
         ]
         
