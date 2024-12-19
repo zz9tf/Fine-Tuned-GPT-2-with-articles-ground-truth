@@ -1,4 +1,5 @@
-indexes_dir_path: "./code/llamaIndex/database"
+# indexes_dir_path: "./code/llamaIndex/database"
+indexes_dir_path: "../../../../home/zhengzheng/work/database_save"
 cache: "./code/llamaIndex/.cache"
 document_preprocessing:
   data_dir_path: "./data"

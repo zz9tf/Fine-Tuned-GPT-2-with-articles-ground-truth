@@ -208,7 +208,7 @@ if __name__ == '__main__':
     qar_file_name = 'gpt-4o-batch-all-target_extract_gpt-4o-QAExtractor-batch_pid_0.jsonl.csv' # modify each time
     qar_dataset_path = os.path.join(os.path.abspath('../../.save/gpt-4o-batch-all-target_1_parser/question'), qar_file_name)
     condition = 2
-    retrieved_file_name = 'gpt-4o-batch-all-target_with_predictor_retrieved_contexts.jsonl' # modify each time
+    retrieved_file_name = 'gpt-4o-batch-all-target_over25_prediction_retrieved_contexts.jsonl' # modify each time
     retrieved_contexts_path = os.path.abspath(f'../step_4_0_retrieve_contexts/retrieved_contexts/{retrieved_file_name}')
     prefix = retrieved_file_name.split('.')[0] # sentence_splitter
     save_file_name = f"{prefix}_dataset_condition_{condition}.jsonl" # modify each time

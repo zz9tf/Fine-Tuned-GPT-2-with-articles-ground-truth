@@ -90,7 +90,7 @@ def generate_retrieved_node_cache(question_nodes_path, database_dir, chroma_db_n
         with tqdm(total=sum(len(node.metadata['questions_and_embeddings']) for node in question_nodes), desc="retrieving nodes ...") as pbar:
             for node in question_nodes:
                 for i, (q, e) in enumerate(node.metadata['questions_and_embeddings'].items()):
-                    if i <= line_number:
+                    if i < line_number:
                         continue
                     query_bundle = QueryBundle(query_str=q, embedding=e)
                     if needLevel:
@@ -282,7 +282,7 @@ def generate_contexts(
                 logits = outputs.logits
                 _, top_indices = torch.topk(logits, k=2, dim=-1)
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
-            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index]] for index in top_indices]
+            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
         
     elif retrieve_mode == 'top3_predictor':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
@@ -299,9 +299,9 @@ def generate_contexts(
                 logits = outputs.logits
                 _, top_indices = torch.topk(logits, k=3, dim=-1)
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
-            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index]] for index in top_indices]
+            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
     
-    elif retrieved_mode == '40Over25_prediction':
+    elif retrieved_mode == 'over25_prediction':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
         tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -315,7 +315,7 @@ def generate_contexts(
                 outputs = model(**inputs)
                 logits = outputs.logits
                 probabilities = F.softmax(logits, dim=-1)
-                selected_indices = (probabilities > 0.25).nonzero(as_tuple=True)
+                selected_indices = (probabilities > 0.25).nonzero(as_tuple=True)[0].tolist()
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
             return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index]] for index in selected_indices]
         
@@ -340,12 +340,12 @@ if __name__ == "__main__":
     
     if args.action == 'main':
         configs = [ # modify each time
-            # ['gpt-4o-batch-all-target', 'one', '50'],
+            ['gpt-4o-batch-all-target', 'one', '25'],
             # ['gpt-4o-batch-all-target', 'all-level', '25'],
-            ['gpt-4o-batch-all-target', 'with_predictor', '25'],
+            # ['gpt-4o-batch-all-target', 'with_predictor', '25'],
             # ['gpt-4o-batch-all-target', 'top2_predictor', '25'],
             # ['gpt-4o-batch-all-target', 'top3_predictor', '15'],
-            # ['gpt-4o-batch-all-target', '40Over25_prediction', '25'],
+            # ['gpt-4o-batch-all-target', 'over25_prediction', '25'],
             # ['sentence-splitter-rag', 'one', '10']
         ]
         

@@ -203,7 +203,7 @@ if __name__ == "__main__":
     args = load_args()
     
     if args.action == 'main':
-        for i, pid in enumerate(leave_tasks):
+        for i, pid in enumerate(leave_tasks[:1]):
             job_name = submit_job(
                 script_path=os.getcwd(),
                 cpu_num=cpu_num,
