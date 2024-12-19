@@ -36,14 +36,14 @@ if __name__ == '__main__':
     
     if args.action == 'main':
         matrixes = [
-            # 'faithfulness',
-            # 'answer_relevancy',
-            # 'answer_similarity',
-            # 'answer_correctness',
-            # 'context_precision',
+            'faithfulness',
+            'answer_relevancy',
+            'answer_similarity',
+            'answer_correctness',
+            'context_precision',
             'context_utilization',
-            # 'context_recall',
-            # 'context_entity_recall'
+            'context_recall',
+            'context_entity_recall'
         ]
         for matrix_name in matrixes:
             now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
