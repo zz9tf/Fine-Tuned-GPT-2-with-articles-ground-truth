@@ -76,8 +76,8 @@ def get_quetions_groundtruth_contexts(
             text_len = 0
             used_texts = 0
             cur_contexts = []
-            for contexts in contexts_dict[df['node_id'][row_id]][i]:
-                for text in contexts:
+            for texts in contexts_dict[df['node_id'][row_id]][i]:
+                for text in texts:
                     if text_len+len(text) < 3000:
                         cur_contexts.append(text)
                         text_len += len(text)
@@ -91,7 +91,6 @@ def get_quetions_groundtruth_contexts(
             if abs(text_len - 3000) > 500:
                 print(f"Warning: text len exceed limitation at question {row_id}_{i}: text len {text_len} with text num {used_texts}")
                 exceed_contexts_num += 1
-            print(text_len)
             contexts.append(cur_contexts)
             
     print(f"Exceed limiation: {100*exceed_contexts_num/len(questions):.2f}%")
@@ -99,7 +98,15 @@ def get_quetions_groundtruth_contexts(
 
 def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, contexts, save_path:str='./dataset.jsonl'):
     llm = get_llm(llm_config)
-    save_file = open(save_path, 'w')
+    skip_num = 0
+    if os.path.exists(save_path):
+        with open(save_path, 'r') as existed_file:
+            for _ in existed_file:
+                skip_num += 1
+    
+    print(f'Skip number: {skip_num}')
+                
+    save_file = open(save_path, 'a')
     
     # qa_prompt = old_gen_temp
     qa_prompt = Gen_Dataset_Temp.prompt_template
@@ -107,8 +114,11 @@ def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, cont
     
     with tqdm(total=len(questions), desc="generating answer...") as pbar:
         for id, (question, retrieved_contexts, ground_truth) in enumerate(zip(questions, contexts, ground_truths)):
+            if id < skip_num:
+                input(f'{id} skip')
+                continue
             # Generate a response for each query
-            retrieved_contexts_str = "".join([f" {i}. {s}\n" for i, s in enumerate(retrieved_contexts)])
+            retrieved_contexts_str = "".join([f" {i+1}. {s}\n" for i, s in enumerate(retrieved_contexts)])
             fmt_qa_prompt = qa_prompt.format(context_str=retrieved_contexts_str, query_str=question)
             answer = llm.complete(fmt_qa_prompt).text.strip()
             try:
@@ -128,7 +138,7 @@ def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, cont
                     "question": question,
                     "ground_truth": ground_truth,
                     "answer": obj.Answer,
-                    "context": retrieved_contexts
+                    "contexts": retrieved_contexts
                 }
                 json.dump(data, save_file)
                 save_file.write("\n")

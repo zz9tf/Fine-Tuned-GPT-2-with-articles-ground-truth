@@ -45,13 +45,11 @@ def evaluation_with_metrics(dataset: Dataset, metric: Metric, save_file_path: st
     
     # embedding_config = prefix_config['embedding_model']['Linq-AI-Research/Linq-Embed-Mistral']
     # embed_model = get_embedding_model(embedding_config, 'cuda:2')
-    
     run_config = RunConfig(
         timeout=900,
         max_retries=20,
         max_wait=600
     )
-    
     # Evaluate
     start_time = time.time()
     scores = evaluate(
