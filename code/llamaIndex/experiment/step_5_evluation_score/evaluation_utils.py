@@ -31,7 +31,10 @@ def load_dataset_from_jsonl(input_path, start_num=0, end_num=None):
                     dataset["question"].append(row["question"])
                     dataset["ground_truth"].append(row["ground_truth"])
                     dataset["answer"].append(row["answer"])
-                    dataset["contexts"].append(row["context"])
+                    if 'context' in row:
+                        dataset["contexts"].append(row["context"])
+                    else:
+                        dataset["contexts"].append(row["contexts"])
                 pbar.update(len(line))
                 
     return Dataset.from_dict(dataset)
