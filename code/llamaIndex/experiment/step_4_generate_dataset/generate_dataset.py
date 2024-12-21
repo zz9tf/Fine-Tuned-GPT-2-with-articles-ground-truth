@@ -137,27 +137,27 @@ def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, cont
                 pbar.update(1)
                 continue
             # Generate a response for each query
-            # retrieved_contexts_str = "".join([f" {i+1}. {s}\n" for i, s in enumerate(retrieved_contexts)])
-            # fmt_qa_prompt = qa_prompt.format(context_str=retrieved_contexts_str, query_str=question)
-            # answer = llm.complete(fmt_qa_prompt).text.strip()
+            retrieved_contexts_str = "".join([f" {i+1}. {s}\n" for i, s in enumerate(retrieved_contexts)])
+            fmt_qa_prompt = qa_prompt.format(context_str=retrieved_contexts_str, query_str=question)
+            answer = llm.complete(fmt_qa_prompt).text.strip()
             try:
-                # Save the generated response to the JSONL file
-                # data = {
-                #     "question": question,
-                #     "ground_truth": ground_truth,
-                #     "answer": answer,
-                #     "context": retrieved_contexts
-                # }
-                # json.dump(data, save_file)
-                # save_file.write("\n")
-                
-                # obj = parser.parse(answer)
                 # Save the generated response to the JSONL file
                 data = {
                     "question": question,
                     "ground_truth": ground_truth,
-                    # "answer": obj.Answer,
-                    "answer": '',
+                    "answer": answer,
+                    "context": retrieved_contexts
+                }
+                json.dump(data, save_file)
+                save_file.write("\n")
+                
+                obj = parser.parse(answer)
+                # Save the generated response to the JSONL file
+                data = {
+                    "question": question,
+                    "ground_truth": ground_truth,
+                    "answer": obj.Answer,
+                    # "answer": '',
                     "contexts": retrieved_contexts
                 }
                 json.dump(data, save_file)

@@ -23,7 +23,7 @@ if __name__ == '__main__':
     load_configs()
     condition = '2' # modify this each time
     dataset_dir_path = os.path.abspath('../step_4_generate_dataset/datasets')    
-    dataset_name = f'gpt-4o-batch-all-target_top3_predictor_retrieved_contexts_dataset_condition_2.jsonl' # modify this each time
+    dataset_name = f'gpt-4o-batch-all-target_one_retrieved_contexts_dataset_condition_2.jsonl' # modify this each time
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--condition', type=str, help='The condition of the experiment')
