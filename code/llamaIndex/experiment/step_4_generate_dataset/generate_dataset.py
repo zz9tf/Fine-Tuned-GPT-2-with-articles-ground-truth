@@ -73,24 +73,43 @@ def get_quetions_groundtruth_contexts(
         for i, obj in enumerate(objs):
             questions.append(obj['Question'])
             ground_truths.append(obj['Answer'])
-            text_len = 0
-            used_texts = 0
-            cur_contexts = []
-            for texts in contexts_dict[df['node_id'][row_id]][i]:
-                for text in texts:
-                    if text_len+len(text) < 3000:
-                        cur_contexts.append(text)
-                        text_len += len(text)
-                        used_texts += 1
-                    else:
-                        if text_len + len(text) - 3000 < 3000 - text_len:
-                            cur_contexts.append(text)
-                            text_len += len(text)
-                            used_texts += 1
-                            break
-            if abs(text_len - 3000) > 500:
-                print(f"Warning: text len exceed limitation at question {row_id}_{i}: text len {text_len} with text num {used_texts}")
-                exceed_contexts_num += 1
+            context_list = contexts_dict[df['node_id'][row_id]][i]
+            # retrieve 5 for one
+            retrieve_num = 20
+            cur_contexts = [text for i, text in enumerate(context_list[0]) if i < retrieve_num]
+            if len(cur_contexts) != retrieve_num:
+                print(row_id)
+                print(i)
+                break
+            # text_len = 0
+            # used_texts = 0
+            # cur_contexts = []
+            
+            # texts_id = 0
+            # context_list = contexts_dict[df['node_id'][row_id]][i]
+            # threshold = 3000
+            
+            # # While the condition on the text length is met
+            # while abs(text_len - threshold) > 500 and sum(len(texts) for texts in context_list)>0:
+            #     # Pop one text from the stack
+            #     text = context_list[texts_id].pop()
+            #     # Check if adding the text would exceed the length limit
+            #     if text_len + len(text) <= threshold:
+            #         # Accumulate text if it doesn't exceed the length limit
+            #         cur_contexts.append(text)
+            #         text_len += len(text)
+            #         used_texts += 1
+            #     else:
+            #         # If adding this text would exceed the length, check the remaining space
+            #         if abs(text_len + len(text) - threshold) < abs(threshold - text_len):
+            #             cur_contexts.append(text)
+            #             text_len += len(text)
+            #             used_texts += 1
+            #             break
+            #     texts_id = (texts_id + 1) % len(context_list)
+            # if abs(text_len - threshold) > 500:
+            #     print(f"Warning: text len exceed limitation at question {row_id}_{i}: text len {text_len} with text num {used_texts}")
+            #     exceed_contexts_num += 1
             contexts.append(cur_contexts)
             
     print(f"Exceed limiation: {100*exceed_contexts_num/len(questions):.2f}%")
@@ -104,7 +123,7 @@ def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, cont
             for _ in existed_file:
                 skip_num += 1
     
-    print(f'Skip number: {skip_num}')
+    print(f'Start number: {skip_num}')
                 
     save_file = open(save_path, 'a')
     
@@ -115,12 +134,12 @@ def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, cont
     with tqdm(total=len(questions), desc="generating answer...") as pbar:
         for id, (question, retrieved_contexts, ground_truth) in enumerate(zip(questions, contexts, ground_truths)):
             if id < skip_num:
-                input(f'{id} skip')
+                pbar.update(1)
                 continue
             # Generate a response for each query
-            retrieved_contexts_str = "".join([f" {i+1}. {s}\n" for i, s in enumerate(retrieved_contexts)])
-            fmt_qa_prompt = qa_prompt.format(context_str=retrieved_contexts_str, query_str=question)
-            answer = llm.complete(fmt_qa_prompt).text.strip()
+            # retrieved_contexts_str = "".join([f" {i+1}. {s}\n" for i, s in enumerate(retrieved_contexts)])
+            # fmt_qa_prompt = qa_prompt.format(context_str=retrieved_contexts_str, query_str=question)
+            # answer = llm.complete(fmt_qa_prompt).text.strip()
             try:
                 # Save the generated response to the JSONL file
                 # data = {
@@ -132,19 +151,20 @@ def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, cont
                 # json.dump(data, save_file)
                 # save_file.write("\n")
                 
-                obj = parser.parse(answer)
+                # obj = parser.parse(answer)
                 # Save the generated response to the JSONL file
                 data = {
                     "question": question,
                     "ground_truth": ground_truth,
-                    "answer": obj.Answer,
+                    # "answer": obj.Answer,
+                    "answer": '',
                     "contexts": retrieved_contexts
                 }
                 json.dump(data, save_file)
                 save_file.write("\n")
             except:
                 print(f'[skip] {id}: {question}')
-                print(answer)
+                # print(answer)
             pbar.update(1)
     save_file.close()
 
@@ -208,11 +228,7 @@ if __name__ == '__main__':
     qar_file_name = 'gpt-4o-batch-all-target_extract_gpt-4o-QAExtractor-batch_pid_0.jsonl.csv' # modify each time
     qar_dataset_path = os.path.join(os.path.abspath('../../.save/gpt-4o-batch-all-target_1_parser/question'), qar_file_name)
     condition = 2
-<<<<<<< HEAD
-    retrieved_file_name = 'gpt-4o-batch-all-target_over25_prediction_retrieved_contexts.jsonl' # modify each time
-=======
-    retrieved_file_name = 'gpt-4o-batch-all-target_top3_predictor_retrieved_contexts.jsonl' # modify each time
->>>>>>> 02ce5fa084b207e15c5bd6633affa2f572c0c573
+    retrieved_file_name = 'gpt-4o-batch-all-target_one_retrieved_contexts.jsonl' # modify each time
     retrieved_contexts_path = os.path.abspath(f'../step_4_0_retrieve_contexts/retrieved_contexts/{retrieved_file_name}')
     prefix = retrieved_file_name.split('.')[0] # sentence_splitter
     save_file_name = f"{prefix}_dataset_condition_{condition}.jsonl" # modify each time
