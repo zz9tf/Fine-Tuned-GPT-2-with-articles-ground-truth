@@ -85,6 +85,7 @@ def generate_retrieved_node_cache(question_nodes_path, database_dir, chroma_db_n
                     pbar.update(len(line))
                     line_number += 1
     
+    print(f"Start number: {line_number}")
     # generate retrieved nodes
     with open(save_path, 'a') as save_file:
         with tqdm(total=sum(len(node.metadata['questions_and_embeddings']) for node in question_nodes), desc="retrieving nodes ...") as pbar:
@@ -340,12 +341,12 @@ if __name__ == "__main__":
     
     if args.action == 'main':
         configs = [ # modify each time
-            ['gpt-4o-batch-all-target', 'one', '25'],
-            # ['gpt-4o-batch-all-target', 'all-level', '25'],
-            # ['gpt-4o-batch-all-target', 'with_predictor', '25'],
-            # ['gpt-4o-batch-all-target', 'top2_predictor', '25'],
-            # ['gpt-4o-batch-all-target', 'top3_predictor', '15'],
-            # ['gpt-4o-batch-all-target', 'over25_prediction', '25'],
+            # ['gpt-4o-batch-all-target', 'one', '20'],
+            ['gpt-4o-batch-all-target', 'all-level', '20'],
+            # ['gpt-4o-batch-all-target', 'with_predictor', '20'],
+            # ['gpt-4o-batch-all-target', 'top2_predictor', '20'],
+            # ['gpt-4o-batch-all-target', 'top3_predictor', '20'],
+            # ['gpt-4o-batch-all-target', 'over25_prediction', '20'],
             # ['sentence-splitter-rag', 'one', '10']
         ]
         
