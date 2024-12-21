@@ -75,7 +75,7 @@ def get_quetions_groundtruth_contexts(
             ground_truths.append(obj['Answer'])
             context_list = contexts_dict[df['node_id'][row_id]][i]
             # retrieve 5 for one
-            retrieve_num = 20
+            retrieve_num = 10
             cur_contexts = [text for i, text in enumerate(context_list[0]) if i < retrieve_num]
             if len(cur_contexts) != retrieve_num:
                 print(row_id)
@@ -141,16 +141,6 @@ def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, cont
             fmt_qa_prompt = qa_prompt.format(context_str=retrieved_contexts_str, query_str=question)
             answer = llm.complete(fmt_qa_prompt).text.strip()
             try:
-                # Save the generated response to the JSONL file
-                data = {
-                    "question": question,
-                    "ground_truth": ground_truth,
-                    "answer": answer,
-                    "context": retrieved_contexts
-                }
-                json.dump(data, save_file)
-                save_file.write("\n")
-                
                 obj = parser.parse(answer)
                 # Save the generated response to the JSONL file
                 data = {
