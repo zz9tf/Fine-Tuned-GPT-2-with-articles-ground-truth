@@ -6,22 +6,18 @@ import json
 from tqdm import tqdm
 import re
 from configs.load_config import load_configs
-from llama_index.core.schema import QueryBundle
 from component.io import load_nodes_jsonl
-from component.index.index import get_chroma_retriever_from_storage, get_retriever_from_nodes, update_retriever
+from component.index.index import get_chroma_retriever_from_storage
 from utils.generate_and_execute_slurm_job import generate_and_execute_slurm_job
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
-import sqlite3
+from typing import List
 from llama_index.core.vector_stores.types import (
-    MetadataFilters,
-    VectorStoreQuery,
-    MetadataFilter,
-    FilterOperator,
-    FilterCondition
+    VectorStoreQuery
 )
 import torch.nn.functional as F  # For softmax
-from llama_index.core.schema import TextNode
+import chromadb
+from llama_index.vector_stores.chroma import ChromaVectorStore
 
 def load_args():
     """Parse and return command-line arguments."""
@@ -31,6 +27,7 @@ def load_args():
     parser.add_argument('--index_dir', type=str, default=None, help='The index id dir name')
     parser.add_argument('--retrieved_mode', type=str, default=None, help='The retrieved_mode to be used in retrieve')
     parser.add_argument('--top_k', type=str, default=None, help='The top_k similarities to be retrieved')
+    parser.add_argument('--need_level', type=bool, default=True, help='If apply multiple level mode or not')
 
     return parser.parse_args()
 
@@ -41,15 +38,16 @@ def submit_job(
     index_dir: str,
     retrieved_mode: str,
     top_k: str,
-    action: str
+    action: str,
+    need_level: bool
 ):
     """Submit a job to Slurm and return the job ID."""
-    job_name = f'retri_con_{retrieved_mode}_{index_dir}_{index_id}'
+    job_name = f'{retrieved_mode}_{index_id}_{index_dir}'
     log_file_path = os.path.abspath(os.path.join(script_path, 'out/{job_name}.out'))
     script_path = os.path.abspath(os.path.join(script_path, 'execute/execute.sh'))
     
     job_name = generate_and_execute_slurm_job(
-            python_start_script=f"{python_file_name} --action {action} --index_id {index_id} --index_dir {index_dir} --retrieved_mode {retrieved_mode} --top_k {top_k}",
+            python_start_script=f"{python_file_name} --action {action} --index_id {index_id} --index_dir {index_dir} --retrieved_mode {retrieved_mode} --top_k {top_k} --need_level {need_level}",
             account='guest',
             partition='guest-compute',
             job_name=job_name,
@@ -61,21 +59,26 @@ def submit_job(
         )
     print(f"[Job: {job_name}] is submitted!")
 
-def generate_retrieved_node_cache(question_nodes_path, database_dir, chroma_db_name, retriever_kwargs, cache_prefix, save_dir='./.cache', needLevel=False):
-    question_nodes = load_nodes_jsonl(question_nodes_path)
-    levels = ['document', 'section', 'paragraph', 'multi-sentences']
-    retriever = None
-    retrievers = None
-    if needLevel:
-        retrievers = {}
+def _get_retrievers(need_level, levels, chroma_db_name, database_dir):
+    retrievers = {}
+    
+    if need_level:
         for level in levels:
             level_chroma_db_name = f"_{level}_".join(chroma_db_name.split('_'))
-            retrievers[level] = get_chroma_retriever_from_storage(database_dir, level_chroma_db_name, retriever_kwargs)
+            db_path = os.path.join(database_dir, level_chroma_db_name)
+            retrievers[level] = {
+                'retriever': get_chroma_retriever_from_storage(db_path, level_chroma_db_name, retriever_kwargs),
+                'db_path': db_path
+            }
     else:
-        retriever = get_chroma_retriever_from_storage(database_dir, chroma_db_name, retriever_kwargs)
-        
-    save_path = os.path.join(save_dir, f"{cache_prefix}_{chroma_db_name}_not_finish.jsonl")
-    
+        db_path = os.path.join(database_dir, chroma_db_name)
+        retrievers[None] = {
+                'retriever': get_chroma_retriever_from_storage(db_path, chroma_db_name, retriever_kwargs),
+                'db_path': db_path
+        } 
+
+def _count_start_line_number(save_path):
+    # Count start number
     line_number = 0
     if os.path.exists(save_path):
         file_size = os.path.getsize(save_path)
@@ -86,6 +89,48 @@ def generate_retrieved_node_cache(question_nodes_path, database_dir, chroma_db_n
                     line_number += 1
     
     print(f"Start number: {line_number}")
+    return line_number
+
+def _get_VectorStoreQuery(query_str: str, embedding: List[float], retriever):
+    return VectorStoreQuery(
+        query_embedding=embedding,
+        similarity_top_k=retriever._similarity_top_k,
+        node_ids=retriever._node_ids,
+        doc_ids=retriever._doc_ids,
+        query_str=query_str,
+        mode=retriever._vector_store_query_mode,
+        alpha=retriever._alpha,
+        filters=None,
+        sparse_top_k=retriever._sparse_top_k,
+        hybrid_top_k=retriever._hybrid_top_k,
+    )
+
+def _generate_node_rank_info(q, e, retrievers, level):
+    query = _get_VectorStoreQuery(query_str=q, embedding=e, retriever=retrievers[level]['retriever'])
+    # print("searching " + level)
+    results = retrievers[level]['retriever']._vector_store.query(query)
+    # print(len(list(set(node.id_ for node in results.nodes))))
+    # print(sum([len(node.text) for node in results.nodes]))
+    
+    return [
+        {
+            'similarity': s, 
+            'id': node_id, 
+            'db_path': retrievers[level]['db_path']
+        }
+        for s, node_id in zip(results.similarities, results.ids)
+    ]
+
+def generate_retrieved_node_cache(
+    question_nodes_path, database_dir, chroma_db_name, retriever_kwargs, cache_prefix, save_dir='./.cache', need_level=True
+):
+    levels = ['document', 'section', 'paragraph', 'multi-sentences']
+    question_nodes = load_nodes_jsonl(question_nodes_path)
+    retrievers = _get_retrievers(need_level, levels, chroma_db_name, database_dir)
+    
+    save_path = os.path.join(save_dir, f"{cache_prefix}_{chroma_db_name}_not_finish.jsonl")
+    line_number = _count_start_line_number(save_path)
+    
     # generate retrieved nodes
     with open(save_path, 'a') as save_file:
         with tqdm(total=sum(len(node.metadata['questions_and_embeddings']) for node in question_nodes), desc="retrieving nodes ...") as pbar:
@@ -93,112 +138,99 @@ def generate_retrieved_node_cache(question_nodes_path, database_dir, chroma_db_n
                 for i, (q, e) in enumerate(node.metadata['questions_and_embeddings'].items()):
                     if i < line_number:
                         continue
-                    query_bundle = QueryBundle(query_str=q, embedding=e)
-                    if needLevel:
-                        data = {
+                    # Update cache file with one question data
+                    data = {
                             'question_node_id': node.id_,
                             'question_id': i,
-                            'retrieved_nodes': {}
-                        }
+                            'node_rank_info': {}
+                    }
+                    if need_level:
                         for level in levels:
-                            query = VectorStoreQuery(
-                                query_embedding=query_bundle.embedding,
-                                similarity_top_k=retrievers[level]._similarity_top_k,
-                                node_ids=retrievers[level]._node_ids,
-                                doc_ids=retrievers[level]._doc_ids,
-                                query_str=query_bundle.query_str,
-                                mode=retrievers[level]._vector_store_query_mode,
-                                alpha=retrievers[level]._alpha,
-                                filters=None,
-                                sparse_top_k=retrievers[level]._sparse_top_k,
-                                hybrid_top_k=retrievers[level]._hybrid_top_k,
-                            )
-                            # print("searching " + level)
-                            retrieved_nodes = retrievers[level]._vector_store.query(query, include=retriever_kwargs['include']).nodes
-                            # print([node.id_ for node in retrieved_nodes])
-                            data['retrieved_nodes'][level] = [node.to_dict() for node in retrieved_nodes]
-                            # for l in data['retrieved_nodes'].keys():
-                            #     print(l)
-                            #     print([node['id_'] for node in data['retrieved_nodes'][l]])
-                        save_file.write(json.dumps(data) + "\n")
-                    else: # One
-                        query = VectorStoreQuery(
-                            query_embedding=query_bundle.embedding,
-                            similarity_top_k=retriever._similarity_top_k,
-                            node_ids=retriever._node_ids,
-                            doc_ids=retriever._doc_ids,
-                            query_str=query_bundle.query_str,
-                            mode=retriever._vector_store_query_mode,
-                            alpha=retriever._alpha,
-                            filters=None,
-                            sparse_top_k=retriever._sparse_top_k,
-                            hybrid_top_k=retriever._hybrid_top_k,
-                        )
-                        retrieved_nodes = retriever._vector_store.query(query, include=retriever_kwargs['include']).nodes
-                        data = {
-                            'question_node_id': node.id_,
-                            'question_id': i,
-                            'retrieved_nodes': [node.to_dict() for node in retrieved_nodes]
-                        }
-                        save_file.write(json.dumps(data) + "\n")
+                            data['node_rank_info'][level] = _generate_node_rank_info(q, e, retrievers, level)
+                    else:
+                        data['node_rank_info'][None] = _generate_node_rank_info(q, e, retrievers, None)
+                    save_file.write(json.dumps(data) + "\n")
                     pbar.update(1)
-                    
     os.rename(save_path,  os.path.join(save_dir, f"{cache_prefix}_{chroma_db_name}.jsonl"))
 
-def generate_cache_retrieved_nodes_dict(prefix, cache_dir='./.cache', needLevel=False):
-    retrieved_nodes_dict = {}
-    filenames = [filename for filename in os.listdir(cache_dir) if prefix in filename]
-    filenames.sort(key=lambda x: int(x.split('_')[-2]))
+def _merge_rank_info_from_different_files(filenames, cache_dir, need_level):
+    rank_info_dict = {}
+    
     with tqdm(total=len(filenames), desc='loading ...') as pbar:
         for filename in filenames:
             pbar.set_description_str(filename)
             input_file = open(os.path.join(cache_dir, filename), 'r')
-            
-            # file_path = os.path.join(cache_dir, filename)
-            # with open(file_path, 'r') as f:
-            #     total_lines = sum(1 for _ in f)
-            
-            # with open(file_path, 'r') as input_file, tqdm(total=total_lines, desc=f"Processing {filename}", leave=False, unit='line') as line_pbar:
             for line in input_file:
                 data = json.loads(line)
-                if data['question_node_id'] not in retrieved_nodes_dict:
-                    retrieved_nodes_dict[data['question_node_id']] = {}
-                if data['question_id'] not in retrieved_nodes_dict[data['question_node_id']]:
-                    retrieved_nodes_dict[data['question_node_id']][data['question_id']] = {} if needLevel else []
-                if needLevel:
-                    for level in ['document', 'section', 'paragraph', 'multi-sentences']:
-                        if level not in retrieved_nodes_dict[data['question_node_id']][data['question_id']]:
-                            retrieved_nodes_dict[data['question_node_id']][data['question_id']][level] = []
-                        nodes = [TextNode.from_dict(node_data) for node_data in data['retrieved_nodes'][level]]
-                        retrieved_nodes_dict[data['question_node_id']][data['question_id']][level].extend(nodes)
-                else:
-                    nodes = [TextNode.from_dict(node_data) for node_data in data['retrieved_nodes']]
-                    retrieved_nodes_dict[data['question_node_id']][data['question_id']].extend(nodes)
-                # line_pbar.update(1)
-            # print("Memory size of the dictionary (in Bytes):", sys.getsizeof(retrieved_nodes_dict))
+                if data['question_node_id'] not in rank_info_dict:
+                    rank_info_dict[data['question_node_id']] = {}
+                if data['question_id'] not in rank_info_dict[data['question_node_id']]:
+                    if need_level:
+                        rank_info_dict[data['question_node_id']][data['question_id']] = {
+                            level:[]
+                            for level in ['document', 'section', 'paragraph', 'multi-sentences']
+                        }
+                    else:
+                        rank_info_dict[data['question_node_id']][data['question_id']] = {
+                            None:[]
+                        }
+                for level in data['node_rank_info']:
+                    rank_info_dict[data['question_node_id']][data['question_id']][level].extend(data['node_rank_info'][level])
             pbar.update(1)
             input_file.close()
-    return retrieved_nodes_dict
+    return rank_info_dict
+
+def _shrink_to_top_k(rank_info_dict):
+    vectors = {}
+    for question_node_id in rank_info_dict:
+        for question_id in rank_info_dict[question_node_id]:
+            for level in rank_info_dict[question_node_id][question_id]:
+                rank_info_dict[question_node_id][question_id][level].sort(key= lambda x: x['similarity'])
+                rank_info_dict[question_node_id][question_id][level] = rank_info_dict[question_node_id][question_id][level][: retriever_kwargs['similarity_top_k']]
+                for rank_info_of_one in rank_info_dict[question_node_id][question_id][level]:
+                    if rank_info_of_one['db_path'] not in vectors:
+                        chroma_client = chromadb.PersistentClient(path=rank_info_of_one['db_path'])
+                        chroma_collection = chroma_client.get_collection(name='quickstart')
+                        vectors[rank_info_of_one['db_path']] = ChromaVectorStore(chroma_collection=chroma_collection)
+    return vectors
+
+def get_rank_info_dict_and_vectors(prefix, cache_dir='./.cache', need_level=True):
+    
+    filenames = [filename for filename in os.listdir(cache_dir) if prefix in filename]
+    filenames.sort(key=lambda x: int(x.split('_')[-2]))
+    # merge top k results from different files
+    rank_info_dict = _merge_rank_info_from_different_files(filenames, cache_dir, need_level)
+
+    # Select top k results
+    vectors = _shrink_to_top_k(rank_info_dict)
+    
+    return rank_info_dict, vectors
      
-def generate_retrieved_contexts(question_nodes, retriever, retriever_nodes_list_generator, save_path):
+def _generate_retrieved_contexts(question_nodes, rank_info_list_generator, save_path, vectors):
     with open(save_path, 'w') as save_file:
         with tqdm(total=sum(len(node.metadata['questions_and_embeddings']) for node in question_nodes), desc="retrieving nodes ...") as pbar:
             for node in question_nodes:
-                for question_id, (q, e) in enumerate(node.metadata['questions_and_embeddings'].items()):
-                    retrieved_nodes = []
-                    query_bundle = QueryBundle(query_str=q, embedding=e)
-                    retrieve_nodes_list = retriever_nodes_list_generator(query_bundle.query_str, node.id_, question_id)
-                    for retrieve_nodes in retrieve_nodes_list:
-                        update_retriever(retrieve_nodes, retriever)
-                        query = retriever._build_vector_store_query(query_bundle)
-                        result = retriever._vector_store.query(query, include=retriever_kwargs['include'])
-                        retrieved_nodes.append(result.nodes)
+                for question_id, (q, _) in enumerate(node.metadata['questions_and_embeddings'].items()):
+                    rank_info_list = rank_info_list_generator(q, node.id_, question_id)
+                    retrieved_nodes_id = []
+                    retrieved_contexts = []
+                    similarity = 0
+                    # Go over all groups
+                    for rank_infos in rank_info_list:
+                        one_group_nodes = []
+                        # Go over rank info for each node in one group
+                        for rank_info in rank_infos:
+                            one_group_nodes.extend(vectors[rank_info['db_path']].get(ids=[rank_info['id']]))
+                            similarity += rank_info['similarity']
+                        retrieved_nodes_id.append([n.id_ for n in one_group_nodes])
+                        retrieved_contexts.append([n.text for n in one_group_nodes])
                         
                     data = {
                         'question_node_id': node.id_,
                         'question_id': question_id,
-                        'retrieved_nodes_id': [[n.id_ for n in nodes] for nodes in retrieved_nodes],
-                        'retrieved_contexts': [[n.text for n in nodes] for nodes in retrieved_nodes]
+                        'retrieved_nodes_id': retrieved_nodes_id,
+                        'retrieved_contexts': retrieved_contexts,
+                        'similarity': similarity
                     }
                     save_file.write(json.dumps(data) + "\n")
                     pbar.update(1)
@@ -209,48 +241,29 @@ def generate_contexts(
     retrieve_mode: str,
     retriever_kwargs: dict,
     cache_prefix: str,
-    retrieved_cache_dir = './cache',
-    needLevel=False
+    retrieved_cache_dir = './cache'
 ):
     load_configs()
     question_nodes = load_nodes_jsonl(question_nodes_path)
-    # db_path = 'retrieved_nodes.db'
-    # generate_cache_retrieved_nodes_sqlite(prefix=cache_prefix, cache_dir=retrieved_cache_dir, needLevel=needLevel, db_path=db_path)
-    retrieved_nodes_dict = generate_cache_retrieved_nodes_dict(prefix=cache_prefix, cache_dir=retrieved_cache_dir, needLevel=needLevel)
-    retriever = get_retriever_from_nodes(index_dir_path=None, index_id=None, nodes=[], retriever_kwargs=retriever_kwargs)
-    
-    # conn = sqlite3.connect(db_path)
-    # cursor = conn.cursor()
+    rank_info_dict, vectors = get_rank_info_dict_and_vectors(prefix=cache_prefix, cache_dir=retrieved_cache_dir)
     
     if retrieve_mode == 'one':
         def retriever_nodes_list_generator(query, question_node_id, question_id):
-            retrieved_nodes = retrieved_nodes_dict[question_node_id][question_id]
-            # cursor.execute('''
-            #     SELECT node_data FROM retrieved_nodes 
-            #     WHERE question_node_id = ? AND question_id = ? AND level = NULL
-            #     ''', (question_node_id, question_id))
-            
-            # # Fetch all nodes at this level and deserialize them
-            # retrieved_nodes = [TextNode.from_dict(json.loads(row[0])) for row in cursor.fetchall()]
-
-            return [retrieved_nodes]
+            rank_info_for_one = []
+            for level in rank_info_dict[question_node_id][question_id]:
+                rank_info_for_one.extend(rank_info_dict[question_node_id][question_id][level])
+            rank_info_for_one.sort(key= lambda x: x['similarity'])
+            # Select top k
+            rank_info_for_one = rank_info_for_one[:retriever_kwargs['similarity_top_k']]
+            return [rank_info_for_one]
+        
     elif retrieve_mode == 'all-level':
         def retriever_nodes_list_generator(query, question_node_id, question_id):
-            retrieve_nodes_list = []
-            for level in ['document', 'section', 'paragraph', 'multi-sentences']:
-                retrieved_nodes = retrieved_nodes_dict[question_node_id][question_id][level]
-                retrieve_nodes_list.append(retrieved_nodes)
-            # retrieve_nodes_list = []
-            # for level in ['document', 'section', 'paragraph', 'multi-sentences']:
-            #     cursor.execute('''
-            #         SELECT node_data FROM retrieved_nodes 
-            #         WHERE question_node_id = ? AND question_id = ? AND level = ?
-            #     ''', (question_node_id, question_id, level))
-                
-            #     # Fetch all nodes at this level and deserialize them
-            #     retrieved_nodes = [TextNode.from_dict(json.loads(row[0])) for row in cursor.fetchall()]
-            #     retrieve_nodes_list.append(retrieved_nodes)
-            return retrieve_nodes_list
+            # All infos are already top k
+            return [
+                rank_info_dict[question_node_id][question_id][level] 
+                    for level in rank_info_dict[question_node_id][question_id]
+            ]
     elif retrieved_mode == 'with_predictor':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
@@ -266,7 +279,8 @@ def generate_contexts(
                 logits = outputs.logits
                 predicted_class = torch.argmax(logits, dim=-1).item()
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
-            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[predicted_class]]]
+            # All infos are already top k
+            return [rank_info_dict[question_node_id][question_id][num_to_label[predicted_class]]]
         
     elif retrieved_mode == 'top2_predictor':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
@@ -283,7 +297,8 @@ def generate_contexts(
                 logits = outputs.logits
                 _, top_indices = torch.topk(logits, k=2, dim=-1)
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
-            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
+            # All infos are already top k
+            return [rank_info_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
         
     elif retrieve_mode == 'top3_predictor':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
@@ -300,7 +315,8 @@ def generate_contexts(
                 logits = outputs.logits
                 _, top_indices = torch.topk(logits, k=3, dim=-1)
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
-            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
+            # All infos are already top k
+            return [rank_info_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
     
     elif retrieved_mode == 'over25_prediction':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
@@ -318,10 +334,65 @@ def generate_contexts(
                 probabilities = F.softmax(logits, dim=-1)
                 selected_indices = (probabilities > 0.25).nonzero(as_tuple=True)[0].tolist()
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
-            return [retrieved_nodes_dict[question_node_id][question_id][num_to_label[index]] for index in selected_indices]
+            # All infos are already top k
+            return [rank_info_dict[question_node_id][question_id][num_to_label[index]] for index in selected_indices]
         
-    generate_retrieved_contexts(question_nodes, retriever, retriever_nodes_list_generator, retrieved_contexts_save_path)
-    # conn.close()
+    _generate_retrieved_contexts(question_nodes, retriever_nodes_list_generator, retrieved_contexts_save_path, vectors)
+
+def check_nonstart_cache_file_with_level(index_dir, save_dir, notIncludeNotFinishCache):
+    index_ids = {}
+    for filename in os.listdir(os.path.abspath(f'../../database/{index_dir}')):
+        match = re.search(r'(\d+)_([\w-]+)_chroma', filename)
+        if match:
+            if match.group(1) not in index_ids:
+                index_ids[match.group(1)] = set()
+            index_ids[match.group(1)].add(match.group(2))
+    # calculate required ids
+    index_ids = sorted(
+        (k for k, v in index_ids.items() if len(v) == 4),
+        key=lambda x: int(x)
+    )
+    
+    # remove already generated cache id
+    for filename in os.listdir(os.path.abspath(save_dir)):
+        pattern = index_dir + r'_(\d+)\_chroma.jsonl'
+        match = re.search(pattern, filename)
+        if match:
+            task_id = match.group(1)
+            index_ids.remove(task_id)
+        if notIncludeNotFinishCache:
+            pattern = index_dir+ r'_(\d+)\_chroma_not_finish.jsonl'
+            match = re.search(pattern, filename)
+            if match:
+                task_id = match.group(1)
+                index_ids.remove(task_id)
+    print(f'leave cache task: {len(index_ids)}')
+    return index_ids
+    
+def check_nonstart_cache_file_without_level(index_dir, save_dir, notIncludeNotFinishCache):
+    index_ids = []
+    for filename in os.listdir(os.path.abspath(f'../../database/{index_dir}')):
+        match = re.search(r'(\d+)\_chroma', filename)
+        if match:
+            index_ids.append(match.group(1))
+    # calculate required ids
+    index_ids.sort(key=lambda x: int(x))
+    
+    # remove already generated cache id
+    for filename in os.listdir(os.path.abspath(save_dir)):
+        pattern = index_dir + r'_(\d+)\_chroma.jsonl'
+        match = re.search(pattern, filename)
+        if match:
+            task_id = match.group(1)
+            index_ids.remove(task_id)
+        if notIncludeNotFinishCache:
+            pattern = index_dir + r'_(\d+)\_chroma_not_finish.jsonl'
+            match = re.search(pattern, filename)
+            if match:
+                task_id = match.group(1)
+                index_ids.remove(task_id)
+    print(f'leave cache task: {len(index_ids)}')
+    return index_ids
 
 if __name__ == "__main__":
     args = load_args()
@@ -335,74 +406,36 @@ if __name__ == "__main__":
         'break_num': 100000, # 400000
         'batch_size': None, # 200000
         'worker': 5,
-        "include": ["metadatas", "documents", "embeddings", "distances"]
+        "include": ["metadatas", "documents", "embeddings", "distances"],
+        "probability_threshold": 2
         # 'worker': None
     }
     
     if args.action == 'main':
         configs = [ # modify each time
-            # ['gpt-4o-batch-all-target', 'one', '20'],
-            ['gpt-4o-batch-all-target', 'all-level', '20'],
-            # ['gpt-4o-batch-all-target', 'with_predictor', '20'],
-            # ['gpt-4o-batch-all-target', 'top2_predictor', '20'],
-            # ['gpt-4o-batch-all-target', 'top3_predictor', '20'],
-            # ['gpt-4o-batch-all-target', 'over25_prediction', '20'],
-            # ['sentence-splitter-rag', 'one', '10']
+            ['gpt-4o-batch-all-target', 'one', '10', True],
+            # ['gpt-4o-batch-all-target', 'all-level', '10', True],
+            # ['gpt-4o-batch-all-target', 'with_predictor', '20', True],
+            # ['gpt-4o-batch-all-target', 'top2_predictor', '20', True],
+            # ['gpt-4o-batch-all-target', 'top3_predictor', '20', True],
+            # ['gpt-4o-batch-all-target', 'over25_prediction', '20', True],
+            # ['gpt-4o-batch-all-target', 'one_TopP', '20', True],
+            # ['gpt-4o-batch-all-target', 'document_TopP', '20', True],
+            # ['gpt-4o-batch-all-target', 'section_TopP', '20', True],
+            # ['gpt-4o-batch-all-target', 'paragraph_TopP', '20', True],
+            # ['gpt-4o-batch-all-target', 'multi-sentences_TopP', '20', True],
+            # ['sentence-splitter-rag', 'one', '10', False]
         ]
         
-        for (index_dir, retrieved_mode, top_k) in configs:
+        for (index_dir, retrieved_mode, top_k, need_level) in configs:
             # TODO count index id in database
-            if retrieved_mode == 'one':
-                index_ids = []
-                for filename in os.listdir(os.path.abspath(f'../../database/{index_dir}')):
-                    match = re.search(r'(\d+)\_chroma', filename)
-                    if match:
-                        index_ids.append(match.group(1))
-                        
-                index_ids.sort(key=lambda x: int(x))
-                
-                for filename in os.listdir(os.path.abspath(save_dir)):
-                    pattern = f'{index_dir}_{retrieved_mode}' + r'_(\d+)\_chroma.jsonl'
-                    match = re.search(pattern, filename)
-                    if match:
-                        task_id = match.group(1)
-                        index_ids.remove(task_id)
-                    if notIncludeNotFinishCache:
-                        pattern = f'{index_dir}_{retrieved_mode}' + r'_(\d+)\_chroma_not_finish.jsonl'
-                        match = re.search(pattern, filename)
-                        if match:
-                            task_id = match.group(1)
-                            index_ids.remove(task_id)
-                print(f'leave cache task: {len(index_ids)}')
+            if need_level:
+                index_ids = check_nonstart_cache_file_with_level(index_dir, save_dir, notIncludeNotFinishCache)
             else:
-                index_ids = {}
-                for filename in os.listdir(os.path.abspath(f'../../database/{index_dir}')):
-                    match = re.search(r'(\d+)_([\w-]+)_chroma', filename)
-                    if match:
-                        if match.group(1) not in index_ids:
-                            index_ids[match.group(1)] = set()
-                        index_ids[match.group(1)].add(match.group(2))
-                index_ids = sorted(
-                    (k for k, v in index_ids.items() if len(v) == 4),
-                    key=lambda x: int(x)
-                )
-                
-                for filename in os.listdir(os.path.abspath(save_dir)):
-                    pattern = f'{index_dir}_{retrieved_mode}' + r'_(\d+)\_chroma.jsonl'
-                    match = re.search(pattern, filename)
-                    if match:
-                        task_id = match.group(1)
-                        index_ids.remove(task_id)
-                    if notIncludeNotFinishCache:
-                        pattern = f'{index_dir}_{retrieved_mode}' + r'_(\d+)\_chroma_not_finish.jsonl'
-                        match = re.search(pattern, filename)
-                        if match:
-                            task_id = match.group(1)
-                            index_ids.remove(task_id)
-                print(f'leave cache task: {len(index_ids)}')
+                index_ids = check_nonstart_cache_file_without_level(index_dir, save_dir, notIncludeNotFinishCache)
 
             # TODO: comment here
-            # index_ids = index_ids[:1]
+            index_ids = index_ids[:4]
             
             if len(index_ids) > 0:
                 for index_id in index_ids:
@@ -413,7 +446,8 @@ if __name__ == "__main__":
                         index_dir=index_dir,
                         retrieved_mode=retrieved_mode,
                         top_k=top_k,
-                        action='thread_cache'
+                        action='thread_cache',
+                        need_level=need_level
                     )
             else:
                 print('start final retrieve')
@@ -424,7 +458,8 @@ if __name__ == "__main__":
                     index_dir=index_dir,
                     retrieved_mode=retrieved_mode,
                     top_k=top_k,
-                    action='thread_retrieve'
+                    action='thread_retrieve',
+                    need_level=need_level
                 )
             
     elif args.action == 'thread_cache':
@@ -436,9 +471,9 @@ if __name__ == "__main__":
             database_dir=index_dir_path,
             chroma_db_name=f'{args.index_id}_chroma', # if level is None else f'{index_id}_{level}_chroma'
             retriever_kwargs=retriever_kwargs,
-            cache_prefix=f'{args.index_dir}_{retrieved_mode}', # if level else f'{args.index_dir}_{retrieved_mode}',
+            cache_prefix=f'{args.index_dir}', # if level else f'{args.index_dir}_{retrieved_mode}',
             save_dir=save_dir,
-            needLevel=retrieved_mode!='one'
+            need_level=args.need_level
         )
     
     elif args.action == 'thread_retrieve':
@@ -451,7 +486,6 @@ if __name__ == "__main__":
             retrieved_contexts_save_path=retrieved_contexts_save_path,
             retrieve_mode=retrieved_mode,
             retriever_kwargs=retriever_kwargs,
-            cache_prefix=f'{args.index_dir}_{retrieved_mode}',
-            retrieved_cache_dir=save_dir,
-            needLevel=retrieved_mode!='one'
+            cache_prefix=f'{args.index_dir}',
+            retrieved_cache_dir=save_dir
         )

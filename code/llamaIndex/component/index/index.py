@@ -253,8 +253,7 @@ def get_chroma_retriever_from_storage(retriever_dir, chroma_db_name, retriever_k
     
     return v.as_retriever(**retriever_kwargs)
 
-def get_chroma_retriever_from_storage(retriever_dir, chroma_db_name, retriever_kwargs=None):
-    db_path = os.path.join(retriever_dir, chroma_db_name)
+def get_chroma_retriever_from_storage(db_path, chroma_db_name, retriever_kwargs=None):
     chroma_client = chromadb.PersistentClient(path=db_path)
     chroma_collection = chroma_client.get_collection(name='quickstart')
     

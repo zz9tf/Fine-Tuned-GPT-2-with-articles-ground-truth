@@ -218,6 +218,7 @@ if __name__ == "__main__":
             index_id=args.pid, 
             break_num=break_num
         )
+        
     elif args.action == 'thread_levels':
         add_nodes_to_levels_chromadb(
             index_dir_path=index_dir_path, 
