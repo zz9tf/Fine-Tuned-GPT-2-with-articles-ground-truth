@@ -186,7 +186,7 @@ def _shrink_to_top_k(rank_info_dict):
     for question_node_id in rank_info_dict:
         for question_id in rank_info_dict[question_node_id]:
             for level in rank_info_dict[question_node_id][question_id]:
-                rank_info_dict[question_node_id][question_id][level].sort(key= lambda x: x['similarity'])
+                rank_info_dict[question_node_id][question_id][level].sort(key= lambda x: x['similarity'], reverse=True)
                 rank_info_dict[question_node_id][question_id][level] = rank_info_dict[question_node_id][question_id][level][: retriever_kwargs['similarity_top_k']]
                 for rank_info_of_one in rank_info_dict[question_node_id][question_id][level]:
                     if rank_info_of_one['db_path'] not in vectors:
@@ -274,7 +274,7 @@ def generate_contexts(
             rank_info_for_one = []
             for level in rank_info_dict[question_node_id][question_id]:
                 rank_info_for_one.extend(rank_info_dict[question_node_id][question_id][level])
-            rank_info_for_one.sort(key= lambda x: x['similarity'])
+            rank_info_for_one.sort(key= lambda x: x['similarity'], reverse=True)
             # Select top k
             rank_info_for_one = rank_info_for_one[:retriever_kwargs['similarity_top_k']]
             return [rank_info_for_one]
@@ -385,7 +385,7 @@ def generate_contexts(
             rank_info_for_one = []
             for level in rank_info_dict[question_node_id][question_id]:
                 rank_info_for_one.extend(rank_info_dict[question_node_id][question_id][level])
-            rank_info_for_one.sort(key= lambda x: x['similarity'])
+            rank_info_for_one.sort(key= lambda x: x['similarity'], reverse=True)
             # Get rank info list
             rank_info_list = [rank_info_for_one]
             rank_info_list = [rank_info_one_level[:retriever_kwargs['similarity_top_k']] for rank_info_one_level in rank_info_list]
