@@ -221,7 +221,7 @@ def _generate_retrieved_contexts(question_nodes, rank_info_list_generator, save_
                         one_group_nodes = []
                         # Go over rank info for each node in one group
                         for rank_info in rank_infos:
-                            one_group_nodes.extend(vectors[rank_info['db_path']].get(ids=[rank_info['id']]))
+                            one_group_nodes.extend(vectors[rank_info['db_path']].get_nodes(node_ids=[rank_info['id']]))
                             similarity += rank_info['similarity']
                         retrieved_nodes_id.append([n.id_ for n in one_group_nodes])
                         retrieved_contexts.append([n.text for n in one_group_nodes])
@@ -236,7 +236,7 @@ def _generate_retrieved_contexts(question_nodes, rank_info_list_generator, save_
                     save_file.write(json.dumps(data) + "\n")
                     pbar.update(1)
 
-def get_topk_for_topp(max_top_k, rank_info_list, p_threshold):
+def get_topk_for_topp(rank_info_list, p_threshold):
     similarities = np.array([
         np.array([rank_info['similarity'] for rank_info in rank_info_raw])
         for rank_info_raw in zip(*rank_info_list)
@@ -255,7 +255,7 @@ def get_topk_for_topp(max_top_k, rank_info_list, p_threshold):
             return top_k
         top_k += 1
 
-    return min(top_k, max_top_k)
+    return top_k
 
 def generate_contexts(
     question_nodes_path: str, 
@@ -386,8 +386,11 @@ def generate_contexts(
             for level in rank_info_dict[question_node_id][question_id]:
                 rank_info_for_one.extend(rank_info_dict[question_node_id][question_id][level])
             rank_info_for_one.sort(key= lambda x: x['similarity'])
+            # Get rank info list
+            rank_info_list = [rank_info_for_one]
+            rank_info_list = [rank_info_one_level[:retriever_kwargs['similarity_top_k']] for rank_info_one_level in rank_info_list]
             # Select top k
-            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], [rank_info_for_one], retriever_kwargs['probability_threshold'])
+            top_k = get_topk_for_topp(rank_info_list, retriever_kwargs['probability_threshold'])
             rank_info_for_one = rank_info_for_one[:top_k]
             
             return [rank_info_for_one]
@@ -396,7 +399,7 @@ def generate_contexts(
         def retriever_nodes_list_generator(query, question_node_id, question_id):
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id]['document']]
-            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            top_k = get_topk_for_topp(rank_info_list, retriever_kwargs['probability_threshold'])
             rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
             
             return rank_info_list
@@ -405,7 +408,7 @@ def generate_contexts(
         def retriever_nodes_list_generator(query, question_node_id, question_id):
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id]['section']]
-            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            top_k = get_topk_for_topp(rank_info_list, retriever_kwargs['probability_threshold'])
             rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
             
             return rank_info_list
@@ -414,7 +417,7 @@ def generate_contexts(
         def retriever_nodes_list_generator(query, question_node_id, question_id):
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id]['paragraph']]
-            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            top_k = get_topk_for_topp(rank_info_list, retriever_kwargs['probability_threshold'])
             rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
             
             return rank_info_list
@@ -423,7 +426,7 @@ def generate_contexts(
         def retriever_nodes_list_generator(query, question_node_id, question_id):
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id]['multi-sentences']]
-            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            top_k = get_topk_for_topp(rank_info_list, retriever_kwargs['probability_threshold'])
             rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
             
             return rank_info_list
@@ -435,7 +438,7 @@ def generate_contexts(
                 rank_info_dict[question_node_id][question_id][level] 
                     for level in rank_info_dict[question_node_id][question_id]
             ]
-            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            top_k = get_topk_for_topp(rank_info_list, retriever_kwargs['probability_threshold'])
             rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
             
             return rank_info_list
@@ -457,7 +460,7 @@ def generate_contexts(
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id][num_to_label[predicted_class]]]
-            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            top_k = get_topk_for_topp(rank_info_list, retriever_kwargs['probability_threshold'])
             rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
             
             return rank_info_list
@@ -479,7 +482,7 @@ def generate_contexts(
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
-            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            top_k = get_topk_for_topp(rank_info_list, retriever_kwargs['probability_threshold'])
             rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
             
             return rank_info_list
@@ -501,7 +504,7 @@ def generate_contexts(
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
-            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            top_k = get_topk_for_topp(rank_info_list, retriever_kwargs['probability_threshold'])
             rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
             
             return rank_info_list
@@ -524,7 +527,7 @@ def generate_contexts(
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id][num_to_label[index]] for index in selected_indices]
-            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            top_k = get_topk_for_topp(rank_info_list, retriever_kwargs['probability_threshold'])
             rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
             
             return rank_info_list
@@ -605,26 +608,28 @@ if __name__ == "__main__":
     
     if args.action == 'main':
         configs = [ # modify each time
-            ['gpt-4o-batch-all-target', 'one', '10', True],
-            ['gpt-4o-batch-all-target', 'document', '10', True],
-            ['gpt-4o-batch-all-target', 'section', '10', True],
-            ['gpt-4o-batch-all-target', 'paragraph', '10', True],
-            ['gpt-4o-batch-all-target', 'multi-sentences', '10', True],
-            ['gpt-4o-batch-all-target', 'all-level', '10', True],            
-            ['gpt-4o-batch-all-target', 'predictor_top1', '10', True],
-            ['gpt-4o-batch-all-target', 'predictor_top2', '10', True],
-            ['gpt-4o-batch-all-target', 'predictor_top3', '10', True],
-            ['gpt-4o-batch-all-target', 'predictor_over25_percent', '10', True],
-            ['gpt-4o-batch-all-target', 'one_TopP', '20', True],
-            ['gpt-4o-batch-all-target', 'document_TopP', '20', True],
-            ['gpt-4o-batch-all-target', 'section_TopP', '20', True],
-            ['gpt-4o-batch-all-target', 'paragraph_TopP', '20', True],
-            ['gpt-4o-batch-all-target', 'multi-sentences_TopP', '20', True],
-            ['gpt-4o-batch-all-target', 'all-level_TopP', '20', True],            
-            ['gpt-4o-batch-all-target', 'predictor_top1_TopP', '20', True],
-            ['gpt-4o-batch-all-target', 'predictor_top2_TopP', '20', True],
-            ['gpt-4o-batch-all-target', 'predictor_top3_TopP', '20', True],
-            ['gpt-4o-batch-all-target', 'predictor_over25_percent_TopP', '20', True],
+            # Top K
+            # ['gpt-4o-batch-all-target', 'one', '10', True],
+            # ['gpt-4o-batch-all-target', 'document', '10', True],
+            # ['gpt-4o-batch-all-target', 'section', '10', True],
+            # ['gpt-4o-batch-all-target', 'paragraph', '10', True],
+            # ['gpt-4o-batch-all-target', 'multi-sentences', '10', True],
+            # ['gpt-4o-batch-all-target', 'all-level', '10', True],            
+            # ['gpt-4o-batch-all-target', 'predictor_top1', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_top2', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_top3', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_over25_percent', '10', True],
+            # Top P
+            ['gpt-4o-batch-all-target', 'one_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'document_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'section_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'paragraph_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'multi-sentences_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'all-level_TopP', '10', True],            
+            # ['gpt-4o-batch-all-target', 'predictor_top1_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_top2_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_top3_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_over25_percent_TopP', '10', True],
             # ['sentence-splitter-rag', 'one', '10', False]
         ]
         
