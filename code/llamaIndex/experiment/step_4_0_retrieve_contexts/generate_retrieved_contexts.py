@@ -18,6 +18,7 @@ from llama_index.core.vector_stores.types import (
 import torch.nn.functional as F  # For softmax
 import chromadb
 from llama_index.vector_stores.chroma import ChromaVectorStore
+import numpy as np
 
 def load_args():
     """Parse and return command-line arguments."""
@@ -235,6 +236,27 @@ def _generate_retrieved_contexts(question_nodes, rank_info_list_generator, save_
                     save_file.write(json.dumps(data) + "\n")
                     pbar.update(1)
 
+def get_topk_for_topp(max_top_k, rank_info_list, p_threshold):
+    similarities = np.array([
+        np.array([rank_info['similarity'] for rank_info in rank_info_raw])
+        for rank_info_raw in zip(*rank_info_list)
+    ])
+    
+    flattened = similarities.flatten()
+    softmax_flattened = np.exp(flattened) / np.sum(np.exp(flattened))
+    probabilities = softmax_flattened.reshape(similarities.shape)
+    
+    total_p = 0
+    top_k = 0
+    for probability_row in probabilities:
+        for p in probability_row:
+            total_p += p
+        if total_p > p_threshold:
+            return top_k
+        top_k += 1
+
+    return min(top_k, max_top_k)
+
 def generate_contexts(
     question_nodes_path: str, 
     retrieved_contexts_save_path: str,
@@ -257,6 +279,26 @@ def generate_contexts(
             rank_info_for_one = rank_info_for_one[:retriever_kwargs['similarity_top_k']]
             return [rank_info_for_one]
         
+    elif retrieve_mode == 'document':
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            # All infos are already top k
+            return [rank_info_dict[question_node_id][question_id]['document']]
+    
+    elif retrieve_mode == 'section':
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            # All infos are already top k
+            return [rank_info_dict[question_node_id][question_id]['section']]
+    
+    elif retrieve_mode == 'paragraph':
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            # All infos are already top k
+            return [rank_info_dict[question_node_id][question_id]['paragraph']]
+    
+    elif retrieve_mode == 'multi-sentences':
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            # All infos are already top k
+            return [rank_info_dict[question_node_id][question_id]['multi-sentences']]
+        
     elif retrieve_mode == 'all-level':
         def retriever_nodes_list_generator(query, question_node_id, question_id):
             # All infos are already top k
@@ -264,7 +306,8 @@ def generate_contexts(
                 rank_info_dict[question_node_id][question_id][level] 
                     for level in rank_info_dict[question_node_id][question_id]
             ]
-    elif retrieved_mode == 'with_predictor':
+            
+    elif retrieved_mode == 'predictor_top1':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
         tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -282,7 +325,7 @@ def generate_contexts(
             # All infos are already top k
             return [rank_info_dict[question_node_id][question_id][num_to_label[predicted_class]]]
         
-    elif retrieved_mode == 'top2_predictor':
+    elif retrieved_mode == 'predictor_top2':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
         tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -300,7 +343,7 @@ def generate_contexts(
             # All infos are already top k
             return [rank_info_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
         
-    elif retrieve_mode == 'top3_predictor':
+    elif retrieve_mode == 'predictor_top3':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
         tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -318,7 +361,7 @@ def generate_contexts(
             # All infos are already top k
             return [rank_info_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
     
-    elif retrieved_mode == 'over25_prediction':
+    elif retrieved_mode == 'predictor_over25_percent':
         model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
         tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -336,6 +379,155 @@ def generate_contexts(
             num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
             # All infos are already top k
             return [rank_info_dict[question_node_id][question_id][num_to_label[index]] for index in selected_indices]
+        
+    elif retrieve_mode == 'one_TopP':
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            rank_info_for_one = []
+            for level in rank_info_dict[question_node_id][question_id]:
+                rank_info_for_one.extend(rank_info_dict[question_node_id][question_id][level])
+            rank_info_for_one.sort(key= lambda x: x['similarity'])
+            # Select top k
+            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], [rank_info_for_one], retriever_kwargs['probability_threshold'])
+            rank_info_for_one = rank_info_for_one[:top_k]
+            
+            return [rank_info_for_one]
+        
+    elif retrieve_mode == 'document':
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            # All infos are already top k
+            rank_info_list = [rank_info_dict[question_node_id][question_id]['document']]
+            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
+            
+            return rank_info_list
+    
+    elif retrieve_mode == 'section':
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            # All infos are already top k
+            rank_info_list = [rank_info_dict[question_node_id][question_id]['section']]
+            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
+            
+            return rank_info_list
+    
+    elif retrieve_mode == 'paragraph':
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            # All infos are already top k
+            rank_info_list = [rank_info_dict[question_node_id][question_id]['paragraph']]
+            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
+            
+            return rank_info_list
+    
+    elif retrieve_mode == 'multi-sentences':
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            # All infos are already top k
+            rank_info_list = [rank_info_dict[question_node_id][question_id]['multi-sentences']]
+            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
+            
+            return rank_info_list
+    
+    elif retrieve_mode == 'all-level_TopP':
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            # All infos are already top k
+            rank_info_list = [
+                rank_info_dict[question_node_id][question_id][level] 
+                    for level in rank_info_dict[question_node_id][question_id]
+            ]
+            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
+            
+            return rank_info_list
+
+    elif retrieved_mode == 'predictor_top1_TopP':
+        model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            inputs = tokenizer(query, return_tensors="pt", truncation=True)
+            # Put the model in evaluation mode
+            model.eval()
+            # Get the prediction
+            with torch.no_grad():
+                outputs = model(**inputs)
+                logits = outputs.logits
+                predicted_class = torch.argmax(logits, dim=-1).item()
+            num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
+            # All infos are already top k
+            rank_info_list = [rank_info_dict[question_node_id][question_id][num_to_label[predicted_class]]]
+            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
+            
+            return rank_info_list
+        
+    elif retrieved_mode == 'predictor_top2_TopP':
+        model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            inputs = tokenizer(query, return_tensors="pt", truncation=True)
+            # Put the model in evaluation mode
+            model.eval()
+            # Get the prediction
+            with torch.no_grad():
+                outputs = model(**inputs)
+                logits = outputs.logits
+                _, top_indices = torch.topk(logits, k=2, dim=-1)
+            num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
+            # All infos are already top k
+            rank_info_list = [rank_info_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
+            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
+            
+            return rank_info_list
+        
+    elif retrieve_mode == 'predictor_top3_TopP':
+        model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            inputs = tokenizer(query, return_tensors="pt", truncation=True)
+            # Put the model in evaluation mode
+            model.eval()
+            # Get the prediction
+            with torch.no_grad():
+                outputs = model(**inputs)
+                logits = outputs.logits
+                _, top_indices = torch.topk(logits, k=3, dim=-1)
+            num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
+            # All infos are already top k
+            rank_info_list = [rank_info_dict[question_node_id][question_id][num_to_label[index.item()]] for index in top_indices[0]]
+            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
+            
+            return rank_info_list
+    
+    elif retrieved_mode == 'predictor_over25_percent_TopP':
+        model_path = os.path.abspath('../step_3_level_predictor/SciFive-base-PMC_results/checkpoint-750')
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        
+        def retriever_nodes_list_generator(query, question_node_id, question_id):
+            inputs = tokenizer(query, return_tensors="pt", truncation=True)
+            # Put the model in evaluation mode
+            model.eval()
+            # Get the prediction
+            with torch.no_grad():
+                outputs = model(**inputs)
+                logits = outputs.logits
+                probabilities = F.softmax(logits, dim=-1)
+                selected_indices = (probabilities > 0.25).nonzero(as_tuple=True)[0].tolist()
+            num_to_label = {i:label for i, label in enumerate(['document', 'section', 'paragraph', 'multi-sentences'])}
+            # All infos are already top k
+            rank_info_list = [rank_info_dict[question_node_id][question_id][num_to_label[index]] for index in selected_indices]
+            top_k = get_topk_for_topp(retriever_kwargs['similarity_top_k'], rank_info_list, retriever_kwargs['probability_threshold'])
+            rank_info_list = [rank_info_one_level[:top_k] for rank_info_one_level in rank_info_list]
+            
+            return rank_info_list
         
     _generate_retrieved_contexts(question_nodes, retriever_nodes_list_generator, retrieved_contexts_save_path, vectors)
 
@@ -407,23 +599,32 @@ if __name__ == "__main__":
         'batch_size': None, # 200000
         'worker': 5,
         "include": ["metadatas", "documents", "embeddings", "distances"],
-        "probability_threshold": 2
+        "probability_threshold": 0.5
         # 'worker': None
     }
     
     if args.action == 'main':
         configs = [ # modify each time
             ['gpt-4o-batch-all-target', 'one', '10', True],
-            # ['gpt-4o-batch-all-target', 'all-level', '10', True],
-            # ['gpt-4o-batch-all-target', 'with_predictor', '20', True],
-            # ['gpt-4o-batch-all-target', 'top2_predictor', '20', True],
-            # ['gpt-4o-batch-all-target', 'top3_predictor', '20', True],
-            # ['gpt-4o-batch-all-target', 'over25_prediction', '20', True],
-            # ['gpt-4o-batch-all-target', 'one_TopP', '20', True],
-            # ['gpt-4o-batch-all-target', 'document_TopP', '20', True],
-            # ['gpt-4o-batch-all-target', 'section_TopP', '20', True],
-            # ['gpt-4o-batch-all-target', 'paragraph_TopP', '20', True],
-            # ['gpt-4o-batch-all-target', 'multi-sentences_TopP', '20', True],
+            ['gpt-4o-batch-all-target', 'document', '10', True],
+            ['gpt-4o-batch-all-target', 'section', '10', True],
+            ['gpt-4o-batch-all-target', 'paragraph', '10', True],
+            ['gpt-4o-batch-all-target', 'multi-sentences', '10', True],
+            ['gpt-4o-batch-all-target', 'all-level', '10', True],            
+            ['gpt-4o-batch-all-target', 'predictor_top1', '10', True],
+            ['gpt-4o-batch-all-target', 'predictor_top2', '10', True],
+            ['gpt-4o-batch-all-target', 'predictor_top3', '10', True],
+            ['gpt-4o-batch-all-target', 'predictor_over25_percent', '10', True],
+            ['gpt-4o-batch-all-target', 'one_TopP', '20', True],
+            ['gpt-4o-batch-all-target', 'document_TopP', '20', True],
+            ['gpt-4o-batch-all-target', 'section_TopP', '20', True],
+            ['gpt-4o-batch-all-target', 'paragraph_TopP', '20', True],
+            ['gpt-4o-batch-all-target', 'multi-sentences_TopP', '20', True],
+            ['gpt-4o-batch-all-target', 'all-level_TopP', '20', True],            
+            ['gpt-4o-batch-all-target', 'predictor_top1_TopP', '20', True],
+            ['gpt-4o-batch-all-target', 'predictor_top2_TopP', '20', True],
+            ['gpt-4o-batch-all-target', 'predictor_top3_TopP', '20', True],
+            ['gpt-4o-batch-all-target', 'predictor_over25_percent_TopP', '20', True],
             # ['sentence-splitter-rag', 'one', '10', False]
         ]
         
