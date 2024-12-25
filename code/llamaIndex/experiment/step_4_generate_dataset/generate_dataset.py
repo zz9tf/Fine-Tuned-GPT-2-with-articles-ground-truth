@@ -73,46 +73,35 @@ def get_quetions_groundtruth_contexts(
         for i, obj in enumerate(objs):
             questions.append(obj['Question'])
             ground_truths.append(obj['Answer'])
-            context_list = contexts_dict[df['node_id'][row_id]][i]
-            # retrieve 5 for one
-            retrieve_num = 10
-            cur_contexts = [text for i, text in enumerate(context_list[0]) if i < retrieve_num]
-            if len(cur_contexts) != retrieve_num:
-                print(row_id)
-                print(i)
-                break
-            # text_len = 0
-            # used_texts = 0
-            # cur_contexts = []
-            
-            # texts_id = 0
+            # ################## top k ##########################
             # context_list = contexts_dict[df['node_id'][row_id]][i]
-            # threshold = 3000
+            # # retrieve 5 for one
+            # retrieve_num = 10
+            # cur_contexts = [text for i, text in enumerate(context_list[0]) if i < retrieve_num]
+            # if len(cur_contexts) != retrieve_num:
+            #     print(row_id)
+            #     print(i)
+            #     break
             
-            # # While the condition on the text length is met
-            # while abs(text_len - threshold) > 500 and sum(len(texts) for texts in context_list)>0:
-            #     # Pop one text from the stack
-            #     text = context_list[texts_id].pop()
-            #     # Check if adding the text would exceed the length limit
-            #     if text_len + len(text) <= threshold:
-            #         # Accumulate text if it doesn't exceed the length limit
-            #         cur_contexts.append(text)
-            #         text_len += len(text)
-            #         used_texts += 1
-            #     else:
-            #         # If adding this text would exceed the length, check the remaining space
-            #         if abs(text_len + len(text) - threshold) < abs(threshold - text_len):
-            #             cur_contexts.append(text)
-            #             text_len += len(text)
-            #             used_texts += 1
-            #             break
-            #     texts_id = (texts_id + 1) % len(context_list)
-            # if abs(text_len - threshold) > 500:
-            #     print(f"Warning: text len exceed limitation at question {row_id}_{i}: text len {text_len} with text num {used_texts}")
-            #     exceed_contexts_num += 1
+            # ############################################
+            
+            # ################## length threshold ##########################
+            text_len = 0
+            cur_contexts = []
+            context_list = contexts_dict[df['node_id'][row_id]][i]
+            context_length_threshold = 10000
+            
+            for text_group in zip(*context_list):
+                print(text_group)
+                text_len += sum([len(text) for text in text_group])
+                print(text_len)
+                input()
+                if text_len > context_length_threshold:
+                    break
+                cur_contexts.extend(text_group)
+            # ############################################
             contexts.append(cur_contexts)
-            
-    print(f"Exceed limiation: {100*exceed_contexts_num/len(questions):.2f}%")
+    exit()
     return questions, ground_truths, contexts
 
 def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, contexts, save_path:str='./dataset.jsonl'):
