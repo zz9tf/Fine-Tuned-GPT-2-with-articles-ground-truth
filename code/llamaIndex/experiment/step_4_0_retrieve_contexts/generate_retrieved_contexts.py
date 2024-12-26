@@ -395,7 +395,7 @@ def generate_contexts(
             
             return [rank_info_for_one]
         
-    elif retrieve_mode == 'document':
+    elif retrieve_mode == 'document_TopP':
         def retriever_nodes_list_generator(query, question_node_id, question_id):
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id]['document']]
@@ -404,7 +404,7 @@ def generate_contexts(
             
             return rank_info_list
     
-    elif retrieve_mode == 'section':
+    elif retrieve_mode == 'section_TopP':
         def retriever_nodes_list_generator(query, question_node_id, question_id):
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id]['section']]
@@ -413,7 +413,7 @@ def generate_contexts(
             
             return rank_info_list
     
-    elif retrieve_mode == 'paragraph':
+    elif retrieve_mode == 'paragraph_TopP':
         def retriever_nodes_list_generator(query, question_node_id, question_id):
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id]['paragraph']]
@@ -422,7 +422,7 @@ def generate_contexts(
             
             return rank_info_list
     
-    elif retrieve_mode == 'multi-sentences':
+    elif retrieve_mode == 'multi-sentences_TopP':
         def retriever_nodes_list_generator(query, question_node_id, question_id):
             # All infos are already top k
             rank_info_list = [rank_info_dict[question_node_id][question_id]['multi-sentences']]
@@ -609,27 +609,27 @@ if __name__ == "__main__":
     if args.action == 'main':
         configs = [ # modify each time
             # Top K
-            ['gpt-4o-batch-all-target', 'one', '10', True],
-            ['gpt-4o-batch-all-target', 'document', '10', True],
-            ['gpt-4o-batch-all-target', 'section', '10', True],
-            ['gpt-4o-batch-all-target', 'paragraph', '10', True],
-            ['gpt-4o-batch-all-target', 'multi-sentences', '10', True],
-            ['gpt-4o-batch-all-target', 'all-level', '10', True],            
-            ['gpt-4o-batch-all-target', 'predictor_top1', '10', True],
-            ['gpt-4o-batch-all-target', 'predictor_top2', '10', True],
-            ['gpt-4o-batch-all-target', 'predictor_top3', '10', True],
-            ['gpt-4o-batch-all-target', 'predictor_over25_percent', '10', True],
+            # ['gpt-4o-batch-all-target', 'one', '10', True],
+            # ['gpt-4o-batch-all-target', 'document', '10', True],
+            # ['gpt-4o-batch-all-target', 'section', '10', True],
+            # ['gpt-4o-batch-all-target', 'paragraph', '10', True],
+            # ['gpt-4o-batch-all-target', 'multi-sentences', '10', True],
+            # ['gpt-4o-batch-all-target', 'all-level', '10', True],            
+            # ['gpt-4o-batch-all-target', 'predictor_top1', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_top2', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_top3', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_over25_percent', '10', True],
             # Top P
             # ['gpt-4o-batch-all-target', 'one_TopP', '10', True],
             ['gpt-4o-batch-all-target', 'document_TopP', '10', True],
             ['gpt-4o-batch-all-target', 'section_TopP', '10', True],
             ['gpt-4o-batch-all-target', 'paragraph_TopP', '10', True],
             ['gpt-4o-batch-all-target', 'multi-sentences_TopP', '10', True],
-            ['gpt-4o-batch-all-target', 'all-level_TopP', '10', True],            
-            ['gpt-4o-batch-all-target', 'predictor_top1_TopP', '10', True],
-            ['gpt-4o-batch-all-target', 'predictor_top2_TopP', '10', True],
-            ['gpt-4o-batch-all-target', 'predictor_top3_TopP', '10', True],
-            ['gpt-4o-batch-all-target', 'predictor_over25_percent_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'all-level_TopP', '10', True],            
+            # ['gpt-4o-batch-all-target', 'predictor_top1_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_top2_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_top3_TopP', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_over25_percent_TopP', '10', True],
             # Other dataset
             # ['sentence-splitter-rag', 'one', '10', False]
         ]
