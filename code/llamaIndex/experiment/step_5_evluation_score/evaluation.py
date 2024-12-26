@@ -18,15 +18,14 @@ from ragas.metrics import (
     noise_sensitivity_relevant,
     noise_sensitivity_irrelevant
 )
+import time
 
 if __name__ == '__main__':
     load_configs()
-    condition = '2' # modify this each time
     dataset_dir_path = os.path.abspath('../step_4_generate_dataset/datasets')    
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_name', type=str)
-    parser.add_argument('--condition', type=str, help='The condition of the experiment')
     parser.add_argument('--matrix', type=str, help='The matrix to be executed')
     parser.add_argument('--now', type=str)
     parser.add_argument('--action', type=str, default='main')
@@ -36,30 +35,71 @@ if __name__ == '__main__':
     
     if args.action == 'main':
         dataset_names = [
-            f'gpt-4o-batch-all-target_one_TopP_retrieved_contexts_dataset_condition_2.jsonl'
+            # Top k
+            # 'gpt-4o-batch-all-target_one_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_document_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_section_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_paragraph_retrieved_contexts_dataset_condition_2.jsonl'
+            'gpt-4o-batch-all-target_multi-sentences_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_predictor_top1_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_predictor_top2_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_predictor_over25_percent_retrieved_contexts_dataset_condition_2.jsonl',
+            # Top p
+            'gpt-4o-batch-all-target_one_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_document_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_section_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_paragraph_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_multi-sentences_TopP_retrieved_contexts_dataset_condition_2',
+            'gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_predictor_top1_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_predictor_top2_TopP_retrieved_contexts_dataset_condition_2.jsonl',
         ]
+        
+        processes = []
+        log_file_paths = []
+        
         for dataset_name in dataset_names:
             matrixes = [
-                # 'faithfulness',
-                # 'answer_relevancy',
-                # 'answer_similarity',
-                # 'answer_correctness',
-                # 'context_precision',
+                'faithfulness',
+                'answer_relevancy',
+                'answer_similarity',
+                'answer_correctness',
+                'context_precision',
                 'context_utilization',
-                # 'context_recall',
-                # 'context_entity_recall'
+                'context_recall',
+                'context_entity_recall'
             ]
             for matrix_name in matrixes:
                 now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-                log_file_path = os.path.join(log_dir_path, f'{matrix_name}_condition_{condition}_{now}.log')
+                log_file_path = os.path.join(log_dir_path, f'{dataset_name.split(".")[0]}_{matrix_name}_{now}.log')
                 with open(log_file_path, 'w') as log_file:
-                    subprocess.Popen(
-                        [sys.executable, __file__, '--dataset_name', dataset_name, '--condition', condition, '--matrix', matrix_name, '--now', now, '--action', 'thread'],
+                    process = subprocess.Popen(
+                        [sys.executable, __file__, '--dataset_name', dataset_name, '--matrix', matrix_name, '--now', now, '--action', 'thread'],
                         stdout=log_file,
                         stderr=log_file
                     )
+                    processes.append((process, log_file_path, matrix_name, dataset_name, now))
+                    log_file_paths.append(log_file_path)
+        while processes:
+            for process, log_file_path, matrix_name, dataset_name, now in processes[:]:
+                if process.poll() is not None:  # Process finished
+                    # Rename the log file
+                    renamed_log_file_path = os.path.join(
+                        log_dir_path, f'[done]{dataset_name.split(".")[0]}_{matrix_name}_{now}.log'
+                    )
+                    try:
+                        os.rename(log_file_path, renamed_log_file_path)
+                        print(f"Renamed log file: {renamed_log_file_path}")
+                    except PermissionError as e:
+                        print(f"Error renaming file {log_file_path}: {e}")
+
+                    # Remove the completed process from the list
+                    processes.remove((process, log_file_path, matrix_name, dataset_name, now))
+            
+            # Sleep briefly to avoid busy-waiting
+            time.sleep(1)
+            
     elif args.action == 'thread':
-        condition = args.condition
         matrix_name = args.matrix
         now = args.now
         save_file_name = f"{args.dataset_name.split('.')[0]}_{matrix_name}_{now}.csv"
@@ -84,11 +124,4 @@ if __name__ == '__main__':
             evaluation_with_metrics(dataset, context_entity_recall, save_file_path)
         elif matrix_name == 'noise_sensitivity_relevant':
             evaluation_with_metrics(dataset, [noise_sensitivity_relevant, noise_sensitivity_irrelevant], save_file_path)
-            
-        # # Rename the log file here
-        original_log_file_path = os.path.join(log_dir_path, f'{matrix_name}_condition_{condition}_{now}.log')
-        renamed_log_file_path = os.path.join(log_dir_path, f'[done]{matrix_name}_condition_{condition}_{now}.log')
-
-        # Rename the log file
-        os.rename(original_log_file_path, renamed_log_file_path)
         

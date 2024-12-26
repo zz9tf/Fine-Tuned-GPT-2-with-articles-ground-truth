@@ -9,7 +9,7 @@ from component.models.llm.get_llm import get_llm
 from configs.load_config import load_configs
 from component.schema import Gen_Dataset_Temp
 from component.schema import old_gen_temp
-import math
+import time
 from datetime import datetime
 import argparse
 import subprocess
@@ -155,35 +155,58 @@ if __name__ == '__main__':
     if args.action == 'main':
         retrieved_file_config = [
             # Top k
-            # ['gpt-4o-batch-all-target_one_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_document_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_section_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_paragraph_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_multi-sentences_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_predictor_top1_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_predictor_top2_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_predictor_top3_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_predictor_over25_percent_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_one_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_document_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_section_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_paragraph_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_multi-sentences_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_predictor_top1_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_predictor_top2_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_predictor_top3_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_predictor_over25_percent_retrieved_contexts.jsonl', 2],
             # Top p
-            # ['gpt-4o-batch-all-target_one_TopP_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_document_TopP_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_section_TopP_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_paragraph_TopP_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_multi-sentences_TopP_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_predictor_top1_TopP_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_predictor_top2_TopP_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_predictor_top3_TopP_retrieved_contexts.jsonl', 2],
-            # ['gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_one_TopP_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_document_TopP_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_section_TopP_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_paragraph_TopP_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_multi-sentences_TopP_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_predictor_top1_TopP_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_predictor_top2_TopP_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_predictor_top3_TopP_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts.jsonl', 2],
         ]
+        processes = []
+        log_file_paths = []
+        
         for (retrieved_file_name, condition) in retrieved_file_config:
             now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
             log_file_path = os.path.join(log_dir_path, f'{retrieved_file_name}_{now}.log')
             with open(log_file_path, 'w') as log_file:
-                subprocess.Popen(
+                process = subprocess.Popen(
                     [sys.executable, __file__, '--condition', str(condition), '--retrieved_file_name', retrieved_file_name, '--now', now, '--action', 'thread'],
                     stdout=log_file,
                     stderr=log_file
                 )
+                processes.append((process, log_file_path, retrieved_file_name, now))
+                log_file_paths.append(log_file_path)
+        while processes:
+            for process, log_file_path, retrieved_file_name, now in processes[:]:
+                if process.poll() is not None:  # Process finished
+                    # Rename the log file
+                    renamed_log_file_path = os.path.join(
+                        log_dir_path, f'[done]{retrieved_file_name}_{now}.log'
+                    )
+                    try:
+                        os.rename(log_file_path, renamed_log_file_path)
+                        print(f"Renamed log file: {renamed_log_file_path}")
+                    except PermissionError as e:
+                        print(f"Error renaming file {log_file_path}: {e}")
+
+                    # Remove the completed process from the list
+                    processes.remove((process, log_file_path, retrieved_file_name, now))
+            
+            # Sleep briefly to avoid busy-waiting
+            time.sleep(1)
     elif args.action == 'thread':
         qar_file_name = 'gpt-4o-batch-all-target_extract_gpt-4o-QAExtractor-batch_pid_0.jsonl.csv' # modify each time
         qar_dataset_path = os.path.join(os.path.abspath('../../.save/gpt-4o-batch-all-target_1_parser/question'), qar_file_name)
@@ -203,10 +226,3 @@ if __name__ == '__main__':
             q, g, c = get_quetions_groundtruth_contexts(qar_dataset_path, retrieved_contexts_file_path=retrieved_contexts_path)
             # input()
             generate_answer_and_save_as_jsonl(llm_config, q, g, c, save_path)
-        
-        # # Rename the log file here
-        original_log_file_path = os.path.join(log_dir_path, f'{args.retrieved_file_name}_{args.now}.log')
-        renamed_log_file_path = os.path.join(log_dir_path, f'[done]{args.retrieved_file_name}_{args.now}.log')
-
-        # Rename the log file
-        os.rename(original_log_file_path, renamed_log_file_path)
