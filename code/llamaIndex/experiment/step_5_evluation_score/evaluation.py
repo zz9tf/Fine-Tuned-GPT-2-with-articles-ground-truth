@@ -23,9 +23,9 @@ if __name__ == '__main__':
     load_configs()
     condition = '2' # modify this each time
     dataset_dir_path = os.path.abspath('../step_4_generate_dataset/datasets')    
-    dataset_name = f'gpt-4o-batch-all-target_one_retrieved_contexts_dataset_condition_2.jsonl' # modify this each time
     
     parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset_name', type=str)
     parser.add_argument('--condition', type=str, help='The condition of the experiment')
     parser.add_argument('--matrix', type=str, help='The matrix to be executed')
     parser.add_argument('--now', type=str)
@@ -35,32 +35,36 @@ if __name__ == '__main__':
     log_dir_path = os.path.abspath('./log')
     
     if args.action == 'main':
-        matrixes = [
-            'faithfulness',
-            'answer_relevancy',
-            'answer_similarity',
-            'answer_correctness',
-            'context_precision',
-            'context_utilization',
-            'context_recall',
-            'context_entity_recall'
+        dataset_names = [
+            f'gpt-4o-batch-all-target_one_TopP_retrieved_contexts_dataset_condition_2.jsonl'
         ]
-        for matrix_name in matrixes:
-            now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-            log_file_path = os.path.join(log_dir_path, f'{matrix_name}_condition_{condition}_{now}.log')
-            with open(log_file_path, 'w') as log_file:
-                subprocess.Popen(
-                    [sys.executable, __file__, '--condition', condition, '--matrix', matrix_name, '--now', now, '--action', 'thread'],
-                    stdout=log_file,
-                    stderr=log_file
-                )
+        for dataset_name in dataset_names:
+            matrixes = [
+                # 'faithfulness',
+                # 'answer_relevancy',
+                # 'answer_similarity',
+                # 'answer_correctness',
+                # 'context_precision',
+                'context_utilization',
+                # 'context_recall',
+                # 'context_entity_recall'
+            ]
+            for matrix_name in matrixes:
+                now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+                log_file_path = os.path.join(log_dir_path, f'{matrix_name}_condition_{condition}_{now}.log')
+                with open(log_file_path, 'w') as log_file:
+                    subprocess.Popen(
+                        [sys.executable, __file__, '--dataset_name', dataset_name, '--condition', condition, '--matrix', matrix_name, '--now', now, '--action', 'thread'],
+                        stdout=log_file,
+                        stderr=log_file
+                    )
     elif args.action == 'thread':
         condition = args.condition
         matrix_name = args.matrix
         now = args.now
-        save_file_name = f"{dataset_name.split('.')[0]}_{matrix_name}_{now}.csv"
+        save_file_name = f"{args.dataset_name.split('.')[0]}_{matrix_name}_{now}.csv"
         save_file_path = f'./score/{save_file_name}'
-        dataset = load_dataset_from_jsonl(os.path.join(dataset_dir_path, dataset_name))
+        dataset = load_dataset_from_jsonl(os.path.join(dataset_dir_path, args.dataset_name))
         
         if matrix_name == 'faithfulness':
             evaluation_with_metrics(dataset, faithfulness, save_file_path)
