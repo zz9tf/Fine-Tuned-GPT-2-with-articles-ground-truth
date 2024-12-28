@@ -38,20 +38,21 @@ if __name__ == '__main__':
             # Top k
             # 'gpt-4o-batch-all-target_one_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_document_retrieved_contexts_dataset_condition_2.jsonl',
-            'gpt-4o-batch-all-target_section_retrieved_contexts_dataset_condition_2.jsonl',
-            'gpt-4o-batch-all-target_paragraph_retrieved_contexts_dataset_condition_2.jsonl'
-            'gpt-4o-batch-all-target_multi-sentences_retrieved_contexts_dataset_condition_2.jsonl',
-            'gpt-4o-batch-all-target_predictor_top1_retrieved_contexts_dataset_condition_2.jsonl',
-            'gpt-4o-batch-all-target_predictor_top2_retrieved_contexts_dataset_condition_2.jsonl',
-            'gpt-4o-batch-all-target_predictor_over25_percent_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_section_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_paragraph_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_multi-sentences_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_predictor_top1_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_predictor_top2_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_predictor_top3_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_predictor_over25_percent_retrieved_contexts_dataset_condition_2.jsonl',
             # Top p
-            'gpt-4o-batch-all-target_one_TopP_retrieved_contexts_dataset_condition_2.jsonl',
-            'gpt-4o-batch-all-target_document_TopP_retrieved_contexts_dataset_condition_2.jsonl',
-            'gpt-4o-batch-all-target_section_TopP_retrieved_contexts_dataset_condition_2.jsonl',
-            'gpt-4o-batch-all-target_paragraph_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_one_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_document_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_section_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            'gpt-4o-batch-all-target_paragraph_TopP_retrieved_contexts_dataset_condition_2.jsonl',
             'gpt-4o-batch-all-target_multi-sentences_TopP_retrieved_contexts_dataset_condition_2',
-            'gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts_dataset_condition_2.jsonl',
-            'gpt-4o-batch-all-target_predictor_top1_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_predictor_top1_TopP_retrieved_contexts_dataset_condition_2.jsonl',
             'gpt-4o-batch-all-target_predictor_top2_TopP_retrieved_contexts_dataset_condition_2.jsonl',
         ]
         
@@ -80,24 +81,24 @@ if __name__ == '__main__':
                     )
                     processes.append((process, log_file_path, matrix_name, dataset_name, now))
                     log_file_paths.append(log_file_path)
-        while processes:
-            for process, log_file_path, matrix_name, dataset_name, now in processes[:]:
-                if process.poll() is not None:  # Process finished
-                    # Rename the log file
-                    renamed_log_file_path = os.path.join(
-                        log_dir_path, f'[done]{dataset_name.split(".")[0]}_{matrix_name}_{now}.log'
-                    )
-                    try:
-                        os.rename(log_file_path, renamed_log_file_path)
-                        print(f"Renamed log file: {renamed_log_file_path}")
-                    except PermissionError as e:
-                        print(f"Error renaming file {log_file_path}: {e}")
+            while processes:
+                for process, log_file_path, matrix_name, dataset_name, now in processes[:]:
+                    if process.poll() is not None:  # Process finished
+                        # Rename the log file
+                        renamed_log_file_path = os.path.join(
+                            log_dir_path, f'[done]{dataset_name.split(".")[0]}_{matrix_name}_{now}.log'
+                        )
+                        try:
+                            os.rename(log_file_path, renamed_log_file_path)
+                            print(f"Renamed log file: {renamed_log_file_path}")
+                        except PermissionError as e:
+                            print(f"Error renaming file {log_file_path}: {e}")
 
-                    # Remove the completed process from the list
-                    processes.remove((process, log_file_path, matrix_name, dataset_name, now))
-            
-            # Sleep briefly to avoid busy-waiting
-            time.sleep(1)
+                        # Remove the completed process from the list
+                        processes.remove((process, log_file_path, matrix_name, dataset_name, now))
+                
+                # Sleep briefly to avoid busy-waiting
+                time.sleep(1)
             
     elif args.action == 'thread':
         matrix_name = args.matrix

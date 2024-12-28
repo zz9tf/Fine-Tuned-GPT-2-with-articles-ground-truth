@@ -102,44 +102,45 @@ def get_quetions_groundtruth_contexts(
 
 def generate_answer_and_save_as_jsonl(llm_config, questions, ground_truths, contexts, save_path:str='./dataset.jsonl'):
     llm = get_llm(llm_config)
-    skip_num = 0
+    existing_data = {}
+    # Read the current file content into memory
     if os.path.exists(save_path):
-        with open(save_path, 'r') as existed_file:
-            for _ in existed_file:
-                skip_num += 1
-    
-    print(f'Start number: {skip_num}')
-                
-    save_file = open(save_path, 'a')
+        with open(save_path, 'r') as save_file:
+            for line in save_file:
+                existing_data[json.loads(line)['question']] = line
     
     # qa_prompt = old_gen_temp
     qa_prompt = Gen_Dataset_Temp.prompt_template
     parser = Gen_Dataset_Temp.parser
     
-    with tqdm(total=len(questions), desc="generating answer...") as pbar:
+    with open(save_path, 'w') as save_file, tqdm(total=len(questions), desc="Processing questions") as pbar:
         for id, (question, retrieved_contexts, ground_truth) in enumerate(zip(questions, contexts, ground_truths)):
-            if id < skip_num:
-                pbar.update(1)
-                continue
-            # Generate a response for each query
-            retrieved_contexts_str = "".join([f" {i+1}. {s}\n" for i, s in enumerate(retrieved_contexts)])
-            fmt_qa_prompt = qa_prompt.format(context_str=retrieved_contexts_str, query_str=question)
-            answer = llm.complete(fmt_qa_prompt).text.strip()
-            try:
-                obj = parser.parse(answer)
-                # Save the generated response to the JSONL file
-                data = {
-                    "question": question,
-                    "ground_truth": ground_truth,
-                    "answer": obj.Answer,
-                    # "answer": '',
-                    "contexts": retrieved_contexts
-                }
-                json.dump(data, save_file)
-                save_file.write("\n")
-            except:
-                print(f'[skip] {id}: {question}')
-                # print(answer)
+            if question in existing_data:
+                save_file.write(f"{existing_data[question]}")
+            else:
+                # Generate a response for each query
+                retrieved_contexts_str = "".join([f" {i+1}. {s}\n" for i, s in enumerate(retrieved_contexts)])
+                fmt_qa_prompt = qa_prompt.format(context_str=retrieved_contexts_str, query_str=question)
+                answer = llm.complete(fmt_qa_prompt).text.strip()
+                try:
+                    obj = parser.parse(answer)
+                    # Save the generated response to the JSONL file
+                    data = {
+                        "question": question,
+                        "ground_truth": ground_truth,
+                        "answer": obj.Answer,
+                        # "answer": '',
+                        "contexts": retrieved_contexts
+                    }
+                    json.dump(data, save_file)
+                    save_file.write("\n")
+                except:
+                    print(f'[skip] {id}: {question}')
+                    print(f'prompt: {fmt_qa_prompt}')
+                    print(f'answer: {answer}')
+                    print(obj)
+                    input()
+                    # print(answer)
             pbar.update(1)
     save_file.close()
 
@@ -155,25 +156,25 @@ if __name__ == '__main__':
     if args.action == 'main':
         retrieved_file_config = [
             # Top k
-            ['gpt-4o-batch-all-target_one_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_document_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_section_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_paragraph_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_multi-sentences_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_predictor_top1_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_predictor_top2_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_predictor_top3_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_predictor_over25_percent_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_one_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_document_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_section_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_paragraph_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_multi-sentences_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_predictor_top1_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_predictor_top2_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_predictor_top3_retrieved_contexts.jsonl', 2], #
+            # ['gpt-4o-batch-all-target_predictor_over25_percent_retrieved_contexts.jsonl', 2],
             # Top p
-            ['gpt-4o-batch-all-target_one_TopP_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_document_TopP_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_section_TopP_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_paragraph_TopP_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_multi-sentences_TopP_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_predictor_top1_TopP_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_predictor_top2_TopP_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_predictor_top3_TopP_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_one_TopP_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_document_TopP_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_section_TopP_retrieved_contexts.jsonl', 2],
+            ['gpt-4o-batch-all-target_paragraph_TopP_retrieved_contexts.jsonl', 2], #
+            # ['gpt-4o-batch-all-target_multi-sentences_TopP_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_predictor_top1_TopP_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_predictor_top2_TopP_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_predictor_top3_TopP_retrieved_contexts.jsonl', 2], #
+            # ['gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts.jsonl', 2],
         ]
         processes = []
         log_file_paths = []
