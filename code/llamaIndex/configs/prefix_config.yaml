@@ -1,4 +1,6 @@
 reader:
+  "WikipediaDocumentReader":
+    type: "WikipediaDocumentReader"
   "CustomDocumentReader":
     type: "CustomDocumentReader"
     config_file_path: "./code/llamaIndex/utils/config.json"
@@ -114,4 +116,12 @@ index_pipelines:
     - break: "-"
     - parser: "SentenceSplitter"
     - break: "-"
+    - storage: "simple"
+  "wikipedia":
+    - reader: "WikipediaDocumentReader"
+    - break: "-"
+    - parser: "ManuallyHierarchicalNodeParser"
+    - break: "force"
+    - extractor: "gpt-4o-QAExtractor-batch"
+    - break: "force"
     - storage: "simple"
