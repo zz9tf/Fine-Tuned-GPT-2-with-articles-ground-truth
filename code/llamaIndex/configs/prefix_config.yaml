@@ -117,7 +117,7 @@ index_pipelines:
     - parser: "SentenceSplitter"
     - break: "-"
     - storage: "simple"
-  "wikipedia":
+  "wikipedia-mal-rag":
     - reader: "WikipediaDocumentReader"
     - break: "-"
     - parser: "ManuallyHierarchicalNodeParser"

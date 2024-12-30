@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
 from typing import List
 import shutil
 from langdetect import detect
@@ -8,6 +10,7 @@ import xml.etree.ElementTree as ET
 from llama_index.core import Document
 from langdetect import detect
 from llama_index.core import SimpleDirectoryReader
+from component.reader.wikipedia_reader import WikipediaDumpReader
 
 def load_documents(data_path, config, cache_path=None):
     if config['type'] == 'SimpleDirectoryReader':
@@ -21,6 +24,10 @@ def load_documents(data_path, config, cache_path=None):
         nodes = CustomDocumentReader(
             input_dir=data_path,
             cache_dir=cache_path,
+        ).load_data()
+    elif config['type'] == 'WikipediaDocumentReader':
+        nodes = WikipediaDumpReader(
+            input_dir=data_path
         ).load_data()
     return nodes
 

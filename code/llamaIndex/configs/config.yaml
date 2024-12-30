@@ -1,14 +1,16 @@
 # indexes_dir_path: "./code/llamaIndex/database"
-indexes_dir_path: "../../../../home/zhengzheng/work/database_save"
+# indexes_dir_path: "../../../../home/zhengzheng/work/database_save"
+indexes_dir_path: "./code/llamaIndex/database"
 cache: "./code/llamaIndex/.cache"
 document_preprocessing:
-  data_dir_path: "./data"
+  data_dir_path: "../read_wikipedia/data"
   index_pipelines:
     # - "gpt-4o-batch-all-target"
-    - "sentence-splitter-rag"
+    # - "sentence-splitter-rag"
+    - "wikipedia-mal-rag"
 rag:
-  default_index: "test-ollama-based"
-  # default_index: null
+  # default_index: "test-ollama-based"
+  default_index: null
   # llm: "lmsys/vicuna-13b-v1.3"
   llm: "vicuna:13b"
   # llm: "gpt-4o"
