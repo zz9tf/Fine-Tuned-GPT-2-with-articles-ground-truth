@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 import csv
 import matplotlib.pyplot as plt
 import copy
-from datasets import load_from_disk
+from datasets import load_from_disk, concatenate_datasets
 from transformers import (
     IntervalStrategy,
     AutoTokenizer,
@@ -43,17 +43,17 @@ class CustomCallback(TrainerCallback):
             self._trainer.evaluate(eval_dataset=self._trainer.train_dataset, metric_key_prefix="train")
             return control_copy
 
-# def compute_metrics(eval_pred):
-#     logits, labels = eval_pred
-#     predictions = np.argmax(logits, axis=-1)  # Get the predicted class with the highest score
-#     accuracy = accuracy_score(labels, predictions)  # Calculate accuracy
-#     return {"accuracy": accuracy}
-
-def compute_metrics(eval_pred): # razent/SciFive-base-PMC
+def compute_metrics(eval_pred):
     logits, labels = eval_pred
-    predictions = np.argmax(logits[0], axis=-1)  # Get the predicted class with the highest score
+    predictions = np.argmax(logits, axis=-1)  # Get the predicted class with the highest score
     accuracy = accuracy_score(labels, predictions)  # Calculate accuracy
     return {"accuracy": accuracy}
+
+# def compute_metrics(eval_pred): # razent/SciFive-base-PMC
+#     logits, labels = eval_pred
+#     predictions = np.argmax(logits[0], axis=-1)  # Get the predicted class with the highest score
+#     accuracy = accuracy_score(labels, predictions)  # Calculate accuracy
+#     return {"accuracy": accuracy}
 
 def plot_save(csv_file_path, model_name):
     epochs = []
@@ -107,7 +107,7 @@ loaded_dataset_dict = load_from_disk(dataset_save_path)
 # ./scibert_scivocab_uncased_results/checkpoint-945  allenai/scibert_scivocab_uncased
 # ./SciFive-base-PMC_results/checkpoint-945  razent/SciFive-base-PMC
 
-model_name = "razent/SciFive-base-PMC"
+model_name = "allenai/scibert_scivocab_uncased"
 tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir='/home/zhengzheng/work/.hf_cache')
 
 # Tokenize dataset
@@ -129,8 +129,8 @@ model = AutoModelForSequenceClassification.from_pretrained(model_name, num_label
 total_param_num = 0
 def isSkip(name):
     # for part in ["classifier"]: # distilbert-base-uncased
-    # for part in ["classifier", "bert.pooler"]: # scibert_scivocab_uncased
-    for part in ["transformer.decoder.final_layer_norm", "classification"]: # SciFive-base-PMC
+    for part in ["classifier", "bert.pooler"]: # scibert_scivocab_uncased
+    # for part in ["transformer.decoder.final_layer_norm", "classification"]: # SciFive-base-PMC
         if part in name:
             return True
     return False
@@ -151,7 +151,7 @@ training_args = TrainingArguments(
     output_dir=f"./{model_name.split('/')[-1]}_results",
     eval_strategy=mode,
     save_strategy=mode,
-    save_total_limit=5,
+    save_total_limit=1,
     learning_rate=5e-4,
     per_device_train_batch_size=32,
     per_device_eval_batch_size=32,
@@ -188,6 +188,7 @@ trainer = Trainer(
 trainer.add_callback(CustomCallback(trainer, record)) 
 
 trainer.train()
+print("Best model path:", trainer.state.best_model_checkpoint)
 
 # After training, you can inspect the `record` variable to see the logged results
 # Define the CSV file path
@@ -213,9 +214,11 @@ with open(csv_file_path, mode='w', newline='') as file:
 print(f"Training and evaluation logs saved to {csv_file_path}")
 plot_save(csv_file_path, model_name.split('/')[-1])
 
-
-eval_output = trainer.predict(tokenized_dataset_dict["valid"])
-predictions = np.argmax(eval_output.predictions[0], axis=-1)  # Predicted labels
+merged_dataset = concatenate_datasets([dataset for dataset in tokenized_dataset_dict.values()])
+# eval_output = trainer.predict(tokenized_dataset_dict["valid"])
+eval_output = trainer.predict(merged_dataset)
+# predictions = np.argmax(eval_output.predictions[0], axis=-1)  # Predicted labels
+predictions = np.argmax(eval_output.predictions, axis=-1)  # Predicted labels
 true_labels = eval_output.label_ids  # True labels
 # Plot the confusion matrix
 def plot_confusion_matrix(true_labels, predictions, class_names, save_path, save_file_path, ids):

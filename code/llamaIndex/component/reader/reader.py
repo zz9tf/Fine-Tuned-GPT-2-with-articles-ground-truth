@@ -27,7 +27,10 @@ def load_documents(data_path, config, cache_path=None):
         ).load_data()
     elif config['type'] == 'WikipediaDocumentReader':
         nodes = WikipediaDumpReader(
-            input_dir=data_path
+            input_dir=data_path,
+            cache_dir=cache_path,
+            worker=config.get('worker', 5),
+            pages_per_batch=config.get('pages_per_batch', 100)
         ).load_data()
     return nodes
 
@@ -159,7 +162,7 @@ class CustomDocumentReader:
             file_dict['file_name'] = filename.replace('grobid.tei.xml', 'pdf')
             if len(file_dict['sections']) == 0:
                 print(f"[documetn reader] Detect invalided document with no sections {file_dict['file_name']}")
-            elif detect(paper_content):
+            else:
                 file_document = Document(
                     text=paper_content,
                     metadata=file_dict
