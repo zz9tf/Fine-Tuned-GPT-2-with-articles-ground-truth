@@ -163,18 +163,20 @@ if __name__ == '__main__':
             # ['gpt-4o-batch-all-target_multi-sentences_retrieved_contexts.jsonl', 2],
             # ['gpt-4o-batch-all-target_predictor_top1_retrieved_contexts.jsonl', 2],
             # ['gpt-4o-batch-all-target_predictor_top2_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_predictor_top3_retrieved_contexts.jsonl', 2], #
+            # ['gpt-4o-batch-all-target_predictor_top3_retrieved_contexts.jsonl', 2], #
             # ['gpt-4o-batch-all-target_predictor_over25_percent_retrieved_contexts.jsonl', 2],
             # Top p
             # ['gpt-4o-batch-all-target_one_TopP_retrieved_contexts.jsonl', 2],
             # ['gpt-4o-batch-all-target_document_TopP_retrieved_contexts.jsonl', 2],
             # ['gpt-4o-batch-all-target_section_TopP_retrieved_contexts.jsonl', 2],
-            ['gpt-4o-batch-all-target_paragraph_TopP_retrieved_contexts.jsonl', 2], #
+            # ['gpt-4o-batch-all-target_paragraph_TopP_retrieved_contexts.jsonl', 2], #
             # ['gpt-4o-batch-all-target_multi-sentences_TopP_retrieved_contexts.jsonl', 2],
             # ['gpt-4o-batch-all-target_predictor_top1_TopP_retrieved_contexts.jsonl', 2],
             # ['gpt-4o-batch-all-target_predictor_top2_TopP_retrieved_contexts.jsonl', 2],
             # ['gpt-4o-batch-all-target_predictor_top3_TopP_retrieved_contexts.jsonl', 2], #
             # ['gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts.jsonl', 2],
+            # Retrival with predictor strategy
+            ['gpt-4o-batch-all-target_predictor_top2_depending_on_similarity_retrieved_contexts.jsonl', 2],
         ]
         processes = []
         log_file_paths = []
