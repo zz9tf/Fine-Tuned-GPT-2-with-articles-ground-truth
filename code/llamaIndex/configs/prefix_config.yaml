@@ -3,7 +3,7 @@ reader:
     type: "WikipediaDocumentReader"
     save_cache: False
     worker: 10
-    pages_per_batch: 5000000
+    pages_per_batch: 500000
   "CustomDocumentReader":
     type: "CustomDocumentReader"
     config_file_path: "./code/llamaIndex/utils/config.json"
