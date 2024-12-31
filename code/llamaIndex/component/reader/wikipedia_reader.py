@@ -217,6 +217,7 @@ class WikipediaDumpReader():
         page_num = 0
         current_batch = []
         all_batches = []
+        update_len = 0
         
         # Load all batches
         with open(input_file_path, 'r') as input_file:
@@ -240,16 +241,25 @@ class WikipediaDumpReader():
                         page_num += 1
                         raw_page = None
                         end_page = False
-                    pbar.set_postfix_str(f"page {page_num}")
-                    pbar.update(len(line))
+                    if update_len > 1e7:
+                        pbar.set_postfix_str(f"page {page_num}")
+                        pbar.update(update_len)
+                        update_len = 0
+                    else:
+                        update_len += len(line)
         # If there are remaining pages in the last batch, add them
         if current_batch:
             all_batches.append(current_batch)
 
         # Write to disk using a ThreadPool for parallel processing of batches
         with ThreadPool(self.worker) as pool:
-            for batch_id in pool.imap(lambda batch: self._write_to_disk(batch_id, batch), all_batches):
-                pass  # Just process and write to disk, no need to collect results
+            # Wrap the pool.imap with tqdm to display a progress bar
+            for batch_id, _ in tqdm(enumerate(pool.imap(
+                lambda batch: self._write_to_disk(batch_id, batch), all_batches)), 
+                total=len(all_batches), desc='Processing Batches'
+            ):
+                pass  # Just process the batch without collecting results
+            
     
     def remove_duplicate_documents(self, documents):
         unique_document = []
