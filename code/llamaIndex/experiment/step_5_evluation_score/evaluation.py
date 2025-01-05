@@ -43,6 +43,7 @@ if __name__ == '__main__':
             # 'gpt-4o-batch-all-target_multi-sentences_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_top1_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_top2_retrieved_contexts_dataset_condition_2.jsonl',
+            'top2_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_top3_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_over25_percent_retrieved_contexts_dataset_condition_2.jsonl',
             # Top p
@@ -50,10 +51,12 @@ if __name__ == '__main__':
             # 'gpt-4o-batch-all-target_document_TopP_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_section_TopP_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_paragraph_TopP_retrieved_contexts_dataset_condition_2.jsonl',
-            'gpt-4o-batch-all-target_multi-sentences_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            # 'gpt-4o-batch-all-target_multi-sentences_TopP_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_top1_TopP_retrieved_contexts_dataset_condition_2.jsonl',
-            # 'gpt-4o-batch-all-target_predictor_top2_TopP_retrieved_contexts_dataset_condition_2.jsonl',
+            'top2_topp_condition_2.jsonl',
+            # Retrieve strategy
+            # 'top2_similarity.jsonl',
         ]
         
         processes = []
@@ -61,13 +64,13 @@ if __name__ == '__main__':
         
         for dataset_name in dataset_names:
             matrixes = [
-                # 'faithfulness',
-                # 'answer_relevancy',
-                # 'answer_similarity',
-                # 'answer_correctness',
-                # 'context_precision',
-                # 'context_utilization',
-                # 'context_recall',
+                'faithfulness',
+                'answer_relevancy',
+                'answer_similarity',
+                'answer_correctness',
+                'context_precision',
+                'context_utilization',
+                'context_recall',
                 'context_entity_recall'
             ]
             for matrix_name in matrixes:
