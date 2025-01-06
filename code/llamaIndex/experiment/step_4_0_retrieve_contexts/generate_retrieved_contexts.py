@@ -28,7 +28,7 @@ def load_args():
     parser.add_argument('--index_dir', type=str, default=None, help='The index id dir name')
     parser.add_argument('--retrieved_mode', type=str, default=None, help='The retrieved_mode to be used in retrieve')
     parser.add_argument('--top_k', type=str, default=None, help='The top_k similarities to be retrieved')
-    parser.add_argument('--need_level', type=bool, default=True, help='If apply multiple level mode or not')
+    parser.add_argument('--need_level', type=lambda x: x.lower() == 'true', default=True, help='If apply multiple level mode or not')
 
     return parser.parse_args()
 
@@ -76,7 +76,8 @@ def _get_retrievers(need_level, levels, chroma_db_name, database_dir):
         retrievers[None] = {
                 'retriever': get_chroma_retriever_from_storage(db_path, chroma_db_name, retriever_kwargs),
                 'db_path': db_path
-        } 
+        }
+    return retrievers
 
 def _count_start_line_number(save_path):
     # Count start number
@@ -154,7 +155,7 @@ def generate_retrieved_node_cache(
                     pbar.update(1)
     os.rename(save_path,  os.path.join(save_dir, f"{cache_prefix}_{chroma_db_name}.jsonl"))
 
-def _merge_rank_info_from_different_files(filenames, cache_dir, need_level):
+def _merge_rank_info_from_different_files(filenames, cache_dir):
     rank_info_dict = {}
     
     with tqdm(total=len(filenames), desc='loading ...') as pbar:
@@ -166,16 +167,10 @@ def _merge_rank_info_from_different_files(filenames, cache_dir, need_level):
                 if data['question_node_id'] not in rank_info_dict:
                     rank_info_dict[data['question_node_id']] = {}
                 if data['question_id'] not in rank_info_dict[data['question_node_id']]:
-                    if need_level:
-                        rank_info_dict[data['question_node_id']][data['question_id']] = {
-                            level:[]
-                            for level in ['document', 'section', 'paragraph', 'multi-sentences']
-                        }
-                    else:
-                        rank_info_dict[data['question_node_id']][data['question_id']] = {
-                            None:[]
-                        }
+                    rank_info_dict[data['question_node_id']][data['question_id']] = {}
                 for level in data['node_rank_info']:
+                    if level not in rank_info_dict[data['question_node_id']][data['question_id']]:
+                        rank_info_dict[data['question_node_id']][data['question_id']][level] = []
                     rank_info_dict[data['question_node_id']][data['question_id']][level].extend(data['node_rank_info'][level])
             pbar.update(1)
             input_file.close()
@@ -195,12 +190,12 @@ def _shrink_to_top_k(rank_info_dict):
                         vectors[rank_info_of_one['db_path']] = ChromaVectorStore(chroma_collection=chroma_collection)
     return vectors
 
-def get_rank_info_dict_and_vectors(prefix, cache_dir='./.cache', need_level=True):
+def get_rank_info_dict_and_vectors(prefix, cache_dir='./.cache'):
     
     filenames = [filename for filename in os.listdir(cache_dir) if prefix in filename]
     filenames.sort(key=lambda x: int(x.split('_')[-2]))
     # merge top k results from different files
-    rank_info_dict = _merge_rank_info_from_different_files(filenames, cache_dir, need_level)
+    rank_info_dict = _merge_rank_info_from_different_files(filenames, cache_dir)
 
     # Select top k results
     vectors = _shrink_to_top_k(rank_info_dict)
@@ -652,7 +647,7 @@ if __name__ == "__main__":
         'mode': 'default',
         'similarity_top_k': int(args.top_k) if args.top_k else args.top_k,
         "probability_threshold": 0.5,
-        'model_path': '../step_3_level_predictor/scibert_scivocab_uncased_results/checkpoint-285'
+        'model_path': '../step_3_level_predictor/scibert_scivocab_uncased_results/checkpoint-180'
         # 'worker': None
     }
     
@@ -666,7 +661,7 @@ if __name__ == "__main__":
             # ['gpt-4o-batch-all-target', 'multi-sentences', '10', True],
             # ['gpt-4o-batch-all-target', 'all-level', '10', True],            
             # ['gpt-4o-batch-all-target', 'predictor_top1', '10', True],
-            # ['gpt-4o-batch-all-target', 'predictor_top2', '10', True],
+            ['gpt-4o-batch-all-target', 'predictor_top2', '10', True],
             # ['gpt-4o-batch-all-target', 'predictor_top3', '10', True],
             # ['gpt-4o-batch-all-target', 'predictor_over25_percent', '10', True],
             # Top P
@@ -681,9 +676,9 @@ if __name__ == "__main__":
             # ['gpt-4o-batch-all-target', 'predictor_top3_TopP', '10', True],
             # ['gpt-4o-batch-all-target', 'predictor_over25_percent_TopP', '10', True],
             # Better strategies with predictor
-            ['gpt-4o-batch-all-target', 'predictor_top2_depending_on_similarity', '10', True],
+            # ['gpt-4o-batch-all-target', 'predictor_top2_depending_on_similarity', '10', True],
             # Other dataset
-            # ['sentence-splitter-rag', 'one', '10', False]
+            ['sentence-splitter-rag', 'one', '10', False]
         ]
         
         for (index_dir, retrieved_mode, top_k, need_level) in configs:
@@ -694,7 +689,7 @@ if __name__ == "__main__":
                 index_ids = check_nonstart_cache_file_without_level(index_dir, save_dir, notIncludeNotFinishCache)
 
             # TODO: comment here
-            index_ids = index_ids[:4]
+            # index_ids = index_ids[:4]
             
             if len(index_ids) > 0:
                 for index_id in index_ids:
@@ -725,6 +720,7 @@ if __name__ == "__main__":
         index_id = args.index_id
         index_dir_path = os.path.abspath(f'../../database/{args.index_dir}')
         retrieved_mode = args.retrieved_mode
+
         generate_retrieved_node_cache(
             question_nodes_path=question_nodes_path,
             database_dir=index_dir_path,

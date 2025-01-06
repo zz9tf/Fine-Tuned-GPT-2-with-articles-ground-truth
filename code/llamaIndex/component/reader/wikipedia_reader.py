@@ -102,7 +102,8 @@ class WikipediaDumpReader():
     
     def _clean_text(self, raw_text):
         cleaned_text = html.unescape(raw_text)
-        cleaned_text = re.sub(r'\{\{.*?\}\}', '', raw_text, flags=re.DOTALL)
+        cleaned_text = re.sub(r".*}}", "", raw_text, count=1, flags=re.DOTALL)
+        cleaned_text = re.sub(r'\{\{.*?\}\}', '', cleaned_text, flags=re.DOTALL)
         cleaned_text = re.sub(r"'''(.*?)'''", r'\1', cleaned_text)
         cleaned_text = re.sub(r'\[\[(?:[^\]|]+\|)?([^\]]+)\]\]', r'\1', cleaned_text)
         return cleaned_text
@@ -128,6 +129,8 @@ class WikipediaDumpReader():
         return abstract, print_str
 
     def _read_page(self, page):
+        if page['title'].lower().startswith('file:'):
+            return None, None, ''
         file_dict = {}
         print_str = ""
         file_dict['title'] = page['title']
@@ -167,6 +170,17 @@ class WikipediaDumpReader():
                     assert old_section_title is not None, 'old_section_title shouldn\'t be None'
                     paper_content += f'{section_content}\n\n'
                     file_dict['sections'][old_section_title] = [start, len(paper_content)-2]
+        
+        # Keys to remove
+        keys_to_remove = ['references', 'external links', 'see also', 'further reading']
+
+        # Remove keys safely
+        for key in keys_to_remove:
+            # Use a case-insensitive comparison to find the key
+            matched_key = next((k for k in file_dict if k.lower() == key.lower()), None)
+            if matched_key:
+                file_dict.pop(matched_key)
+        
         if len(file_dict['sections']) == 0:
             print_str += f"[documetn reader] Detect invalided document with no sections {page['title']}\n{page['raw_page']}\n"
             return None, None, print_str
@@ -241,14 +255,19 @@ class WikipediaDumpReader():
                     for line in cache_file:
                         data = json.loads(line)
                         current_batch.append(data['page'])
+                pbar.update(1)
+                
                 batch_id = int(filename.split('.')[0].split('_')[-1])
                 all_batches.append([batch_id, current_batch])
                 if len(all_batches) >= 10:
+                    pbar.set_postfix_str(
+                        f"extracting documents {no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents) if len(documents) != 0 else 0)*100:.2f}%"
+                    )
                     with ThreadPool(self.worker) as pool:
                         for batch_documents, batch_no_abstract_num, print_str in pool.imap(
                             lambda x: self._process_batch(x[0], x[1]), all_batches
                         ):
-                            print(print_str)
+                            # print(print_str)
                             documents.extend(batch_documents)
                             no_abstract_num += batch_no_abstract_num
                     
@@ -262,6 +281,9 @@ class WikipediaDumpReader():
             all_batches.append([batch_id, current_batch])
             
         if len(all_batches) > 0:
+            pbar.set_postfix_str(
+                f"extracting documents {no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents))*100:.2f}%"
+            )
             with ThreadPool(self.worker) as pool:
                 for batch_documents, batch_no_abstract_num, print_str in pool.imap(
                     lambda x: self._process_batch(x[0], x[1]), all_batches
@@ -270,9 +292,11 @@ class WikipediaDumpReader():
                     documents.extend(batch_documents)
                     no_abstract_num += batch_no_abstract_num
                 
-                pbar.set_postfix_str(
-                    f"{batch_no_abstract_num}/{len(documents)}  {(batch_no_abstract_num/len(documents))*100:.2f}%"
-                )
+            pbar.set_postfix_str(
+                f"{batch_no_abstract_num}/{len(documents)}  {(batch_no_abstract_num/len(documents))*100:.2f}%"
+            )
+                
+        return documents
 
 if __name__ == '__main__':
     root_path = '../../..'
