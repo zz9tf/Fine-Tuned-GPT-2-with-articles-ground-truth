@@ -6,7 +6,7 @@
 #SBATCH --qos=low
 #SBATCH --time=24:00:00
 #SBATCH --output=/scratch0/zhengzheng/projects/Fine-Tuned-GPT-2-with-articles-ground-truth-main/code/llamaIndex/component/process_wikipedia.out
-#SBATCH --cpus-per-task=40
+#SBATCH --cpus-per-task=80
 
 # Set up env
 source ~/.bashrc

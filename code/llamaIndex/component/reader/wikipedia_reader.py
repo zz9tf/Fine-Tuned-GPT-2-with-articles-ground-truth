@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
 from tqdm import tqdm
 import re
 import json
@@ -10,6 +12,7 @@ from xml.etree.ElementTree import XMLPullParser
 from typing import List
 import html
 from multiprocessing.pool import ThreadPool
+from component.io import save_nodes_jsonl
 
 class WikipediaDumpReader():
     def __init__(
@@ -207,7 +210,7 @@ class WikipediaDumpReader():
         no_abstract_num = 0
         print_str = f"Start batch id: {batch_id}\n"
 
-        for raw_page in page_chunk:
+        for raw_page in tqdm(page_chunk, desc=f'reading page chunk {batch_id}'):
             page = self._go_over_string_element(raw_page)
             if page:
                 document, no_abstract, page_print_str = self._read_page(page)
@@ -258,24 +261,26 @@ class WikipediaDumpReader():
                 pbar.update(1)
                 
                 batch_id = int(filename.split('.')[0].split('_')[-1])
-                all_batches.append([batch_id, current_batch])
-                if len(all_batches) >= 10:
-                    pbar.set_postfix_str(
-                        f"extracting documents {no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents) if len(documents) != 0 else 0)*100:.2f}%"
-                    )
-                    with ThreadPool(self.worker) as pool:
-                        for batch_documents, batch_no_abstract_num, print_str in pool.imap(
-                            lambda x: self._process_batch(x[0], x[1]), all_batches
-                        ):
-                            # print(print_str)
-                            documents.extend(batch_documents)
-                            no_abstract_num += batch_no_abstract_num
+                documents = self._process_batch(batch_id, current_batch)
+                save_nodes_jsonl(os.path.join(self.cache_dir, f'finished_chunk_{batch_id}.jsonl'), documents)
+                # all_batches.append([batch_id, current_batch])
+                # if len(all_batches) >= 10:
+                #     pbar.set_postfix_str(
+                #         f"extracting documents {no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents) if len(documents) != 0 else 0)*100:.2f}%"
+                #     )
+                #     with ThreadPool(self.worker) as pool:
+                #         for batch_documents, batch_no_abstract_num, print_str in pool.imap(
+                #             lambda x: self._process_batch(x[0], x[1]), all_batches
+                #         ):
+                #             # print(print_str)
+                #             documents.extend(batch_documents)
+                #             no_abstract_num += batch_no_abstract_num
                     
-                    pbar.set_postfix_str(
-                        f"{no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents))*100:.2f}%"
-                    )
+                #     pbar.set_postfix_str(
+                #         f"{no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents))*100:.2f}%"
+                #     )
                     
-                    all_batches = []
+                    # all_batches = []
         
         if current_batch:
             all_batches.append([batch_id, current_batch])
