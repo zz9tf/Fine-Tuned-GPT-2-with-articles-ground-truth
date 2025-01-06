@@ -176,7 +176,9 @@ if __name__ == '__main__':
             # ['gpt-4o-batch-all-target_predictor_top3_TopP_retrieved_contexts.jsonl', 2], #
             # ['gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts.jsonl', 2],
             # Retrival with predictor strategy
-            ['gpt-4o-batch-all-target_predictor_top2_depending_on_similarity_retrieved_contexts.jsonl', 2],
+            # ['gpt-4o-batch-all-target_predictor_top2_depending_on_similarity_retrieved_contexts.jsonl', 2],
+            # native rag
+            ['sentence-splitter-rag_one_retrieved_contexts.jsonl', 3],
         ]
         processes = []
         log_file_paths = []

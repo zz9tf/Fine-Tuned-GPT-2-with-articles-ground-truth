@@ -43,7 +43,7 @@ if __name__ == '__main__':
             # 'gpt-4o-batch-all-target_multi-sentences_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_top1_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_top2_retrieved_contexts_dataset_condition_2.jsonl',
-            'top2_condition_2.jsonl',
+            # 'top2_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_top3_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_over25_percent_retrieved_contexts_dataset_condition_2.jsonl',
             # Top p
@@ -54,9 +54,11 @@ if __name__ == '__main__':
             # 'gpt-4o-batch-all-target_multi-sentences_TopP_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_over25_percent_TopP_retrieved_contexts_dataset_condition_2.jsonl',
             # 'gpt-4o-batch-all-target_predictor_top1_TopP_retrieved_contexts_dataset_condition_2.jsonl',
-            'top2_topp_condition_2.jsonl',
+            # 'top2_topp_condition_2.jsonl',
             # Retrieve strategy
             # 'top2_similarity.jsonl',
+            # native rag
+            'native_rag_condition_3.jsonl',
         ]
         
         processes = []
