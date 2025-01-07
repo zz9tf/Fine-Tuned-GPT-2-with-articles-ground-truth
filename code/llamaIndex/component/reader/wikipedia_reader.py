@@ -13,6 +13,7 @@ from typing import List
 import html
 from multiprocessing.pool import ThreadPool
 from component.io import save_nodes_jsonl
+from llama_index.core.schema import TextNode
 
 class WikipediaDumpReader():
     def __init__(
@@ -103,24 +104,73 @@ class WikipediaDumpReader():
                 return True
         return False
     
+    def _remove_braces_content(self, text):
+        stack = []
+        result = []
+        for char in text:
+            if char == '{':
+                # Push the current length of result onto the stack to remember where the brace started
+                stack.append(len(result))
+            elif char == '}':
+                start = stack.pop()
+            else:
+                # Append character to the result only if not within braces
+                if len(stack) == 0:
+                    result.append(char)
+        
+        # Join the result back into a string
+        return ''.join(result)
+
+    def _remove_square_brackets(self, text):
+        square_stack = []
+        result = []
+        i = 0
+
+        while i < len(text):
+            char = text[i]
+
+            if char == '[' and i + 1 < len(text) and text[i + 1] == '[':
+                # Start of a square bracket block
+                square_stack.append(len(result))  # Save the position in result
+                i += 1  # Skip the second '['
+            elif char == ']' and i + 1 < len(text) and text[i + 1] == ']':
+                # End of a square bracket block
+                start = square_stack.pop()
+                block_content = ''.join(result[start:])
+                if '|' in block_content:
+                    # Keep only the content after '|' for other cases
+                    keep_content = block_content.split('|')[-1]
+                    result = result[:start] + list(keep_content)
+                i += 1  # Skip the second ']'
+            else:
+                # Add the character to the result if not within brackets or after processing
+                result.append(char)
+            i += 1
+
+        return ''.join(result)
+
     def _clean_text(self, raw_text):
         cleaned_text = html.unescape(raw_text)
-        cleaned_text = re.sub(r".*}}", "", raw_text, count=1, flags=re.DOTALL)
-        cleaned_text = re.sub(r'\{\{.*?\}\}', '', cleaned_text, flags=re.DOTALL)
+        # Remove <ref> tag without greedy
+        cleaned_text = re.sub(r'<ref>.*</ref>', '', cleaned_text, flags=re.DOTALL)
+        cleaned_text = re.sub(r'<ref.*/>', '', cleaned_text, flags=re.DOTALL)
+        # Remove { }
+        cleaned_text = self._remove_braces_content(cleaned_text)
+        # Remove <!-- ... -->
+        cleaned_text = re.sub(r'<!--.*?-->', '', cleaned_text, flags=re.DOTALL)
+        # Remove ''' '''
         cleaned_text = re.sub(r"'''(.*?)'''", r'\1', cleaned_text)
-        cleaned_text = re.sub(r'\[\[(?:[^\]|]+\|)?([^\]]+)\]\]', r'\1', cleaned_text)
+        # Remove [[ | target]] -> target
+        cleaned_text = self._remove_square_brackets(cleaned_text)
+        cleaned_text = cleaned_text.strip() + '\n'
+        
         return cleaned_text
-
+    
     def _get_abstract(self, text, title, raw_text):
         # Split the text into lines
         abstract = []
         print_str = ""
-        for line in text.split('\n'):
-            line = line.strip()
-            if line.startswith("{{") and line.endswith("}}"):
-                continue
-            abstract.append(line)
-        abstract = self._clean_text("".join(abstract))
+        abstract = self._clean_text(text)
         if len(abstract) <= 0:
         #     print(raw_text[:10000])
         #     print(">>>>>>>>>>>>>>>")
@@ -132,7 +182,7 @@ class WikipediaDumpReader():
         return abstract, print_str
 
     def _read_page(self, page):
-        if page['title'].lower().startswith('file:'):
+        if page['title'].lower().startswith('file:') or page['title'].lower().startswith('category:'):
             return None, None, ''
         file_dict = {}
         print_str = ""
@@ -145,44 +195,45 @@ class WikipediaDumpReader():
         
         raw_sections = re.split(r'(?m)^==\s*', page_text)
         old_section_title = None
-        no_abstract = False
-        for i, section in enumerate(raw_sections):
-            if i == 0:
-                # Process abstract
-                abstract, abstract_print_str = self._get_abstract(section, page['title'], page['raw_page'])
-                print_str += abstract_print_str
-                old_section_title = 'abstract'
-                if len(abstract) > 0:
-                    paper_content += f'{abstract}\n\n'
-                    file_dict['sections']['abstract'] = [start, len(paper_content)-2]
+        current_section = ""
+        # Get abstract
+        abstract, abstract_print_str = self._get_abstract(raw_sections[0], page['title'], page['raw_page'])
+        print_str += abstract_print_str
+        old_section_title = 'abstract'
+        if len(abstract) > 0:
+            current_section = f'{abstract}\n'
+        
+        should_skip = False
+        
+        for section in raw_sections[1:]:
+            # Process body
+            lines = section.split('\n')
+            section_title = lines[0].strip('= ')
+            section_content = self._clean_text("\n".join(lines[1:]))
+            if not section.startswith('='):
+                # Update accumulated contents
+                if len(current_section.strip()) > 0:
+                    paper_content += current_section
+                    file_dict['sections'][old_section_title] = [start, len(paper_content)-1]
+                    current_section = ""
+                # Skip the content when the title is not very useful
+                if section_title.lower() in ['references', 'external links', 'see also', 'further reading', 'literature and sources']:
+                    should_skip = True
                 else:
-                    no_abstract = True
-            else:
-                # Process body
-                lines = section.split('\n')
-                section_title = lines[0].strip('= ')
-                section_content = self._clean_text("\n".join(lines[1:]))
-                if not section.startswith('='):
-                    assert old_section_title == 'abstract' or len(file_dict['sections'][old_section_title]) > 0,\
-                        f"No section at title {page['title']} with section {old_section_title}\n{file_dict['sections'][old_section_title]}"
+                    should_skip = False
+                    # update status
                     old_section_title = section_title
                     start = len(paper_content)
-                    paper_content += f'{section_content}\n\n'
-                    file_dict['sections'][section_title] = [start, len(paper_content)-2]
-                else:
-                    assert old_section_title is not None, 'old_section_title shouldn\'t be None'
-                    paper_content += f'{section_content}\n\n'
-                    file_dict['sections'][old_section_title] = [start, len(paper_content)-2]
+                    current_section = f'{section_content}\n'
+            elif not should_skip:
+                assert old_section_title is not None, 'old_section_title shouldn\'t be None'
+                current_section += f'{section_content}\n'
         
-        # Keys to remove
-        keys_to_remove = ['references', 'external links', 'see also', 'further reading']
-
-        # Remove keys safely
-        for key in keys_to_remove:
-            # Use a case-insensitive comparison to find the key
-            matched_key = next((k for k in file_dict if k.lower() == key.lower()), None)
-            if matched_key:
-                file_dict.pop(matched_key)
+        # Update accumulated contents
+        if len(current_section.strip()) > 0:
+            paper_content += current_section
+            file_dict['sections'][old_section_title] = [start, len(paper_content)-1]
+            current_section = ""
         
         if len(file_dict['sections']) == 0:
             print_str += f"[documetn reader] Detect invalided document with no sections {page['title']}\n{page['raw_page']}\n"
@@ -192,7 +243,7 @@ class WikipediaDumpReader():
                 text=paper_content,
                 metadata=file_dict
             )
-            return file_document, no_abstract, print_str
+            return file_document, 'abstract' not in file_dict, print_str
         
     def _go_over_string_element(self, xml_data):
         # Parse the string as a file-like object
@@ -205,14 +256,15 @@ class WikipediaDumpReader():
         
         return {'title': title, 'text': text, 'raw_page': xml_data}
         
-    def _process_batch(self, batch_id, page_chunk):
+    def _process_batch(self, batch_id, page_chunk, break_num=None):
+        break_num = len(page_chunk) if break_num is None else break_num
         documents = []
         no_abstract_num = 0
         print_str = f"Start batch id: {batch_id}\n"
 
-        for raw_page in tqdm(page_chunk, desc=f'reading page chunk {batch_id}'):
+        for raw_page in tqdm(page_chunk[:break_num], desc=f'reading page chunk {batch_id}'):
             page = self._go_over_string_element(raw_page)
-            if page:
+            if page and len(page['text']) > 500:
                 document, no_abstract, page_print_str = self._read_page(page)
                 print_str += page_print_str
                 if document:
@@ -244,12 +296,16 @@ class WikipediaDumpReader():
     def load_data(self):
         if not self._processed_xml():
             self._parse_files()
-        filenames = [filename for filename in os.listdir(self.cache_dir) if 'raw_page' in filename]
+        filenames = [filename for filename in os.listdir(self.cache_dir) if 'raw_page' in filename][:4]
+        for filename in os.listdir(self.cache_dir):
+            if 'finished_chunk' in filename:
+                remove_name = f"raw_page_{filename.split('_')[-1]}"
+                filenames.remove(remove_name)
         filenames.sort(key=lambda x: int(x.split('.')[0].split('_')[-1]))
         
-        all_batches = []
-        documents = []
+        # all_batches = []
         no_abstract_num = 0
+        document_num = 0
         
         with tqdm(total=len(filenames), desc="process file") as pbar:
             for filename in filenames:
@@ -261,8 +317,16 @@ class WikipediaDumpReader():
                 pbar.update(1)
                 
                 batch_id = int(filename.split('.')[0].split('_')[-1])
-                documents = self._process_batch(batch_id, current_batch)
+                documents, batch_no_abstract_num, print_str = self._process_batch(batch_id, current_batch, break_num=100)
                 save_nodes_jsonl(os.path.join(self.cache_dir, f'finished_chunk_{batch_id}.jsonl'), documents)
+                
+                no_abstract_num += batch_no_abstract_num
+                document_num += len(documents)
+                
+                pbar.set_postfix_str(
+                    f"{no_abstract_num}/{document_num}  {(no_abstract_num/document_num)*100:.2f}%"
+                )
+                
                 # all_batches.append([batch_id, current_batch])
                 # if len(all_batches) >= 10:
                 #     pbar.set_postfix_str(
@@ -282,25 +346,41 @@ class WikipediaDumpReader():
                     
                     # all_batches = []
         
-        if current_batch:
-            all_batches.append([batch_id, current_batch])
+        # if current_batch:
+        #     all_batches.append([batch_id, current_batch])
             
-        if len(all_batches) > 0:
-            pbar.set_postfix_str(
-                f"extracting documents {no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents))*100:.2f}%"
-            )
-            with ThreadPool(self.worker) as pool:
-                for batch_documents, batch_no_abstract_num, print_str in pool.imap(
-                    lambda x: self._process_batch(x[0], x[1]), all_batches
-                ):
-                    print(print_str)
-                    documents.extend(batch_documents)
-                    no_abstract_num += batch_no_abstract_num
+        # if len(all_batches) > 0:
+        #     pbar.set_postfix_str(
+        #         f"extracting documents {no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents))*100:.2f}%"
+        #     )
+        #     with ThreadPool(self.worker) as pool:
+        #         for batch_documents, batch_no_abstract_num, print_str in pool.imap(
+        #             lambda x: self._process_batch(x[0], x[1]), all_batches
+        #         ):
+        #             print(print_str)
+        #             documents.extend(batch_documents)
+        #             no_abstract_num += batch_no_abstract_num
                 
-            pbar.set_postfix_str(
-                f"{batch_no_abstract_num}/{len(documents)}  {(batch_no_abstract_num/len(documents))*100:.2f}%"
-            )
-                
+        #     pbar.set_postfix_str(
+        #         f"{batch_no_abstract_num}/{len(documents)}  {(batch_no_abstract_num/len(documents))*100:.2f}%"
+        #     )
+
+        documents = []
+        filenames = [filename for filename in os.listdir(self.cache_dir) if 'finished_chunk' in filename]
+        filenames.sort(key=lambda x: int(x.split('.')[0].split('_')[-1]))
+        for filename in filenames:
+                with open(os.path.join(self.cache_dir, filename), 'r', encoding='utf-8') as input_file:
+                    file_size = os.path.getsize(os.path.join(self.cache_dir, filename))
+                    with tqdm(total=file_size, desc=f'merging {filename}...', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+                        for i, line in enumerate(input_file):
+                            try:
+                                node_data = json.loads(line)
+                                node = TextNode.from_dict(node_data)
+                                documents.append(node)
+                                pbar.update(len(line))
+                            except:
+                                print(i, line)
+        
         return documents
 
 if __name__ == '__main__':
