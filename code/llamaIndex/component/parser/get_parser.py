@@ -7,6 +7,7 @@ from llama_index.core.node_parser import (
     HierarchicalNodeParser
 )
 from component.parser.custom_hierarchical_node_parser import CustomHierarchicalNodeParser
+from component.parser.multiple_abstract_level_node_parser import MultipleAbstractLevelNodeParser
 from component.parser.manually_parser import ManuallyParser
 
 def get_parser(config, llm_config=None, embedding_config=None, **kwargs):
@@ -24,6 +25,11 @@ def get_parser(config, llm_config=None, embedding_config=None, **kwargs):
         )
     elif config['type'] == 'CustomHierarchicalNodeParser':
         return CustomHierarchicalNodeParser.from_defaults(
+            llm_config=llm_config,
+            embedding_config=embedding_config
+        )
+    elif config['type'] == 'MultipleAbstractLevelNodeParser':
+        return MultipleAbstractLevelNodeParser.from_defaults(
             llm_config=llm_config,
             embedding_config=embedding_config
         )

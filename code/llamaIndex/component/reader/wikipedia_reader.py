@@ -462,7 +462,6 @@ if __name__ == '__main__':
     reader = WikipediaDumpReader(input_dir, cache_dir, reader_config['worker'], reader_config['pages_per_batch'])
     
     args = load_args()
-    args.action = 'merge'
     if args.action == 'main':
         cpu_num = 10
         python_file_name = 'wikipedia_reader.py'
@@ -523,16 +522,14 @@ if __name__ == '__main__':
         filenames = [filename for filename in os.listdir(reader.cache_dir) if 'finished_chunk' in filename]
         filenames.sort(key=lambda x: int(x.split('.')[0].split('_')[-1]))
         save_path = os.path.join(reader.cache_dir, f'final.jsonl')
+        save_file = open(save_path, 'w')
         for filename in filenames:
             with open(os.path.join(reader.cache_dir, filename), 'r', encoding='utf-8') as input_file:
                 file_size = os.path.getsize(os.path.join(reader.cache_dir, filename))
                 with tqdm(total=file_size, desc=f'merging {filename}...', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
-                    for i, line in enumerate(input_file):
-                        try:
-                            node_data = json.loads(line)
-                            node = TextNode.from_dict(node_data)
-                            documents.append(node)
-                            pbar.update(len(line))
-                        except:
-                            print(i, line)
+                    for line in input_file:
+                        save_file.write(line)
+                        pbar.update(len(line))
+                        
+        save_file.close()
         

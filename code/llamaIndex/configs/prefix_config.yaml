@@ -17,23 +17,20 @@ parser:
     type: "SentenceSplitter"
     chunk_size: 512
     chunk_overlap: 20
-    retriever: "BaseRetriever"
   "HierarchicalNodeParser":
     type: "HierarchicalNodeParser"
     chunk_size: [2048, 512, 128]
-    retriever: "AutoMergingRetriever"
   "CustomHierarchicalNodeParser-ollama_vicuna_13b":
     type: "CustomHierarchicalNodeParser"
-    retriever: "AutoMergingRetriever"
     llm: "vicuna:13b"
   "CustomHierarchicalNodeParser-hf_vicuna_13b":
     type: "CustomHierarchicalNodeParser"
-    retriever: "AutoMergingRetriever"
     llm: "lmsys/vicuna-13b-v1.5"
     embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
   "ManuallyHierarchicalNodeParser":
     type: "ManuallyHierarchicalNodeParser"
-    retriever: "AutoMergingRetriever"
+  "MALNodeParser-hf_vicuna_13b":
+    type: "MultipleAbstractLevelNodeParser"
     llm: "lmsys/vicuna-13b-v1.5"
     embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
 extractor:
