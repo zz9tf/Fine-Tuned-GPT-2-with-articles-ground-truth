@@ -1,7 +1,6 @@
 #!/bin/bash
 
 #SBATCH --account=guest
-#SBATCH --email=
 #SBATCH --partition=guest-compute
 #SBATCH --job-name=process_wikipedia
 #SBATCH --qos=low

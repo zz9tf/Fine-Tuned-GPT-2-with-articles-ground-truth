@@ -14,6 +14,9 @@ import html
 from multiprocessing.pool import ThreadPool
 from component.io import save_nodes_jsonl
 from llama_index.core.schema import TextNode
+import argparse
+from utils.generate_and_execute_slurm_job import generate_and_execute_slurm_job
+from configs.load_config import load_configs
 
 class WikipediaDumpReader():
     def __init__(
@@ -104,19 +107,78 @@ class WikipediaDumpReader():
                 return True
         return False
     
+    def _remove_self_closing_ref(self, text):
+        """
+        Removes <ref /> self-closing tags.
+        """
+        result = []
+        i = 0
+        
+        while i < len(text):
+            # Check for the beginning of a self-closing <ref /> tag
+            if text[i:i+4] == '<ref' and '/>' in text[i+4:]:
+                end_idx = text.find('>', i)
+                if text[end_idx - 1] == '/':  # Confirm it's self-closing
+                    i = end_idx + 1  # Skip the entire self-closing tag
+                else:
+                    result.append(text[i])
+                    i += 1
+            else:
+                result.append(text[i])
+                i += 1
+        
+        return ''.join(result)
+
+    def _remove_ref_with_content(self, text):
+        """
+        Removes <ref*?.>...</ref> tags using a stack.
+        """
+        stack = []
+        result = []
+        i = 0
+        
+        while i < len(text):
+            # Check for opening <ref> tag
+            if text[i:i+4] == '<ref' and '>' in text[i+4:]:
+                stack.append(i)  # Push position of opening tag onto stack
+                i += 4  # Skip the opening tag
+            # Check for closing </ref> tag
+            elif text[i:i+6] == '</ref>' and len(stack) > 0:
+                stack.pop()  # Pop the last opening tag position
+                i += 6  # Skip the closing tag
+            elif len(stack) == 0:
+                result.append(text[i])  # Add to result if not inside a <ref ...>...</ref> block
+                i += 1
+            else:
+                i += 1  # Skip characters within the <ref>...</ref> block
+        
+        return ''.join(result)
+
     def _remove_braces_content(self, text):
         stack = []
         result = []
-        for char in text:
-            if char == '{':
+        i = 0
+
+        while i < len(text):
+            char = text[i]
+            if char == '{' and i + 1 < len(text) and text[i + 1] == '{':
                 # Push the current length of result onto the stack to remember where the brace started
                 stack.append(len(result))
-            elif char == '}':
+                i += 1  # Skip the second '{'
+            elif char == '}' and i + 1 < len(text) and text[i + 1] == '}' and len(stack) > 0:
                 start = stack.pop()
+                block_content = ''.join(result[start:])
+                if '|' in block_content and len(block_content.split('|')) == 2 and block_content[0] == 'Blockquote':
+                    # Keep only the content is only two part splitted by '|'
+                    keep_content = block_content.split('|')[1]
+                    result = result[:start] + list(keep_content)
+                else:
+                    result = result[:start]
+                i += 1  # Skip the second '}'
             else:
                 # Append character to the result only if not within braces
-                if len(stack) == 0:
-                    result.append(char)
+                result.append(char)
+            i += 1
         
         # Join the result back into a string
         return ''.join(result)
@@ -133,7 +195,7 @@ class WikipediaDumpReader():
                 # Start of a square bracket block
                 square_stack.append(len(result))  # Save the position in result
                 i += 1  # Skip the second '['
-            elif char == ']' and i + 1 < len(text) and text[i + 1] == ']':
+            elif char == ']' and i + 1 < len(text) and text[i + 1] == ']' and len(square_stack) > 0:
                 # End of a square bracket block
                 start = square_stack.pop()
                 block_content = ''.join(result[start:])
@@ -152,14 +214,19 @@ class WikipediaDumpReader():
     def _clean_text(self, raw_text):
         cleaned_text = html.unescape(raw_text)
         # Remove <ref> tag without greedy
-        cleaned_text = re.sub(r'<ref>.*</ref>', '', cleaned_text, flags=re.DOTALL)
-        cleaned_text = re.sub(r'<ref.*/>', '', cleaned_text, flags=re.DOTALL)
+        cleaned_text = self._remove_self_closing_ref(cleaned_text)
+        # Remove <ref /> tag without greedy
+        cleaned_text = self._remove_ref_with_content(cleaned_text)
         # Remove { }
         cleaned_text = self._remove_braces_content(cleaned_text)
         # Remove <!-- ... -->
         cleaned_text = re.sub(r'<!--.*?-->', '', cleaned_text, flags=re.DOTALL)
         # Remove ''' '''
-        cleaned_text = re.sub(r"'''(.*?)'''", r'\1', cleaned_text)
+        cleaned_text = re.sub(
+            r"('{3,})(.*?)(\1)",  # Match balanced quotes
+            lambda m: m.group(2) if len(m.group(1)) == len(m.group(3)) else m.group(0),
+            cleaned_text
+        )
         # Remove [[ | target]] -> target
         cleaned_text = self._remove_square_brackets(cleaned_text)
         cleaned_text = cleaned_text.strip() + '\n'
@@ -243,7 +310,7 @@ class WikipediaDumpReader():
                 text=paper_content,
                 metadata=file_dict
             )
-            return file_document, 'abstract' not in file_dict, print_str
+            return file_document, 'abstract' not in file_dict['sections'], print_str
         
     def _go_over_string_element(self, xml_data):
         # Parse the string as a file-like object
@@ -264,7 +331,7 @@ class WikipediaDumpReader():
 
         for raw_page in tqdm(page_chunk[:break_num], desc=f'reading page chunk {batch_id}'):
             page = self._go_over_string_element(raw_page)
-            if page and len(page['text']) > 500:
+            if page and len(page['text']) > 250:
                 document, no_abstract, page_print_str = self._read_page(page)
                 print_str += page_print_str
                 if document:
@@ -296,74 +363,41 @@ class WikipediaDumpReader():
     def load_data(self):
         if not self._processed_xml():
             self._parse_files()
-        filenames = [filename for filename in os.listdir(self.cache_dir) if 'raw_page' in filename][:4]
+        
+        filenames = [filename for filename in os.listdir(self.cache_dir) if 'raw_page' in filename]
         for filename in os.listdir(self.cache_dir):
             if 'finished_chunk' in filename:
                 remove_name = f"raw_page_{filename.split('_')[-1]}"
                 filenames.remove(remove_name)
         filenames.sort(key=lambda x: int(x.split('.')[0].split('_')[-1]))
         
-        # all_batches = []
-        no_abstract_num = 0
-        document_num = 0
-        
-        with tqdm(total=len(filenames), desc="process file") as pbar:
-            for filename in filenames:
-                current_batch = []
-                with open(os.path.join(self.cache_dir, filename), 'r') as cache_file:
-                    for line in cache_file:
-                        data = json.loads(line)
-                        current_batch.append(data['page'])
-                pbar.update(1)
-                
-                batch_id = int(filename.split('.')[0].split('_')[-1])
-                documents, batch_no_abstract_num, print_str = self._process_batch(batch_id, current_batch, break_num=100)
-                save_nodes_jsonl(os.path.join(self.cache_dir, f'finished_chunk_{batch_id}.jsonl'), documents)
-                
-                no_abstract_num += batch_no_abstract_num
-                document_num += len(documents)
-                
-                pbar.set_postfix_str(
-                    f"{no_abstract_num}/{document_num}  {(no_abstract_num/document_num)*100:.2f}%"
-                )
-                
-                # all_batches.append([batch_id, current_batch])
-                # if len(all_batches) >= 10:
-                #     pbar.set_postfix_str(
-                #         f"extracting documents {no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents) if len(documents) != 0 else 0)*100:.2f}%"
-                #     )
-                #     with ThreadPool(self.worker) as pool:
-                #         for batch_documents, batch_no_abstract_num, print_str in pool.imap(
-                #             lambda x: self._process_batch(x[0], x[1]), all_batches
-                #         ):
-                #             # print(print_str)
-                #             documents.extend(batch_documents)
-                #             no_abstract_num += batch_no_abstract_num
-                    
-                #     pbar.set_postfix_str(
-                #         f"{no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents))*100:.2f}%"
-                #     )
-                    
-                    # all_batches = []
-        
-        # if current_batch:
-        #     all_batches.append([batch_id, current_batch])
+        if len(filenames) > 0:
+            # TODO: comment [:4]
+            # filenames = filenames[:4]
             
-        # if len(all_batches) > 0:
-        #     pbar.set_postfix_str(
-        #         f"extracting documents {no_abstract_num}/{len(documents)}  {(no_abstract_num/len(documents))*100:.2f}%"
-        #     )
-        #     with ThreadPool(self.worker) as pool:
-        #         for batch_documents, batch_no_abstract_num, print_str in pool.imap(
-        #             lambda x: self._process_batch(x[0], x[1]), all_batches
-        #         ):
-        #             print(print_str)
-        #             documents.extend(batch_documents)
-        #             no_abstract_num += batch_no_abstract_num
-                
-        #     pbar.set_postfix_str(
-        #         f"{batch_no_abstract_num}/{len(documents)}  {(batch_no_abstract_num/len(documents))*100:.2f}%"
-        #     )
+            no_abstract_num = 0
+            document_num = 0
+            
+            with tqdm(total=len(filenames), desc="process file") as pbar:
+                for filename in filenames:
+                    current_batch = []
+                    with open(os.path.join(self.cache_dir, filename), 'r') as cache_file:
+                        for line in cache_file:
+                            data = json.loads(line)
+                            current_batch.append(data['page'])
+                    pbar.update(1)
+                    
+                    batch_id = int(filename.split('.')[0].split('_')[-1])
+                    # TODO: remove break number
+                    documents, batch_no_abstract_num, print_str = self._process_batch(batch_id, current_batch)
+                    save_nodes_jsonl(os.path.join(self.cache_dir, f'finished_chunk_{batch_id}.jsonl'), documents)
+                    
+                    no_abstract_num += batch_no_abstract_num
+                    document_num += len(documents)
+                    
+                    pbar.set_postfix_str(
+                        f"{no_abstract_num}/{document_num}  {(no_abstract_num/document_num)*100:.2f}%"
+                    )
 
         documents = []
         filenames = [filename for filename in os.listdir(self.cache_dir) if 'finished_chunk' in filename]
@@ -382,10 +416,123 @@ class WikipediaDumpReader():
                                 print(i, line)
         
         return documents
+        
+def load_args():
+    """Parse and return command-line arguments."""
+    parser = argparse.ArgumentParser(description="Create chromadbs.")
+    parser.add_argument('--action', type=str, default='main', help='The action to preprocess wikipedia dump')
+    parser.add_argument('--pid', type=str, default=None, help='The PID of the subtask to preprocess wikipedia dump')
+    parser.add_argument('--filename', type=str, default=None, help='The filename that the subtask to preprocess')
+
+    return parser.parse_args()
+
+def submit_job(
+    script_path: str,
+    cpu_num: str,
+    filename: str,
+    python_file_name: str,
+    action: str
+):
+    """Submit a job to Slurm and return the job ID."""
+    pid = int(filename.split('.')[0].split('_')[-1])
+    
+    job_name = f'wiki_{pid}'
+    log_file_path = os.path.abspath(os.path.join(script_path, 'out/{job_name}.out'))
+    script_path = os.path.abspath(os.path.join(script_path, 'execute/execute.sh'))
+    job_name = generate_and_execute_slurm_job(
+            python_start_script=f"{python_file_name} --action {action} --pid {pid} --filename {filename}",
+            account="guest",
+            partition="guest-compute",
+            job_name=job_name,
+            qos='low',
+            time="24:00:00",
+            num=cpu_num,
+            log_file_path=log_file_path,
+            script_path=script_path
+        )
+    print(f"[PID: {pid}] is submitted!")
+    return job_name
 
 if __name__ == '__main__':
-    root_path = '../../..'
-    input_path = os.path.abspath(os.path.join(root_path, './data'))
-    output_path = os.path.abspath(os.path.join(root_path, './code/llamaIndex/.cache'))
-    WikipediaDumpReader(input_path, output_path).load_data()
+    root_path = '../../../..'
+    input_dir = '/scratch0/zhengzheng/projects/read_wikipedia/data'
+    cache_dir = os.path.abspath(os.path.join(root_path, './code/llamaIndex/.cache'))
+    _, prefix_config = load_configs()
+    reader_config = prefix_config['reader']['WikipediaDocumentReader']
+    reader = WikipediaDumpReader(input_dir, cache_dir, reader_config['worker'], reader_config['pages_per_batch'])
     
+    args = load_args()
+    args.action = 'merge'
+    if args.action == 'main':
+        cpu_num = 10
+        python_file_name = 'wikipedia_reader.py'
+        
+        if not reader._processed_xml():
+            reader._parse_files()
+        
+        filenames = [filename for filename in os.listdir(reader.cache_dir) if 'raw_page' in filename]
+        for filename in os.listdir(reader.cache_dir):
+            if 'finished_chunk' in filename:
+                remove_name = f"raw_page_{filename.split('_')[-1]}"
+                filenames.remove(remove_name)
+        filenames.sort(key=lambda x: int(x.split('.')[0].split('_')[-1]))
+        
+        if len(filenames) == 0:
+            documents = []
+            filenames = [filename for filename in os.listdir(reader.cache_dir) if 'finished_chunk' in filename]
+            filenames.sort(key=lambda x: int(x.split('.')[0].split('_')[-1]))
+            for filename in filenames:
+                with open(os.path.join(reader.cache_dir, filename), 'r', encoding='utf-8') as input_file:
+                    file_size = os.path.getsize(os.path.join(reader.cache_dir, filename))
+                    with tqdm(total=file_size, desc=f'merging {filename}...', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+                        for i, line in enumerate(input_file):
+                            try:
+                                node_data = json.loads(line)
+                                node = TextNode.from_dict(node_data)
+                                documents.append(node)
+                                pbar.update(len(line))
+                            except:
+                                print(i, line)
+            save_nodes_jsonl(os.path.join(reader.cache_dir, f'final.jsonl'), documents)
+            
+        else:
+            for filename in filenames:
+                submit_job(
+                    script_path=os.getcwd(),
+                    cpu_num=cpu_num,
+                    filename=filename,
+                    python_file_name=python_file_name,
+                    action='thread'
+                )
+    elif args.action == 'thread':
+        current_batch = []
+        file_size = os.path.getsize(os.path.join(reader.cache_dir, args.filename))
+        with tqdm(total=file_size, desc=f'loading {args.filename}...', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+            with open(os.path.join(reader.cache_dir, args.filename), 'r') as cache_file:
+                for line in cache_file:
+                    data = json.loads(line)
+                    current_batch.append(data['page'])
+                    pbar.update(len(line))
+        documents, batch_no_abstract_num, print_str = reader._process_batch(args.pid, current_batch)
+        save_nodes_jsonl(os.path.join(reader.cache_dir, f'finished_chunk_{args.pid}.jsonl'), documents)
+        print(f"{batch_no_abstract_num}/{len(documents)}  {(batch_no_abstract_num/len(documents))*100:.2f}%")
+    
+    
+    elif args.action == 'merge':
+        documents = []
+        filenames = [filename for filename in os.listdir(reader.cache_dir) if 'finished_chunk' in filename]
+        filenames.sort(key=lambda x: int(x.split('.')[0].split('_')[-1]))
+        save_path = os.path.join(reader.cache_dir, f'final.jsonl')
+        for filename in filenames:
+            with open(os.path.join(reader.cache_dir, filename), 'r', encoding='utf-8') as input_file:
+                file_size = os.path.getsize(os.path.join(reader.cache_dir, filename))
+                with tqdm(total=file_size, desc=f'merging {filename}...', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+                    for i, line in enumerate(input_file):
+                        try:
+                            node_data = json.loads(line)
+                            node = TextNode.from_dict(node_data)
+                            documents.append(node)
+                            pbar.update(len(line))
+                        except:
+                            print(i, line)
+        
