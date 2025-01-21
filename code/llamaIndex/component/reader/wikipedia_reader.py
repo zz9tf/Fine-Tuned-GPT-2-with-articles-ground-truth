@@ -83,7 +83,9 @@ class WikipediaDumpReader():
                         with ThreadPool(self.worker) as pool, tqdm(total=len(all_batches), desc="process batches") as pbar:
                             # Wrap the pool.imap with tqdm to display a progress bar
                             for _ in pool.imap(lambda x: self._write_to_disk(x[0], x[1]), all_batches):
-                                pbar.update(1)  # Update the progress bar for each processed batch
+                                pass
+                        pbar.update(len(all_batches))
+                        exit()
                         all_batches = []
         # If there are remaining pages in the last batch, add them
         if current_batch:
@@ -512,7 +514,7 @@ if __name__ == '__main__':
                     data = json.loads(line)
                     current_batch.append(data['page'])
                     pbar.update(len(line))
-        documents, batch_no_abstract_num, print_str = reader._process_batch(args.pid, current_batch)
+        documents, batch_no_abstract_num, print_str = reader._process_batch(args.pid, current_batch, 100)
         save_nodes_jsonl(os.path.join(reader.cache_dir, f'finished_chunk_{args.pid}.jsonl'), documents)
         print(f"{batch_no_abstract_num}/{len(documents)}  {(batch_no_abstract_num/len(documents))*100:.2f}%")
     

@@ -37,7 +37,7 @@ def main():
     
     if args.from_source == 'AutoModelForCausalLM':
         AutoTokenizer.from_pretrained(repo_name, cache_dir=save_dir_path)
-        model = AutoModelForCausalLM.from_pretrained(repo_name, cahe_dir=save_dir_path)
+        model = AutoModelForCausalLM.from_pretrained(repo_name, cache_dir=save_dir_path)
     elif args.from_source == 'SentenceTransformer':
         model = SentenceTransformer(repo_name, cache_folder=save_dir_path)[0]
     elif args.from_source == 'AutoModel':

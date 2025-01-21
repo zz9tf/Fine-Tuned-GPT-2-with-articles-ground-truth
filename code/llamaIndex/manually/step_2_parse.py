@@ -114,7 +114,7 @@ if __name__ == '__main__':
     elif args.action == 'thread':
         # Load configs
         config, prefix_config = load_configs()
-        parser_config = prefix_config['parser']['MALNodeParser-hf_vicuna_13b']
+        parser_config = prefix_config['parser']['MALNodeParser-hf_vicuna_7b']
         llm_config = prefix_config['llm'][parser_config['llm']]
         embedding_config = prefix_config['embedding_model'][parser_config['embedding_model']]
         

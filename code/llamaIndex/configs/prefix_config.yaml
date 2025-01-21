@@ -29,10 +29,10 @@ parser:
     embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
   "ManuallyHierarchicalNodeParser":
     type: "ManuallyHierarchicalNodeParser"
-  "MALNodeParser-hf_vicuna_13b":
+  "MALNodeParser-hf_vicuna_7b":
     type: "MultipleAbstractLevelNodeParser"
-    llm: "lmsys/vicuna-13b-v1.5"
-    embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
+    llm: "lmsys/vicuna-7b-v1.5"
+    embedding_model: "dunzhang/stella_en_1.5B_v5"
 extractor:
   "vicuna-13b-QAExtractor-hf":
     name: "vicuna-13b-QAExtractor"
@@ -74,6 +74,10 @@ embedding_model:
     name: "fonshartendorp/dutch_biomedical_entity_linking"
     cache_dir: "/work/zhengzheng/.hf_cache"
 llm:
+  "lmsys/vicuna-7b-v1.5":
+    based_on: "huggingface"
+    model_name: "lmsys/vicuna-7b-v1.5"
+    cache_dir: "/work/zhengzheng/.hf_cache"
   "lmsys/vicuna-13b-v1.5":
     based_on: "huggingface"
     model_name: "lmsys/vicuna-13b-v1.5"
