@@ -32,7 +32,7 @@ parser:
   "MALNodeParser-hf_vicuna_7b":
     type: "MultipleAbstractLevelNodeParser"
     llm: "lmsys/vicuna-7b-v1.5"
-    embedding_model: "dunzhang/stella_en_1.5B_v5"
+    embedding_model: "dunzhang/stella_en_400M_v5"
 extractor:
   "vicuna-13b-QAExtractor-hf":
     name: "vicuna-13b-QAExtractor"
@@ -65,9 +65,9 @@ embedding_model:
   "ollama-sfr-embedding-mistral":
     based_on: "ollama"
     name: "sammcj/sfr-embedding-mistral:Q4_K_M"
-  "dunzhang/stella_en_1.5B_v5":
+  "dunzhang/stella_en_400M_v5":
     based_on: "huggingface"
-    name: "dunzhang/stella_en_1.5B_v5"
+    name: "dunzhang/stella_en_400M_v5"
     cache_dir: "/work/zhengzheng/.hf_cache"
   "fonshartendorp/dutch_biomedical_entity_linking":
     based_on: "huggingface"

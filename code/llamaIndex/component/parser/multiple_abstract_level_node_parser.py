@@ -92,12 +92,12 @@ class MultipleAbstractLevelNodeParser():
             include_metadata=False, 
             include_prev_next_rel=False
         )
-        force_splitter = SentenceSplitter(
-            chunk_size=400, 
-            chunk_overlap=20, 
-            include_metadata=False, 
-            include_prev_next_rel=False
-        )
+        # force_splitter = SentenceSplitter(
+        #     chunk_size=400, 
+        #     chunk_overlap=20, 
+        #     include_metadata=False, 
+        #     include_prev_next_rel=False
+        # )
         for p in section.split('\n'):
             if len(p.strip()) == 0:
                 continue

@@ -34,7 +34,8 @@ def submit_job(
     log_file_path = os.path.abspath(os.path.join(script_path, 'out/{job_name}.out'))
     script_path = os.path.abspath(os.path.join(script_path, 'execute/execute.sh'))
     generate_and_execute_slurm_job(
-        python_start_script=f"{python_file_name} --input_file {input_file} --action thread --pid {pid}",
+        # python_start_script=f"{python_file_name} --input_file {input_file} --action thread --pid {pid}",
+        python_start_script=f"{python_file_name} --input_file {input_file} --action rand_select_thread --pid {pid}",
         job_name=job_name,
         gpu=gpu,
         num=gn,
@@ -125,6 +126,6 @@ if __name__ == '__main__':
             llm_config=llm_config,
             embedding_config=embedding_config
         )
-        
+    
     # elif args.action == 'merge':
     #     merge(cache_path)

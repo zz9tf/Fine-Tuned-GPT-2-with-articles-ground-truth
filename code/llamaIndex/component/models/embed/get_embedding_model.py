@@ -9,8 +9,8 @@ def get_embedding_model(embedding_config, device=None):
     if embedding_config["based_on"] == 'huggingface':
         if embedding_config['name'] == 'Linq-AI-Research/Linq-Embed-Mistral':
             return LinqEmbedMistral(embedding_config=embedding_config, device=device)
-    elif embedding_config["based_on"] == 'dunzhang/stella_en_400M_v5':
-        return StellaEn400MV5(embedding_config=embedding_config, device=device)
+        elif embedding_config["name"] == 'dunzhang/stella_en_400M_v5':
+            return StellaEn400MV5(embedding_config=embedding_config, device=device)
     elif embedding_config["based_on"] == 'ollama':
         return OllamaEmbed(embedding_config=embedding_config, device=device)
     

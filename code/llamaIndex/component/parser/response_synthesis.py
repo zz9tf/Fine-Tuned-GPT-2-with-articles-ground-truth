@@ -140,6 +140,6 @@ class TreeSummarize():
             responses.append(response)
 
         response_txt = self.combine_results([r.text.strip() for r in responses], 1)
-        response_txt = self.refine_response(response_txt)
+        # response_txt = self.refine_response(response_txt)
 
         return response_txt, self.prompt_records
