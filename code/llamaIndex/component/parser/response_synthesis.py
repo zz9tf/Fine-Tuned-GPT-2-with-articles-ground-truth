@@ -69,7 +69,7 @@ class TreeSummarize():
                 try:
                     response = self.llm.complete(fmt_qa_prompt)
                 except Exception as e:
-                    print(f"text: {len(text_batch)}\nquery_str: {len(self.query_str)}\nprompt: {len(fmt_qa_prompt)}")
+                    print(f"text: {len(''.join(text_batch))}\ntext batch number: {len(text_batch)}\nquery_str: {len(self.query_str)}\nprompt: {len(fmt_qa_prompt)}")
                     print()
                     print(e)
                     exit()
@@ -78,7 +78,7 @@ class TreeSummarize():
             gc.collect()
             responses.append(response)
         
-        new_texts = [r.text.strip() for r in responses]
+        new_texts = [r.strip() for r in responses]
 
         assert len(new_texts) != 0, "[Wrong] Invalid combine results that the length of new_texts is 0"
 
@@ -109,7 +109,7 @@ class TreeSummarize():
         Combine num_children nodes hierarchically until we get one root node.
 
         """
-        print(f"texts: \n{texts}")
+        # print(f"texts: \n{texts}")
         assert len(texts) > 0, "[Wrong] Invalid texts with length 0"
         self.num_children = num_children
         self.prompt_records[0] = []
@@ -132,14 +132,14 @@ class TreeSummarize():
                     print(f"text: {len(text)}\nquery_str: {len(self.query_str)}\nprompt: {len(fmt_qa_prompt)}")
                     print(fmt_qa_prompt)
                     print()
-                    print(e)
+                    print(f'error message: {e}')
                     exit()
                 
             torch.cuda.empty_cache()
             gc.collect()
             responses.append(response)
 
-        response_txt = self.combine_results([r.text.strip() for r in responses], 1)
+        response_txt = self.combine_results([r.strip() for r in responses], 1)
         # response_txt = self.refine_response(response_txt)
 
         return response_txt, self.prompt_records

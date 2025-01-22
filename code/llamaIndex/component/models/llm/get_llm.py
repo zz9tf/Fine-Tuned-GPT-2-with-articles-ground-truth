@@ -6,7 +6,8 @@ from transformers import BitsAndBytesConfig
 from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI as llama_index_openai
 from component.schema import LLMTemplate
-from component.models.llm.custom_huggingface_LLM import CustomHuggingFaceLLM
+# from component.models.llm.custom_huggingface_LLM import CustomHuggingFaceLLM
+from component.models.llm.custom_llm import SampleLLM
 
 def get_llm(llm_config, device=None):
     if llm_config['based_on'] == "ollama":
@@ -22,17 +23,17 @@ def get_llm(llm_config, device=None):
             # bnb_4bit_use_double_quant=True,
         )
 
-        llm = CustomHuggingFaceLLM(
+        llm = SampleLLM(
             model_name=llm_config['model_name'],
             model_kwargs={
                 "quantization_config": quantization_config,
-                "cache_dir": llm_config['cache_dir'],
-                "local_files_only": True
+                # "cache_dir": llm_config['cache_dir'],
+                # "local_files_only": True
             },
             tokenizer_name=llm_config['model_name'],
             tokenizer_kwargs={
-                "cache_dir": llm_config['cache_dir'],
-                "local_files_only": True
+                # "cache_dir": llm_config['cache_dir'],
+                # "local_files_only": True
             },
             query_wrapper_prompt=LLMTemplate.tmpl,
             max_new_tokens=4096,

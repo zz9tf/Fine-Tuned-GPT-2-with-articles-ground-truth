@@ -48,9 +48,9 @@ class StellaEn400MV5(BaseEmbedding):
         
         vector_linear_dict = {
             k.replace("linear.", ""): v for k, v in
-            torch.load(os.path.join(
-                linear_vector_dir, 'pytorch_model.bin'
-            )).items()
+            torch.load(
+                '/workspace/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/component/models/embed/pytorch_model.bin'
+            ).items()
         }
         
         self._vector_linear.load_state_dict(vector_linear_dict)

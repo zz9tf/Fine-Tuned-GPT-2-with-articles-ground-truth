@@ -232,28 +232,37 @@ class MultipleAbstractLevelNodeParser():
             and nodes[i - 1].source_node
             and nodes[i - 1].source_node.node_id == node.source_node.node_id
         ):
-            node.relationships[NodeRelationship.PREVIOUS] = {
+            relationships = node.metadata.get('relationships', {})
+            relationships[NodeRelationship.PREVIOUS] = {
                 'node_id': [nodes[i - 1].node_id]
             }
+            node.metadata['relationships'] = relationships
         if (
             i < len(nodes) - 1
             and node.source_node
             and nodes[i + 1].source_node
             and nodes[i + 1].source_node.node_id == node.source_node.node_id
         ):
-            node.relationships[NodeRelationship.NEXT] = {
-                'node_id': [nodes[i - 1].node_id]
+            relationships = node.metadata.get('relationships', {})
+            relationships[NodeRelationship.NEXT]= {
+                'node_id': [nodes[i + 1].node_id]
             }
+            node.metadata['relationships'] = relationships
 
     def _add_parent_child_relationship(self, child: BaseNode, parent: BaseNode) -> None:
         """Add parent/child relationship between nodes."""
-        child_list = parent.relationships.get(NodeRelationship.CHILD, {'node_id': []})
+        parent_relationships = parent.metadata.get('relationships', {})
+        child_list = parent_relationships.get(NodeRelationship.CHILD, {'node_id': []})
         child_list['node_id'].append(child.node_id)
 
-        parent.relationships[NodeRelationship.CHILD] = child_list
-        child.relationships[NodeRelationship.PARENT] = {
+        parent_relationships[NodeRelationship.CHILD] = child_list
+        parent.metadata['relationships'] = parent_relationships
+        
+        child_relationships = child.metadata.get('relationships', {})
+        child_relationships[NodeRelationship.PARENT] = {
             'node_id': [parent.node_id]
         }
+        child.metadata['relationships'] = child_relationships
 
     def _get_section_nodes_from_document_node(
         self,
@@ -267,7 +276,7 @@ class MultipleAbstractLevelNodeParser():
 
         # Get all section nodes
         all_nodes: List[BaseNode] = build_nodes_from_splits(
-            result_dict["summaries"], document_node, id_func=self.id_func
+            result_dict["summaries"], document_node
         )
 
         # Update section nodes attributions
@@ -399,10 +408,16 @@ class MultipleAbstractLevelNodeParser():
             with tqdm(total=file_size, desc='Loading cache...', unit='B', unit_scale=True, unit_divisor=1024) as pbar:
                 for line in cache_file:
                     node_dict = json.loads(line)
-                    node = TextNode.from_dict(node_dict)
-                    self._level2nodes[node.metadata['level']].append(node)
-                    # Update progress bar based on bytes read
-                    pbar.update(len(line))
+                    try:
+                        node = TextNode.from_dict(node_dict)
+                        self._level2nodes[node.metadata['level']].append(node)
+                        # Update progress bar based on bytes read
+                        pbar.update(len(line))
+                    except Exception as e:
+                        print(node_dict)
+                        print()
+                        print(e)
+                        exit()
 
     def _init_get_nodes_from_documents(self, documents):
         # init attributions

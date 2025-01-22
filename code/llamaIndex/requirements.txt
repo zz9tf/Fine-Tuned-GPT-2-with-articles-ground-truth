@@ -27,15 +27,12 @@ cloudpickle==3.0.0
 coloredlogs==15.0.1
 comm==0.2.2
 contourpy==1.2.1
-cubinlinker==0.3.0
 cuda-python==11.8.3
-cudf==24.8.2
 cupy==13.3.0
 cycler==0.12.1
 cytoolz==0.12.3
 dask==2024.7.1
 dask-cuda==24.8.2
-dask-cudf==24.8.2
 dask-expr==1.1.11
 dask-glm==0.3.2
 dataclasses-json==0.6.7

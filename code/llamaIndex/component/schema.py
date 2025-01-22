@@ -116,7 +116,7 @@ Response:"""
 
 ######################################################################################
 # langchain method
-from langchain_core.pydantic_v1 import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator
 class QAR(BaseModel):
     Reason: str = Field(description="The reason for the answer")
     Question: str = Field(description="The question being asked")

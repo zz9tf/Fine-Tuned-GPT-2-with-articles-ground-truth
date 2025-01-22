@@ -62,13 +62,17 @@ embedding_model:
     based_on: "huggingface"
     name: "Linq-AI-Research/Linq-Embed-Mistral"
     cache_dir: "/work/zhengzheng/.hf_cache"
+    # TODO: restore when submit
+    # cache_dir: "/workspace/.hf_cache"
   "ollama-sfr-embedding-mistral":
     based_on: "ollama"
     name: "sammcj/sfr-embedding-mistral:Q4_K_M"
   "dunzhang/stella_en_400M_v5":
     based_on: "huggingface"
     name: "dunzhang/stella_en_400M_v5"
-    cache_dir: "/work/zhengzheng/.hf_cache"
+    # cache_dir: "/work/zhengzheng/.hf_cache"
+    # TODO: restore when submit
+    cache_dir: "/workspace/.hf_cache"
   "fonshartendorp/dutch_biomedical_entity_linking":
     based_on: "huggingface"
     name: "fonshartendorp/dutch_biomedical_entity_linking"
@@ -77,7 +81,9 @@ llm:
   "lmsys/vicuna-7b-v1.5":
     based_on: "huggingface"
     model_name: "lmsys/vicuna-7b-v1.5"
-    cache_dir: "/work/zhengzheng/.hf_cache"
+    # cache_dir: "/work/zhengzheng/.hf_cache"
+    # TODO: restore when submit
+    cache_dir: "/workspace/.hf_cache"
   "lmsys/vicuna-13b-v1.5":
     based_on: "huggingface"
     model_name: "lmsys/vicuna-13b-v1.5"
