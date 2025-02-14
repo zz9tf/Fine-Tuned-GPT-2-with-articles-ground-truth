@@ -103,8 +103,7 @@ class OpenAIBasedQARExtractor(ABC):
         # llama_index custom end
         # Langchain start
         context_str = self._prompt_template.format(context_str=node.text, qar_num=requirements.get('qar_num', 5))
-        # Langchain end
-        return {
+        entry = {
             "custom_id": node.id_,
             "method": "POST",
             "url": "/v1/chat/completions",
@@ -117,6 +116,10 @@ class OpenAIBasedQARExtractor(ABC):
                 "max_tokens": 4096
             }
         }
+        print(entry['body']['messages'])
+        exit()
+        # Langchain end
+        return entry 
 
     def _create_batches_from_nodes(self, nodes, request_num=45000):
         node_id = 0
@@ -296,7 +299,8 @@ class OpenAIBasedQARExtractor(ABC):
         self.dataset_writer = csv.DictWriter(csv_file, fieldnames=['node_id', 'qar_num', 'input_text', 'raw_response', 'objs'])
         self.dataset_writer.writeheader()
 
-        target_nodes = self._get_target_nodes(nodes)
+        # target_nodes = self._get_target_nodes(nodes)
+        target_nodes = nodes
         # TODO remove this
         # target_nodes = nodes[:2]
         # target_nodes[0].metadata['requirements'] = {'qar_num': 2}
