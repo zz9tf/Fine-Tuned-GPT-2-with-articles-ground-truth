@@ -179,8 +179,7 @@ class MultipleAbstractLevelNodeParser():
         #     print(new_texts)
         #     input()
         summary, _ = self._tree_summarizer.generate_response_hs(
-            texts=new_texts,
-            num_children=20
+            texts=new_texts
         )
         return summary
         # return ""

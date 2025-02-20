@@ -70,9 +70,7 @@ embedding_model:
   "dunzhang/stella_en_400M_v5":
     based_on: "huggingface"
     name: "dunzhang/stella_en_400M_v5"
-    # cache_dir: "/work/zhengzheng/.hf_cache"
-    # TODO: restore when submit
-    cache_dir: "/workspace/.hf_cache"
+    cache_dir: "/work/zhengzheng/.hf_cache"
   "fonshartendorp/dutch_biomedical_entity_linking":
     based_on: "huggingface"
     name: "fonshartendorp/dutch_biomedical_entity_linking"
@@ -81,9 +79,7 @@ llm:
   "lmsys/vicuna-7b-v1.5":
     based_on: "huggingface"
     model_name: "lmsys/vicuna-7b-v1.5"
-    # cache_dir: "/work/zhengzheng/.hf_cache"
-    # TODO: restore when submit
-    cache_dir: "/workspace/.hf_cache"
+    cache_dir: "/work/zhengzheng/.hf_cache"
   "lmsys/vicuna-13b-v1.5":
     based_on: "huggingface"
     model_name: "lmsys/vicuna-13b-v1.5"
@@ -100,6 +96,13 @@ llm:
 storage:
   "simple":
     embedding_model: "Linq-AI-Research/Linq-Embed-Mistral"
+    index_generator: VectorStoreIndex
+    docstore: SimpleDocumentStore
+    vector_store: SimpleVectorStore
+    index_store: SimpleIndexStore
+    property_graph_store: null
+  "wikipedia":
+    embedding_model: "dunzhang/stella_en_400M_v5"
     index_generator: VectorStoreIndex
     docstore: SimpleDocumentStore
     vector_store: SimpleVectorStore

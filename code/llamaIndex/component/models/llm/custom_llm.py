@@ -65,5 +65,5 @@ class SampleLLM:
 
         # Decode and return output
         output_text = self.tokenizer.decode(output_ids[0], skip_special_tokens=True)
-        return output_text
+        return output_text[len(prompt):]
     

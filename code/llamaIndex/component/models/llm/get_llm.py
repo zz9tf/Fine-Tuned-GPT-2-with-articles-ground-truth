@@ -27,18 +27,18 @@ def get_llm(llm_config, device=None):
             model_name=llm_config['model_name'],
             model_kwargs={
                 "quantization_config": quantization_config,
-                # "cache_dir": llm_config['cache_dir'],
-                # "local_files_only": True
+                "cache_dir": llm_config['cache_dir'],
+                "local_files_only": True
             },
             tokenizer_name=llm_config['model_name'],
             tokenizer_kwargs={
-                # "cache_dir": llm_config['cache_dir'],
-                # "local_files_only": True
+                "cache_dir": llm_config['cache_dir'],
+                "local_files_only": True
             },
             query_wrapper_prompt=LLMTemplate.tmpl,
             max_new_tokens=4096,
-            # generate_kwargs={'do_sample': True, "temperature": 0.3, "top_k": 50, "top_p": 0.95, "repetition_penalty": 1.2},
-            generate_kwargs={'do_sample': False},
+            generate_kwargs={'do_sample': True, "temperature": 0.3, "top_k": 50, "top_p": 0.95, "repetition_penalty": 1.2},
+            # generate_kwargs={'do_sample': False},
             device_map=device if device is not None else 'auto'
         )
     else:

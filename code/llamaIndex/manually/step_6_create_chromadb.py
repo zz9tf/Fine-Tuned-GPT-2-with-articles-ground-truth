@@ -150,60 +150,58 @@ def add_nodes_to_levels_chromadb(index_dir_path, index_id, break_num: int=None, 
 if __name__ == "__main__":
     # Load config
     total_config, prefix_config = load_configs()
-    root_path = "../../.."
-    indexes_dir_path = os.path.abspath(os.path.join(root_path, total_config['indexes_dir_path']))
+    indexes_dir_path = "../database"
     print(f"indexes_dir_path: {indexes_dir_path}")
     
     # prefix parameters
     python_file_name = 'step_6_create_chromadb.py'
-    index_name = 'gpt-4o-batch-all-target' # modify each time  ## gpt-4o-batch-all-target
+    index_name = 'wikipedia-mal-rag' # modify each time  ## gpt-4o-batch-all-target
     action = 'thread' # modify each time
     index_dir_path = os.path.join(indexes_dir_path, index_name)
     break_num = None
     notIncludeNotFinishChroma = True
-    cpu_num = str(2) # cpu number
+    cpu_num = str(3) # cpu number
     
-    leave_tasks = []
-    for filename in os.listdir(index_dir_path):
-        match = re.search(r'(\d+)\.jsonl', filename)
-        if match:
-            task_id = match.group(1)
-            leave_tasks.append(task_id)
-    if action == 'thread':
-        for filename in os.listdir(index_dir_path):
-            match = re.search(r'(\d+)\_chroma', filename)
-            if match:
-                task_id = match.group(1)
-                leave_tasks.remove(task_id)
-            else:
-                match = re.search(r'(\d+)_not_finish_chroma', filename)
-                if match and notIncludeNotFinishChroma:
-                    task_id = match.group(1)
-                    leave_tasks.remove(task_id)
-    elif action == 'thread_levels':
-        leave_tasks = {task_id:[] for task_id in leave_tasks}
-        for filename in os.listdir(index_dir_path):
-            levels = ['document', 'section', 'paragraph', 'multi-sentences']
-            for level in levels:
-                match = re.search(f'(\\d+)\\_{level}_chroma', filename)
-                if match:
-                    task_id = match.group(1)
-                    leave_tasks[task_id].append(match)
-                else:
-                    match = re.search(f'(\\d+)\\_{level}_not_finish_chroma', filename)
-                    for level in levels:
-                        match = re.search(f'(\\d+)\\_{level}_chroma', filename)
-                        if match and notIncludeNotFinishChroma:
-                            task_id = match.group(1)
-                            leave_tasks[task_id].append(match)
-        leave_tasks = [task_id for task_id, v in leave_tasks.items() if len(v) < 4]
-    print(f"leave task: {len(leave_tasks)}")
-    leave_tasks.sort(key=lambda x: int(x))
-    # leave_tasks = leave_tasks[:30]
     args = load_args()
     
     if args.action == 'main':
-        for i, pid in enumerate(leave_tasks[:1]):
+        leave_tasks = []
+        for filename in os.listdir(index_dir_path):
+            match = re.search(r'(\d+)\.jsonl', filename)
+            if match:
+                task_id = match.group(1)
+                leave_tasks.append(task_id)
+        if action == 'thread':
+            for filename in os.listdir(index_dir_path):
+                match = re.search(r'(\d+)\_chroma', filename)
+                if match:
+                    task_id = match.group(1)
+                    leave_tasks.remove(task_id)
+                else:
+                    match = re.search(r'(\d+)_not_finish_chroma', filename)
+                    if match and notIncludeNotFinishChroma:
+                        task_id = match.group(1)
+                        leave_tasks.remove(task_id)
+        elif action == 'thread_levels':
+            leave_tasks = {task_id:[] for task_id in leave_tasks}
+            for filename in os.listdir(index_dir_path):
+                levels = ['document', 'section', 'paragraph', 'multi-sentences']
+                for level in levels:
+                    match = re.search(f'(\\d+)\\_{level}_chroma', filename)
+                    if match:
+                        task_id = match.group(1)
+                        leave_tasks[task_id].append(match)
+                    else:
+                        match = re.search(f'(\\d+)\\_{level}_not_finish_chroma', filename)
+                        for level in levels:
+                            match = re.search(f'(\\d+)\\_{level}_chroma', filename)
+                            if match and notIncludeNotFinishChroma:
+                                task_id = match.group(1)
+                                leave_tasks[task_id].append(match)
+            leave_tasks = [task_id for task_id, v in leave_tasks.items() if len(v) < 4]
+        print(f"leave task: {len(leave_tasks)}")
+        leave_tasks.sort(key=lambda x: int(x))
+        for i, pid in enumerate(leave_tasks):
             job_name = submit_job(
                 script_path=os.getcwd(),
                 cpu_num=cpu_num,

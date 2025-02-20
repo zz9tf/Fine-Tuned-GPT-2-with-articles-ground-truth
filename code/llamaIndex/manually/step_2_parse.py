@@ -35,7 +35,7 @@ def submit_job(
     script_path = os.path.abspath(os.path.join(script_path, 'execute/execute.sh'))
     generate_and_execute_slurm_job(
         # python_start_script=f"{python_file_name} --input_file {input_file} --action thread --pid {pid}",
-        python_start_script=f"{python_file_name} --input_file {input_file} --action rand_select_thread --pid {pid}",
+        python_start_script=f"{python_file_name} --input_file {input_file} --action thread --pid {pid}",
         job_name=job_name,
         gpu=gpu,
         num=gn,
@@ -52,6 +52,7 @@ def one_thread_parser(
 ):
     # Load nodes
     nodes = load_nodes_jsonl(input_file_path)
+    nodes = nodes
 
     # Load parser
     parser = MultipleAbstractLevelNodeParser.from_defaults(

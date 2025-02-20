@@ -27,10 +27,9 @@ class StellaEn400MV5(BaseEmbedding):
     ) -> None:
         super().__init__(**kwargs)
         self._device = torch.device(device) if device \
-            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            else torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             
         vector_dim = 1024
-        vector_linear_directory = f"2_Dense_{vector_dim}"
         self._model = AutoModel.from_pretrained(
             "dunzhang/stella_en_400M_v5", 
             trust_remote_code=True,
@@ -41,15 +40,11 @@ class StellaEn400MV5(BaseEmbedding):
             in_features=self._model.config.hidden_size,
             out_features=vector_dim
         )
-        linear_vector_dir = os.path.join(
-            embedding_config['cache_dir'], 
-            f"stella_en_400M_v5/{vector_linear_directory}"
-        )
         
         vector_linear_dict = {
             k.replace("linear.", ""): v for k, v in
             torch.load(
-                '/workspace/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/component/models/embed/pytorch_model.bin'
+                '/home/zhengzheng/scratch0/projects/Fine-Tuned-GPT-2-with-articles-ground-truth/code/llamaIndex/component/models/embed/pytorch_model.bin'
             ).items()
         }
         
